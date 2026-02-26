@@ -1530,6 +1530,12 @@ tbody tr:last-child td{border-bottom:none;}
     justify-content: center !important;
     padding: 0 !important;
     gap: 0 !important;
+    /* Azzera stili desktop */
+    background: rgba(255,255,255,0.18) !important;
+    border: 1.5px solid rgba(255,255,255,0.35) !important;
+    border-right: 1.5px solid rgba(255,255,255,0.35) !important;
+    box-shadow: none !important;
+    color: #fff !important;
   }
   #btn-dashboard svg { width: 20px !important; height: 20px !important; margin: 0 !important; }
   #btn-dashboard span { display: none !important; }
@@ -1559,15 +1565,22 @@ tbody tr:last-child td{border-bottom:none;}
   .header-title-full { display: none !important; }
   #header .hlogo p { display: none !important; }
 
-  /* Anno badge: compatto ma leggibile */
+  /* Anno badge: stesso stile dei bottoni bianchi */
   #header-db-badge{
     font-size: 14px !important;
     font-weight: 900 !important;
-    padding: 4px 10px !important;
+    padding: 0 12px !important;
+    height: 42px !important;
+    line-height: 42px !important;
     margin-left: 0 !important;
     border-radius: 12px !important;
-    display: inline-block !important;
+    display: inline-flex !important;
+    align-items: center !important;
     flex-shrink: 0;
+    background: rgba(255,255,255,0.18) !important;
+    color: #fff !important;
+    border: 1.5px solid rgba(255,255,255,0.35) !important;
+    box-shadow: none !important;
   }
   /* Pallino sync: solo dot, no testo */
   #header-sync-badge{
