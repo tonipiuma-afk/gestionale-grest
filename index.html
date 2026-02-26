@@ -2388,107 +2388,131 @@ tbody tr:last-child td{border-bottom:none;}
 ════════════════════════════════════════════════════ */
 @media(max-width:768px){
 
-  /* ── Header: una sola riga compatta ── */
+  /* ── Header: riga unica, tutti i bottoni uguali ── */
   #header{
-    padding:0 10px!important;
-    height:48px!important;
-    gap:6px!important;
+    padding: 0 10px !important;
+    height: 58px !important;
+    gap: 7px !important;
+    display: flex !important;
+    align-items: center !important;
   }
-  #header-logo-container{
-    width:28px!important;height:28px!important;
-    margin-right:2px!important;flex-shrink:0;
-  }
+  #header-logo-container{ display:none!important; }
+
+  /* Titolo: solo anno */
   #header .hlogo{ margin-left:0!important;flex:1;min-width:0; }
   #header .hlogo h1{
     font-size:13px!important;letter-spacing:0!important;
-    display:flex;align-items:center;gap:4px!important;
+    display:flex!important;align-items:center;gap:6px!important;
     white-space:nowrap;overflow:hidden;margin-bottom:0!important;
-    flex-wrap:nowrap!important;
   }
-  /* Nascondi "GESTIONALE GREST", mostra solo anno */
-  .header-title-full { display:none!important; }
+  .header-title-full{ display:none!important; }
+  #header .hlogo p{ display:none!important; }
+
+  /* Anno — stesso stile bottoni */
   #header-db-badge{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    height:42px!important;
+    padding:0 14px!important;
     font-size:15px!important;
     font-weight:900!important;
-    padding:4px 12px!important;
-    margin-left:0!important;
-    border-radius:12px!important;
     letter-spacing:.5px!important;
-    display:inline-block!important;
-    flex-shrink:0;
+    border-radius:12px!important;
+    margin-left:0!important;
+    background:rgba(255,255,255,0.18)!important;
+    color:#fff!important;
+    border:1.5px solid rgba(255,255,255,0.35)!important;
+    box-shadow:none!important;
   }
-  #header .hlogo p{ display:none!important; }
+
+  /* Pallino sync: solo dot */
   #header-sync-badge{
-    padding:3px 5px!important;margin-left:2px!important;
+    padding:0!important;margin-left:0!important;
+    background:transparent!important;border:none!important;
     display:inline-flex!important;align-items:center;flex-shrink:0;
   }
   #sync-status-text{ display:none!important; }
   #sync-status-dot{ margin-right:0!important; }
 
-  /* ── Actions: compatte ── */
-  #header-actions{ gap:5px!important; }
-  #online-users-pill{ padding:4px 8px!important;border-radius:9px!important; }
-  #online-users-pill span{ font-size:10px!important;gap:3px!important; }
+  /* Actions */
+  #header-actions{ gap:7px!important;flex-shrink:0;flex-wrap:nowrap;align-items:center; }
+  #online-users-pill{ display:none!important; }
 
-  /* Bottone DATABASE e IMPOSTAZIONI */
+  /* Dashboard — uguale agli altri */
+  #btn-dashboard{
+    width:42px!important;min-width:42px!important;height:42px!important;
+    padding:0!important;border-radius:12px!important;
+    flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    gap:0!important;flex-shrink:0;display:flex!important;
+    background:rgba(255,255,255,0.18)!important;
+    border:1.5px solid rgba(255,255,255,0.35)!important;
+    border-right:1.5px solid rgba(255,255,255,0.35)!important;
+    box-shadow:none!important;color:#fff!important;
+    margin-left:0!important;margin-right:0!important;
+  }
+  #btn-dashboard svg{ width:20px!important;height:20px!important;margin:0!important; }
+  #btn-dashboard span{ display:none!important; }
+
+  /* Tutti i bottoni azione: 42×42 uniformi */
   #btn-database,#btn-impostazioni,#btn-nuovo-iscritto{
-    height:34px!important;min-width:0!important;width:auto!important;
-    padding:0 9px!important;border-radius:9px!important;
-    flex-direction:row!important;gap:4px!important;
-    box-shadow:0 2px 6px rgba(0,0,0,0.12)!important;
+    width:42px!important;min-width:42px!important;height:42px!important;
+    padding:0!important;border-radius:12px!important;
+    flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    gap:0!important;flex-shrink:0;display:flex!important;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15)!important;
   }
-  #btn-database .db-icon,#btn-impostazioni .db-icon,#btn-nuovo-iscritto .db-icon{ width:15px!important;height:15px!important;flex-shrink:0; }
-  #btn-database .db-label,#btn-impostazioni .db-label,#btn-nuovo-iscritto .db-label{ display:block!important;font-size:10px!important;letter-spacing:0!important;font-weight:800; }
+  #btn-database{ display:flex!important; }
+  #btn-database .db-icon,#btn-impostazioni .db-icon,#btn-nuovo-iscritto .db-icon{
+    width:20px!important;height:20px!important;flex-shrink:0;margin:0!important;
+  }
+  #btn-database .db-label,#btn-impostazioni .db-label,#btn-nuovo-iscritto .db-label{
+    display:none!important;
+  }
 
-  /* User badge */
+  /* User badge: 42×42 circolare */
   #user-badge{
-    height:34px!important;min-width:0!important;width:auto!important;
-    padding:0 9px!important;border-radius:9px!important;
-    flex-direction:row!important;gap:5px!important;
-    box-shadow:0 2px 6px rgba(0,0,0,0.12)!important;
+    width:42px!important;min-width:42px!important;height:42px!important;
+    padding:0!important;border-radius:50%!important;
+    flex-direction:row!important;align-items:center!important;justify-content:center!important;
+    gap:0!important;flex-shrink:0;display:flex!important;
+    border:2px solid rgba(255,255,255,0.4)!important;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15)!important;
   }
-  #user-badge .ub-avatar{ width:22px!important;height:22px!important;font-size:10px!important;flex-shrink:0; }
-  #user-badge .ub-name{
-    display:block!important;font-size:10px!important;letter-spacing:0!important;
-    max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  }
-  #user-badge .ub-arrow{ display:inline!important;font-size:8px!important;color:rgba(0,0,0,0.3); }
+  #user-badge .ub-avatar{ width:30px!important;height:30px!important;font-size:12px!important;flex-shrink:0; }
+  #user-badge .ub-name,#user-badge .ub-arrow,#user-badge .ub-info,
+  #user-badge #xp-header-badge{ display:none!important; }
 
-  /* Dropdown posizione mobile */
-  #user-menu{ top:54px!important;right:8px!important; }
-  #online-panel{ top:54px!important;right:72px!important; }
+  /* Dropdown */
+  #user-menu{ top:64px!important;right:8px!important; }
+  #online-panel{ top:64px!important;right:8px!important; }
+  #main{ margin-top:64px!important; }
 
-  /* ── MAIN: compensazione header più basso ── */
-  #main{ margin-top:56px!important; }
-
-  /* ── BOTTOM NAV: pulsanti bilanciati ── */
+  /* Bottom nav */
   .mob-nav-btn{
     flex:1 1 0!important;min-width:0!important;max-width:none!important;
-    padding:5px 2px 4px!important;
-    font-size:0!important; /* nasconde testo overflow */
+    padding:5px 2px 4px!important;font-size:0!important;
   }
   .mob-nav-btn .mob-label{
-    font-size:8px!important;font-weight:800!important;
-    letter-spacing:0!important;
+    font-size:8px!important;font-weight:800!important;letter-spacing:0!important;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    width:100%;text-align:center;display:block;
-    line-height:1.2;
+    width:100%;text-align:center;display:block;line-height:1.2;
   }
   .mob-nav-btn svg{ width:20px!important;height:20px!important; }
-
-  #mobile-nav{
-    padding:0 4px!important;gap:0!important;
-    overflow-x:hidden!important;
-  }
+  #mobile-nav{ padding:0 4px!important;gap:0!important;overflow-x:hidden!important; }
 }
 
-/* ── Extra small: etichette ancora più compatte ── */
+/* ── Extra small ≤390px ── */
 @media(max-width:390px){
-  #header{ height:44px!important; }
-  #main{ margin-top:50px!important; }
-  #btn-database .db-label,#btn-impostazioni .db-label,#btn-nuovo-iscritto .db-label{ display:none!important; }
-  #user-badge .ub-name{ display:none!important; }
-  #header-db-badge{ max-width:50px!important; }
+  #header{ height:52px!important;padding:0 8px!important;gap:5px!important; }
+  #main{ margin-top:58px!important; }
+  #btn-dashboard,#btn-database,#btn-impostazioni,#btn-nuovo-iscritto{
+    width:38px!important;min-width:38px!important;height:38px!important;
+    border-radius:10px!important;
+  }
+  #btn-database{ display:flex!important; }
+  #user-badge{ width:38px!important;min-width:38px!important;height:38px!important; }
+  #header-db-badge{ height:38px!important;padding:0 10px!important;font-size:14px!important; }
   .mob-nav-btn .mob-label{ font-size:7px!important; }
 }
 
