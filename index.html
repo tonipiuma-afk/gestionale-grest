@@ -4570,17 +4570,17 @@ input[type="checkbox"]:checked {
   }
   /* Intestazione giorno: colonna sinistra verticale */
   .cal-day-head {
-    width: 78px !important;
-    min-width: 78px !important;
+    width: 72px !important;
+    min-width: 72px !important;
     flex-shrink: 0 !important;
     border-bottom: none !important;
     border-right: 1px solid var(--border) !important;
     padding: 14px 8px !important;
     justify-content: center !important;
   }
-  .cal-day-head-nome { font-size: 10px !important; letter-spacing: 1px !important; }
-  .cal-day-head-num  { font-size: 28px !important; }
-  .cal-day-head-mese { font-size: 10px !important; }
+  .cal-day-head-nome { font-size: 9px !important; letter-spacing: 1px !important; }
+  .cal-day-head-num  { font-size: 26px !important; }
+  .cal-day-head-mese { font-size: 9px !important; }
   .cal-day-head::after { margin-top: 4px !important; }
 
   /* Corpo card: tutta la larghezza rimanente */
@@ -4598,9 +4598,18 @@ input[type="checkbox"]:checked {
     justify-content: flex-start !important;
   }
 
-  /* Tabella orari: gestita dal blocco FIX MOBILE a fine file */
+  /* Tabella orari: font leggibile */
+  .cal-day-td-time {
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+    width: 36% !important;
+  }
+  .cal-day-td-act {
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+  }
   .cal-day-fill { min-height: 4px !important; }
-  .cal-day-extra { font-size: 11px !important; padding: 6px 12px !important; }
+  .cal-day-extra { font-size: 10px !important; padding: 6px 10px !important; }
 
   /* Hover disabilitato su touch */
   .cal-day-card:hover { transform: none !important; }
@@ -4626,34 +4635,26 @@ input[type="checkbox"]:checked {
     border-radius: 12px !important;
   }
   .cal-periodo-giorno-head {
-    width: 76px !important;
-    min-width: 76px !important;
+    width: 68px !important;
+    min-width: 68px !important;
     flex-shrink: 0 !important;
     border-bottom: none !important;
     border-right: 1px solid var(--border) !important;
     padding: 12px 6px !important;
     justify-content: center !important;
   }
-  .cal-periodo-giorno-nome { font-size: 9px !important; }
-  .cal-periodo-giorno-num  { font-size: 24px !important; }
-  .cal-periodo-giorno-mese { font-size: 9px !important; }
+  .cal-periodo-giorno-nome { font-size: 8px !important; }
+  .cal-periodo-giorno-num  { font-size: 22px !important; }
+  .cal-periodo-giorno-mese { font-size: 8px !important; }
 
   .cal-periodo-orari { padding: 6px 0 6px !important; }
-  .cal-periodo-slot { 
-    display: flex !important; 
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    padding: 7px 12px !important; 
-    gap: 3px !important;
-  }
-  .cal-periodo-slot-time { font-size: 12px !important; white-space: nowrap !important; flex-shrink: 0 !important; }
-  .cal-periodo-slot-sep { font-size: 11px !important; flex-shrink: 0 !important; }
-  .cal-periodo-slot-act  { font-size: 12px !important; white-space: normal !important; word-break: break-word !important; line-height: 1.3 !important; flex: 1 !important; min-width: 0 !important; }
+  .cal-periodo-slot { padding: 5px 10px !important; gap: 4px !important; }
+  .cal-periodo-slot-time { font-size: 10px !important; }
+  .cal-periodo-slot-act  { font-size: 10px !important; }
   .cal-periodo-vuoto { min-height: 50px !important; font-size: 16px !important; }
-  .cal-periodo-speciale { font-size: 13px !important; padding: 12px !important; justify-content: flex-start !important; }
-  .cal-periodo-badge { font-size: 10px !important; margin: 6px 8px 2px !important; }
-  .cal-periodo-extra { font-size: 10px !important; padding: 5px 10px !important; }
+  .cal-periodo-speciale { font-size: 12px !important; padding: 12px !important; justify-content: flex-start !important; }
+  .cal-periodo-badge { font-size: 9px !important; margin: 6px 8px 2px !important; }
+  .cal-periodo-extra { font-size: 9px !important; padding: 5px 10px !important; }
   .cal-periodo-giorno:hover { transform: none !important; }
 }
 
@@ -4861,94 +4862,6 @@ input[type="checkbox"]:checked {
 .cal-no-data {
   text-align:center; padding:60px 20px; color:var(--text-muted);
   font-size:15px; font-style:italic;
-}
-
-/* ── FIX MOBILE: settimana e modal giorno ── */
-@media (max-width: 768px) {
-
-  /* Vista SETTIMANA: stessa struttura del periodo
-     — la tabella diventa display:contents, ogni riga diventa flex */
-  .cal-day-orari-table { display: block !important; width: 100% !important; }
-  .cal-day-orari-table tbody { display: block !important; }
-  .cal-day-orari-table tr {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 3px !important;
-    padding: 7px 12px !important;
-    border-bottom: 1px solid var(--border) !important;
-  }
-  .cal-day-orari-table tr:last-child { border-bottom: none !important; }
-  .cal-day-td-time {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    color: var(--text-muted) !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    width: auto !important;
-  }
-  .cal-day-orari-table tr:first-child .cal-day-td-time { color: var(--teal) !important; }
-  .cal-day-td-act {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    color: var(--text) !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    line-height: 1.3 !important;
-    flex: 1 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    text-transform: uppercase !important;
-  }
-
-  /* Modal giorno: bottom sheet scrollabile */
-  #cal-modal-box {
-    display: flex !important;
-    flex-direction: column !important;
-    max-height: 88vh !important;
-    border-radius: 24px 24px 0 0 !important;
-  }
-  #cal-modal-body {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    flex: 1 !important;
-  }
-  /* Tabella orari nel modal: stessi parametri del periodo */
-  #cal-modal-body table { display: block !important; width: 100% !important; }
-  #cal-modal-body table tbody { display: block !important; }
-  #cal-modal-body table tr {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 3px !important;
-    padding: 7px 12px !important;
-    border-bottom: 1px solid #f0f0f0 !important;
-  }
-  #cal-modal-body table tr:last-child { border-bottom: none !important; }
-  #cal-modal-body table td:first-child {
-    font-size: 12px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    width: auto !important;
-    min-width: 0 !important;
-  }
-  #cal-modal-body table td:last-child {
-    font-size: 12px !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    line-height: 1.3 !important;
-    flex: 1 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-  }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -6501,7 +6414,7 @@ img:not([loading]) { loading: lazy; }
 
 <!-- Modal dettaglio giorno -->
 <div class="modal-overlay" id="cal-modal-giorno" onclick="if(event.target===this)closeModal('cal-modal-giorno')">
-  <div class="modal-box" style="max-width:480px;padding:0;overflow:hidden;border-radius:14px" id="cal-modal-box">
+  <div class="modal-box" style="max-width:480px;padding:0;overflow:hidden;border-radius:14px">
     <div id="cal-modal-body"></div>
     <div style="padding:12px 16px;background:#f5f5f5;text-align:right;display:flex;gap:8px;justify-content:flex-end">
       <button class="admin-only" onclick="calModalModifica()" style="background:#1976D2;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer;font-size:13px">✏️ Modifica</button>
@@ -12861,14 +12774,16 @@ function calRenderSettimana() {
       }
     } else {
       html += `<div class="cal-day-orari-wrap">`;
-      html += `<table class="cal-day-orari-table">`;
+      html += `<div class="cal-day-orari-table">`;
       (g.orari || []).forEach((o, i) => {
-        html += `<tr>
-          <td class="cal-day-td-time">${o.inizio} - ${o.fine}</td>
-          <td class="cal-day-td-act">${o.attivita}</td>
-        </tr>`;
+        html += `<div class="cal-periodo-slot">
+          <span class="cal-periodo-slot-time">${o.inizio}</span>
+          <span class="cal-periodo-slot-sep">–</span>
+          <span class="cal-periodo-slot-time">${o.fine}</span>
+          <span class="cal-periodo-slot-act">${o.attivita}</span>
+        </div>`;
       });
-      html += `</table>`;
+      html += `</div>`;
       html += `<div class="cal-day-fill"></div>`;
       if (g.extra && g.extra.length) {
         g.extra.forEach(e => {
@@ -13105,16 +13020,17 @@ function calApriGiorno(iso) {
       html += `</div>`;
     }
   } else {
-    // Con orari: tabella
-    html += `<table style="width:100%;border-collapse:collapse">`;
+    // Con orari: stessa struttura del periodo
+    html += `<div style="padding:4px 0">`;
     (g.orari || []).forEach((o, i) => {
-      const bg = i%2===0 ? '#FFFDE7' : '#fff';
-      html += `<tr style="background:${bg}">
-        <td style="padding:10px 14px;font-size:13px;font-weight:800;color:#555;border-bottom:1px solid #f0f0f0;white-space:nowrap;width:38%">${o.inizio} - ${o.fine}</td>
-        <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#212121;border-bottom:1px solid #f0f0f0;text-transform:uppercase">${o.attivita}</td>
-      </tr>`;
+      html += `<div class="cal-periodo-slot">
+        <span class="cal-periodo-slot-time">${o.inizio}</span>
+        <span class="cal-periodo-slot-sep">–</span>
+        <span class="cal-periodo-slot-time">${o.fine}</span>
+        <span class="cal-periodo-slot-act">${o.attivita}</span>
+      </div>`;
     });
-    html += `</table>`;
+    html += `</div>`;
     if(g.extra && g.extra.length) {
       g.extra.forEach(e => {
         const isSera = e.toUpperCase().includes('SERATA');
