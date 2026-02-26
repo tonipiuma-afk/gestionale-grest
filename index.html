@@ -7622,7 +7622,7 @@ img:not([loading]) { loading: lazy; }
   
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px">
     <button type="button" class="btn btn-teal" onclick="saveImp()">💾 Salva impostazioni</button>
-    <button type="button" class="btn" style="background:var(--teal-light);color:var(--teal-dark);border:1.5px solid var(--teal);font-weight:800" onclick="saveImp();if(typeof autoSyncSilenzioso==='function'){autoSyncSilenzioso().then(()=>showToast('☁️ Sincronizzato!','success')).catch(()=>showToast('⚠️ Sync fallito','error'))}">☁️ Salva &amp; Sincronizza</button>
+    <button type="button" class="btn" style="background:var(--teal-light);color:var(--teal-dark);border:1.5px solid var(--teal);font-weight:800" onclick="saveImp();if(typeof uploadToFirebase==='function'){uploadToFirebase().then(()=>showToast('☁️ Sincronizzato online!','success')).catch(()=>showToast('⚠️ Sync fallito — controlla la connessione','error'))}">☁️ Salva &amp; Sincronizza</button>
   </div>
 </div><!-- /view-impostazioni -->
 
@@ -12946,10 +12946,12 @@ function calSalvaSuDB() {
   const db = getDb(); if(!db) return;
   db.calFonti      = CAL2.fonti;
   db.calFonteAttiva = CAL2.fonteAttiva;
-  saveStorage(true); // immediate=true forza il salvataggio
-  // Triggera il sync cloud se attivo
-  if(typeof autoSyncSilenzioso === 'function' && typeof _jbSyncEnabled !== 'undefined' && _jbSyncEnabled) {
-    autoSyncSilenzioso();
+  saveStorage(true);
+  // Forza upload diretto su Supabase — bypassa il throttle di 15s di autoSyncSilenzioso
+  if(typeof uploadToFirebase === 'function' && typeof _jbSyncEnabled !== 'undefined' && _jbSyncEnabled) {
+    uploadToFirebase()
+      .then(() => { if(typeof aggiornaStatoFB === 'function') aggiornaStatoFB('connected'); })
+      .catch(e => console.warn('[calSalvaSuDB] upload error:', e));
   }
 }
 
@@ -14116,9 +14118,11 @@ function saveImp(){
   });
   saveStorage(true);updateHeader();renderImpSquadre('Grest');renderImpSquadre('MiniGrest');
   showToast('✅ Impostazioni salvate!','success');
-  // Sync online immediato
-  if(typeof autoSyncSilenzioso==='function' && typeof _jbSyncEnabled!=='undefined' && _jbSyncEnabled){
-    autoSyncSilenzioso();
+  // Upload diretto su Supabase
+  if(typeof uploadToFirebase==='function' && typeof _jbSyncEnabled!=='undefined' && _jbSyncEnabled){
+    uploadToFirebase()
+      .then(()=>{ if(typeof aggiornaStatoFB==='function') aggiornaStatoFB('connected'); })
+      .catch(e=>console.warn('[saveImp] upload error:',e));
   }
 }
 
