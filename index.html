@@ -2366,13 +2366,19 @@ tbody tr:last-child td{border-bottom:none;}
     white-space:nowrap;overflow:hidden;margin-bottom:0!important;
     flex-wrap:nowrap!important;
   }
-  #header .hlogo p{ display:none!important; }
+  /* Nascondi "GESTIONALE GREST", mostra solo anno */
+  .header-title-full { display:none!important; }
   #header-db-badge{
-    font-size:10px!important;padding:2px 7px!important;
-    margin-left:3px!important;border-radius:10px!important;
-    max-width:65px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    vertical-align:middle;display:inline-block!important;flex-shrink:0;
+    font-size:15px!important;
+    font-weight:900!important;
+    padding:4px 12px!important;
+    margin-left:0!important;
+    border-radius:12px!important;
+    letter-spacing:.5px!important;
+    display:inline-block!important;
+    flex-shrink:0;
   }
+  #header .hlogo p{ display:none!important; }
   #header-sync-badge{
     padding:3px 5px!important;margin-left:2px!important;
     display:inline-flex!important;align-items:center;flex-shrink:0;
@@ -4912,7 +4918,7 @@ img:not([loading]) { loading: lazy; }
   <div id="header-logo-container" style="width:65px;height:65px;display:flex;align-items:center;justify-content:center;margin-right:16px"></div>
   <div class="hlogo">
     <h1>
-      GESTIONALE GREST
+      <span class="header-title-full">GESTIONALE GREST</span>
       <span id="header-db-badge" style="display:inline-block;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;margin-left:12px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15)"></span>
       <span id="header-sync-badge" style="display:inline-block;background:rgba(76,175,80,0.15);color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;margin-left:8px;border:2px solid rgba(255,255,255,0.3)">
         <span id="sync-status-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4CAF50;margin-right:6px;animation:pulse 2s infinite"></span>
