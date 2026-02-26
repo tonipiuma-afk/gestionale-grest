@@ -2659,36 +2659,8 @@ tbody tr:last-child td{border-bottom:none;}
   /* ── Debug panel nascosto su mobile ── */
   #view-calendario .card[style*="background:#fff3cd"] { display:none !important; }
 
-  /* ── Nuova toolbar calendario: stack verticale su mobile ── */
-  .cal-toolbar-card { padding: 12px 14px; }
-  .cal-toolbar-row--top,
-  .cal-toolbar-row--bottom { flex-direction: column; align-items: stretch; gap: 8px; }
-  .cal-toolbar-fonte { min-width: 0; }
-  .cal-fonte-select { max-width: 100% !important; }
-  .cal-vista-group { justify-content: center; }
-  .cal-nav-group { justify-content: center; flex-wrap: wrap; }
-  .cal-nav-label-wrap { min-width: 140px; }
-  .cal-admin-group { justify-content: center; flex-wrap: wrap; }
-  .cal-btn-importa, .cal-btn-svuota { flex: 1; justify-content: center; }
-
-  /* ── Griglia settimana 5 col → scroll orizzontale su mobile ── */
-  .cal-week-grid {
-    grid-template-columns: repeat(5, minmax(130px, 1fr)) !important;
-    overflow-x: auto !important;
-    padding: 10px !important;
-    gap: 8px !important;
-  }
-  .cal-day-head { font-size: 10px !important; padding: 9px 6px !important; }
-  .cal-day-td-time, .cal-day-td-act { font-size: 10px !important; padding: 7px 8px !important; }
-
-  /* ── Vista periodo su mobile ── */
-  .cal-periodo-giorni-grid {
-    grid-template-columns: repeat(5, minmax(140px, 1fr)) !important;
-    overflow-x: auto !important;
-  }
-  .cal-periodo-giorno-num { font-size: 20px !important; }
-  .cal-periodo-slot { padding: 4px 8px !important; }
-  .cal-periodo-slot-time, .cal-periodo-slot-act { font-size: 9px !important; }
+  /* ── Griglia periodo su mobile: vedi regole in cal CSS block ── */
+  .cal-periodo-giorni-grid { overflow-x: visible !important; }
 
   /* Data corrente centrata */
   #cal-current-date {
@@ -4210,6 +4182,11 @@ input[type="checkbox"]:checked {
   #view-comunicazioni > .card > div[style*="auto-fit"]{
     grid-template-columns:1fr!important;
   }
+  /* Calendario: intestazione giorno più stretta */
+  .cal-day-head { width: 60px !important; min-width: 60px !important; }
+  .cal-day-head-num { font-size: 22px !important; }
+  .cal-periodo-giorno-head { width: 58px !important; min-width: 58px !important; }
+  .cal-periodo-giorno-num { font-size: 18px !important; }
 }
 
 /* ══════════════════════════════════════════
@@ -4474,22 +4451,142 @@ input[type="checkbox"]:checked {
 
 /* Mobile */
 @media (max-width: 768px) {
-  .cal-toolbar-card { padding: 12px 14px; }
-  .cal-toolbar-row--top, .cal-toolbar-row--bottom { flex-direction: column; align-items: stretch; gap: 8px; }
-  .cal-fonte-select { max-width: 100% !important; }
-  .cal-vista-group { justify-content: center; }
-  .cal-nav-group { justify-content: center; flex-wrap: wrap; }
-  .cal-nav-label-wrap { min-width: 140px; }
-  .cal-admin-group { justify-content: center; flex-wrap: wrap; }
-  .cal-btn-importa, .cal-btn-svuota { flex: 1; justify-content: center; }
-  .cal-week-grid {
-    grid-template-columns: repeat(5, minmax(120px, 1fr)) !important;
-    overflow-x: auto !important;
-    padding: 4px 4px 16px !important;
-    gap: 8px !important;
+
+  /* ── TOOLBAR MOBILE ── */
+  .cal-toolbar-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+    margin-bottom: 12px;
   }
-  .cal-day-head-num { font-size: 24px !important; }
-  .cal-day-td-time, .cal-day-td-act { font-size: 10px !important; padding: 7px 8px !important; }
+  .cal-toolbar-row--top,
+  .cal-toolbar-row--bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .cal-toolbar-divider { margin: 8px 0; }
+  .cal-toolbar-fonte { min-width: 0; }
+  .cal-fonte-select { max-width: 100% !important; font-size: 14px; padding: 10px 12px; }
+
+  /* Vista toggle: full width */
+  .cal-vista-group { justify-content: stretch; }
+  .cal-vbtn { flex: 1; justify-content: center; padding: 9px 12px; font-size: 12px; }
+
+  /* Navigazione: centrata e spaziata */
+  .cal-nav-group { justify-content: center; flex-wrap: wrap; gap: 8px; }
+  .cal-nav-label-wrap { flex: 1; min-width: 0; }
+  .cal-nav-label { font-size: 12px; }
+  .cal-nav--arrow { padding: 9px 16px; font-size: 18px; }
+  .cal-nav--oggi { padding: 9px 16px; font-size: 12px; }
+
+  /* Pulsanti admin: full width */
+  .cal-admin-group { flex-wrap: wrap; }
+  .cal-btn-importa, .cal-btn-svuota {
+    flex: 1; justify-content: center;
+    padding: 10px 12px; font-size: 13px;
+  }
+
+  /* ── VISTA SETTIMANA MOBILE: 1 colonna ── */
+  .cal-week-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 4px 0 16px !important;
+    overflow-x: visible !important;
+  }
+  .cal-day-card {
+    flex-direction: row !important;
+    border-radius: 14px !important;
+    min-height: 0 !important;
+  }
+  /* Intestazione giorno: colonna sinistra verticale */
+  .cal-day-head {
+    width: 72px !important;
+    min-width: 72px !important;
+    flex-shrink: 0 !important;
+    border-bottom: none !important;
+    border-right: 1px solid var(--border) !important;
+    padding: 14px 8px !important;
+    justify-content: center !important;
+  }
+  .cal-day-head-nome { font-size: 9px !important; letter-spacing: 1px !important; }
+  .cal-day-head-num  { font-size: 26px !important; }
+  .cal-day-head-mese { font-size: 9px !important; }
+  .cal-day-head::after { margin-top: 4px !important; }
+
+  /* Corpo card: tutta la larghezza rimanente */
+  .cal-day-orari-wrap { flex: 1 !important; }
+  .cal-day-empty-fill {
+    flex: 1 !important;
+    min-height: 60px !important;
+    font-size: 22px !important;
+  }
+  .cal-day-special {
+    flex: 1 !important;
+    font-size: 15px !important;
+    padding: 14px 12px !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Tabella orari: font leggibile */
+  .cal-day-td-time {
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+    width: 36% !important;
+  }
+  .cal-day-td-act {
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+  }
+  .cal-day-fill { min-height: 4px !important; }
+  .cal-day-extra { font-size: 10px !important; padding: 6px 10px !important; }
+
+  /* Hover disabilitato su touch */
+  .cal-day-card:hover { transform: none !important; }
+
+  /* ── VISTA PERIODO MOBILE: 1 settimana per volta ── */
+  .cal-periodo-container { padding: 0 0 16px; }
+  .cal-periodo-header-bar { padding: 0 0 12px; }
+  .cal-periodo-title { font-size: 14px; }
+  .cal-periodo-print-btn { padding: 8px 14px; font-size: 12px; }
+
+  .cal-periodo-settimana { margin-bottom: 16px; }
+  .cal-periodo-sett-label { font-size: 10px; letter-spacing: 1px; }
+
+  /* Griglia periodo: 1 colonna su mobile */
+  .cal-periodo-giorni-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    overflow-x: visible !important;
+  }
+  .cal-periodo-giorno {
+    flex-direction: row !important;
+    border-radius: 12px !important;
+  }
+  .cal-periodo-giorno-head {
+    width: 68px !important;
+    min-width: 68px !important;
+    flex-shrink: 0 !important;
+    border-bottom: none !important;
+    border-right: 1px solid var(--border) !important;
+    padding: 12px 6px !important;
+    justify-content: center !important;
+  }
+  .cal-periodo-giorno-nome { font-size: 8px !important; }
+  .cal-periodo-giorno-num  { font-size: 22px !important; }
+  .cal-periodo-giorno-mese { font-size: 8px !important; }
+
+  .cal-periodo-orari { padding: 6px 0 6px !important; }
+  .cal-periodo-slot { padding: 5px 10px !important; gap: 4px !important; }
+  .cal-periodo-slot-time { font-size: 10px !important; }
+  .cal-periodo-slot-act  { font-size: 10px !important; }
+  .cal-periodo-vuoto { min-height: 50px !important; font-size: 16px !important; }
+  .cal-periodo-speciale { font-size: 12px !important; padding: 12px !important; justify-content: flex-start !important; }
+  .cal-periodo-badge { font-size: 9px !important; margin: 6px 8px 2px !important; }
+  .cal-periodo-extra { font-size: 9px !important; padding: 5px 10px !important; }
+  .cal-periodo-giorno:hover { transform: none !important; }
 }
 
 /* ── Vecchie classi full-day (compat.) ── */
