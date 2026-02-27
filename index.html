@@ -1300,7 +1300,7 @@ tbody tr:last-child td{border-bottom:none;}
 .week-chip .wc-label{font-size:9px;margin-bottom:1px;}
 
 /* ── PRESENZE SETTIMANE ── */
-.settimane-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;}
+.settimane-scroll{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;padding-bottom:8px;}
 .sett-box{min-width:120px;background:#fff;border-radius:16px;border:2px solid var(--border);padding:18px 14px;text-align:center;flex-shrink:0;}
 .sett-box .sb-label{font-size:13px;font-weight:800;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;}
 .sett-box .sb-value{font-size:42px;font-weight:900;color:var(--teal);}
@@ -2056,10 +2056,12 @@ tbody tr:last-child td{border-bottom:none;}
      SETTIMANE SCROLL
   ══════════════════════════════════ */
   .settimane-scroll{
-    -webkit-overflow-scrolling:touch;
+    flex-wrap:wrap;
+    justify-content:center;
     padding-bottom:6px;
     gap:9px;
   }
+  .sett-box{min-width:90px;padding:12px 10px;}
 
   /* ══════════════════════════════════
      MENSA — ottimizzato
@@ -2957,15 +2959,10 @@ tbody tr:last-child td{border-bottom:none;}
 
 }
 
-/* ── Mobile: tabs-compact e tabelle mare/pullman ── */
+/* ── Mobile: tabs-compact ── */
 @media(max-width:768px){
   .tabs.tabs-compact{display:flex;flex-wrap:wrap;width:100%;}
   .tabs.tabs-compact .tab-btn{flex:1;min-width:0;}
-  #view-mare .table-wrap,
-  #view-pullman .table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;}
-  #table-mare,#table-pullman{font-size:11px;}
-  #table-mare td,#table-pullman td,#table-mare th,#table-pullman th{padding:4px 3px!important;}
-  #table-mare input,#table-mare select,#table-pullman input,#table-pullman select{font-size:11px!important;padding:4px!important;}
 }
 /* ── STAMPA ELENCHI SQUADRE ── */
 @media print {
@@ -4229,8 +4226,9 @@ input[type="checkbox"]:checked {
   /* ── Gite e Mare: card full width ── */
   #gite-list,#mare-list{grid-template-columns:1fr!important;}
 
-  /* ── Pullman e Mare tabelle: font ridotto ── */
-  #view-pullman table,#view-mare table{font-size:11px!important;}
+
+
+
 
   /* ── Modal: input più grandi per tap ── */
   .modal-box input,.modal-box select,.modal-box textarea{
@@ -4264,6 +4262,113 @@ input[type="checkbox"]:checked {
 }
 
 /* ── iPhone SE / schermi ≤ 375px ── */
+/* ── Mare e Pullman mobile: layout card ── */
+@media(max-width:700px){
+  /* Nascondi intestazioni tabella */
+  #table-mare thead, #table-pullman thead { display:none!important; }
+
+  /* Tabella diventa contenitore di blocchi */
+  #table-mare, #table-pullman {
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    table-layout:unset!important;
+  }
+  #table-mare tbody, #table-pullman tbody { display:block!important; width:100%!important; }
+
+  /* Contenitori: niente overflow nascosto, niente padding extra */
+  #view-mare .table-wrap, #view-pullman .table-wrap {
+    overflow:visible!important;
+    padding:0!important;
+  }
+  #view-mare .card, #view-pullman .card {
+    overflow:visible!important;
+    padding:10px 8px!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Ogni riga = card */
+  #table-mare tbody tr, #table-pullman tbody tr {
+    display:block!important;
+    background:#fffde7!important;
+    border:2px solid #f0c000!important;
+    border-radius:12px!important;
+    margin-bottom:8px!important;
+    padding:8px 6px!important;
+    box-shadow:0 2px 6px rgba(0,0,0,.06)!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Numero riga: header della card */
+  #table-mare tbody td:first-child,
+  #table-pullman tbody td:first-child {
+    display:block!important;
+    text-align:center!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    color:#333!important;
+    background:rgba(240,192,0,.35)!important;
+    border-radius:6px!important;
+    padding:3px!important;
+    margin-bottom:7px!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Reset width inline ereditato da table-layout */
+  #table-mare tbody td, #table-pullman tbody td {
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Celle con data-label: riga etichetta+input */
+  #table-mare tbody td[data-label],
+  #table-pullman tbody td[data-label] {
+    display:grid!important;
+    grid-template-columns:60px 1fr!important;
+    align-items:center!important;
+    gap:8px!important;
+    padding:3px 0!important;
+    border:none!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Etichetta pseudo-elemento */
+  #table-mare tbody td[data-label]::before,
+  #table-pullman tbody td[data-label]::before {
+    content:attr(data-label);
+    font-weight:800;
+    font-size:10px;
+    color:#999;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    display:block;
+  }
+
+  /* Input e select occupano tutta la larghezza disponibile */
+  #table-mare tbody td input,
+  #table-mare tbody td select,
+  #table-pullman tbody td input,
+  #table-pullman tbody td select {
+    width:100%!important;
+    min-width:0!important;
+    font-size:14px!important;
+    min-height:36px!important;
+    padding:5px 10px!important;
+    border-radius:8px!important;
+    border:1.5px solid #ddd!important;
+    background:#fff!important;
+    box-sizing:border-box!important;
+  }
+  #table-mare tbody td select,
+  #table-pullman tbody td select {
+    appearance:auto!important;
+  }
+}
+
 @media(max-width:375px){
   .page-title{font-size:16px!important;}
   .presenze-grid{grid-template-columns:repeat(2,1fr)!important;}
@@ -6439,7 +6544,7 @@ img:not([loading]) { loading: lazy; }
 
   <!-- Pulsante + aggiungi evento (admin) -->
   <button type="button" class="btn btn-teal admin-only" onclick="calApriNuovoEvento()"
-    style="position:fixed;bottom:calc(var(--mob-nav-h,0px)+20px);right:20px;width:56px;height:56px;border-radius:50%;font-size:26px;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:100">+</button>
+    style="position:fixed;bottom:calc(var(--mob-nav-h,0px) + 20px + env(safe-area-inset-bottom));right:20px;width:56px;height:56px;border-radius:50%;font-size:26px;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:100">+</button>
 </div>
 
 <!-- Modal dettaglio giorno -->
@@ -16677,12 +16782,12 @@ function renderMare(){
   tbody.innerHTML=db.mare.map((g,idx)=>{
     return `<tr>
       <td style="text-align:center;background:#ffeb3b;font-weight:bold">${idx+1}</td>
-      <td style="background:#ffeb3b;padding:3px">
+      <td data-label="Data" style="background:#ffeb3b;padding:3px">
         <input type="date" class="form-control" value="${g.data||''}" 
           onchange="updateMareCampo(${idx},'data',this.value)" 
           style="width:100%;padding:5px;font-size:12px;text-align:center;min-width:0">
       </td>
-      <td style="background:#ffeb3b;padding:3px">
+      <td data-label="Durata" style="background:#ffeb3b;padding:3px">
         <select class="form-control" onchange="updateMareCampo(${idx},'durata',this.value)" 
           style="width:100%;padding:5px;font-size:12px;min-width:0">
           <option value="">-</option>
@@ -16690,7 +16795,7 @@ function renderMare(){
           <option value="INTERA GIORNATA" ${g.durata==='INTERA GIORNATA'?'selected':''}>INTERA GIORNATA</option>
         </select>
       </td>
-      <td style="background:#e3f2fd;padding:3px">
+      <td data-label="N°" style="background:#e3f2fd;padding:3px">
         <input type="number" class="form-control" value="${g.numero||''}" min="0"
           onchange="updateMareCampo(${idx},'numero',parseInt(this.value)||0)" 
           style="width:100%;padding:5px;font-size:12px;text-align:center;min-width:0">
@@ -16747,18 +16852,18 @@ function renderPullman(){
   tbody.innerHTML=db.pullman.map((g,idx)=>{
     return `<tr>
       <td style="text-align:center;background:#ffeb3b;font-weight:bold">${idx+1}</td>
-      <td style="background:#ffeb3b;padding:3px">
+      <td data-label="Data" style="background:#ffeb3b;padding:3px">
         <input type="date" class="form-control" value="${g.data||''}" 
           onchange="updatePullmanCampo(${idx},'data',this.value)" 
           style="width:100%;padding:5px;font-size:12px;text-align:center;min-width:0">
       </td>
-      <td style="background:#ffeb3b;padding:3px">
+      <td data-label="Luogo" style="background:#ffeb3b;padding:3px">
         <input type="text" class="form-control" value="${g.luogo||''}" 
           onchange="updatePullmanCampo(${idx},'luogo',this.value)" 
           placeholder="PLAYA..."
           style="width:100%;padding:5px;font-size:12px;text-align:center;min-width:0">
       </td>
-      <td style="background:#ffeb3b;padding:3px">
+      <td data-label="Durata" style="background:#ffeb3b;padding:3px">
         <select class="form-control" onchange="updatePullmanCampo(${idx},'durata',this.value)" 
           style="width:100%;padding:5px;font-size:12px;min-width:0">
           <option value="">-</option>
@@ -16766,7 +16871,7 @@ function renderPullman(){
           <option value="INTERA GIORNATA" ${g.durata==='INTERA GIORNATA'?'selected':''}>INTERA GIORNATA</option>
         </select>
       </td>
-      <td style="background:#e3f2fd;padding:3px">
+      <td data-label="Pullman" style="background:#e3f2fd;padding:3px">
         <input type="text" class="form-control" value="${g.pullman||''}" 
           onchange="updatePullmanCampo(${idx},'pullman',this.value)" 
           placeholder="81-74"
