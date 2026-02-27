@@ -2099,6 +2099,27 @@ tbody tr:last-child td{border-bottom:none;}
 }
 
 /* ══════════════════════════════════
+   SONDAGGI ANIMATORI — MOBILE
+══════════════════════════════════ */
+@media(max-width:768px){
+  #sondaggi-animatori-list .card { padding: 14px; }
+  /* Pillole nomi animatori: testo leggermente ridotto */
+  #sondaggi-animatori-list span[style*="border-radius:20px"] {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+  /* Contatori totali: wrap naturale già ok */
+}
+@media(max-width:400px){
+  #sondaggi-animatori-list .card { padding: 10px; }
+  /* Bottoni vota: colonna su schermi molto stretti */
+  #sondaggi-animatori-list > div > div[style*="gap:10px"] {
+    flex-direction: column;
+  }
+  #sondaggi-animatori-list [style*="font-size:17px"] { font-size: 15px !important; }
+}
+
+/* ══════════════════════════════════
    EXTRA SMALL (≤ 390px — iPhone SE etc.)
 ══════════════════════════════════ */
 @media(max-width:390px){
@@ -5111,6 +5132,10 @@ img:not([loading]) { loading: lazy; }
         <svg class="sico" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
         ANIMATORI
       </a>
+      <a onclick="navigate('sondaggi-animatori')" data-view="sondaggi-animatori">
+        <svg class="sico" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        SONDAGGI
+      </a>
       <a onclick="navigate('squadre')" data-view="squadre">
         <svg class="sico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         SQUADRE GRESTINI
@@ -6799,7 +6824,7 @@ img:not([loading]) { loading: lazy; }
       <div class="table-wrap">
         <table class="maglie-table" id="table-maglie-animatori">
           <thead><tr>
-            <th>#</th><th>NOME</th><th>SQUADRA</th><th>TAGLIA</th><th>Q.TÀ</th>
+            <th>#</th><th>COGNOME E NOME</th><th>SQUADRA</th><th>TAGLIA</th><th>Q.TÀ</th>
           </tr></thead>
           <tbody id="tbody-maglie-animatori"></tbody>
         </table>
@@ -6863,6 +6888,47 @@ img:not([loading]) { loading: lazy; }
 </div>
 
 <!-- ════ ANIMATORE FORM ════ -->
+
+<!-- SONDAGGI ANIMATORI -->
+<div class="view" id="view-sondaggi-animatori">
+  <div class="breadcrumb">HOME / SONDAGGI</div>
+  <div class="page-title">SONDAGGI</div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-teal admin-only" id="btn-nuovo-sondaggio" onclick="sondaggiNuovo()">+ NUOVO SONDAGGIO</button>
+  </div>
+  <div id="sondaggi-animatori-list"></div>
+</div>
+
+<div class="modal-overlay" id="modal-sondaggio" onclick="if(event.target===this)closeModal('modal-sondaggio')">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title" id="sondaggio-modal-title">Nuovo Sondaggio</div>
+    <div class="form-group">
+      <label class="form-label">Titolo</label>
+      <input type="text" class="form-control" id="s-titolo" placeholder="Es. Gita al mare 14 giugno">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrizione</label>
+      <input type="text" class="form-control" id="s-desc" placeholder="Dettagli aggiuntivi...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data evento</label>
+      <input type="date" class="form-control" id="s-data">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo animatori</label>
+      <select class="form-control" id="s-tipo">
+        <option value="">Tutti</option>
+        <option value="GREST">Solo GREST</option>
+        <option value="MINI GREST">Solo Mini GREST</option>
+      </select>
+    </div>
+    <div class="flex gap-2 mt-2">
+      <button type="button" class="btn btn-teal" onclick="sondaggiSalva()">Salva</button>
+      <button type="button" class="btn btn-gray" onclick="closeModal('modal-sondaggio')">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <div class="view" id="view-animatore-nuovo">
   <div class="breadcrumb">HOME / ANIMATORI / NUOVO</div>
   <div class="page-title" id="anim-form-title">NUOVO ANIMATORE</div>
@@ -6891,6 +6957,21 @@ img:not([loading]) { loading: lazy; }
         <div class="form-group"><label class="form-label">Telefono</label><input type="tel" class="form-control" id="a-tel"></div>
       </div>
       <div class="form-group"><label class="form-label">📧 Email</label><input type="email" class="form-control" id="a-email" placeholder="animatore@esempio.it"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">👕 Taglia Maglia</label>
+          <select class="form-control" id="a-taglia">
+            <option value="">— Non specificata —</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+            <option value="XXXL">XXXL</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">🔢 Quantità Maglie</label><input type="number" class="form-control" id="a-quantita-maglie" min="1" max="10" value="1" placeholder="1"></div>
+      </div>
       
       <!-- FOTO PROFILO ANIMATORE -->
       <div class="form-group" style="margin-top:20px">
@@ -8530,6 +8611,7 @@ function defaultDb(){
     segnalazioni:[],
     diarioSquadre:[],
     pianificatore:{},
+    sondaggi:[],
     impostazioni:{nomeGrest:'',anno:new Date().getFullYear(),oratorio:'Istituto San Giuseppe',numSettimane:4,quotaTotale:0,prezzoBase13:150,prezzoBase16:200,dataInizio:'',dataFine:''}
   };
 }
@@ -8610,6 +8692,7 @@ function navigate(view){
     'maglie':renderMaglie,
     'animatori':renderAnimatori,
     'animatore-nuovo':initFormAnimatore,
+    'sondaggi-animatori':renderSondaggiAnimatori,
     'gite':renderGite,
     'gita-nuova':initFormGita,
     'mare':renderMare,
@@ -12159,61 +12242,88 @@ function switchMaglieTab(tab){
 
 function renderMaglieAnimatori(){
   const db = getDb(); if(!db) return;
-  const animatori = (db.animatori||[]);
+  const animatori = (db.animatori||[]).filter(a=>!a._eliminato);
   const search = (document.getElementById('maglie-anim-search')?.value||'').toLowerCase();
   const filtraTaglia = document.getElementById('maglie-anim-taglia')?.value||'';
+  const ordine = ['XS','S','M','L','XL','XXL','XXXL'];
 
-  // Calcola totali per taglia su TUTTI gli animatori (senza filtri)
+  // Calcola totali per taglia su TUTTI gli animatori (senza filtri ricerca)
   const totali = {};
+  let totaleGenerale = 0;
   animatori.forEach(a => {
     if(!a.taglia) return;
     const q = parseInt(a.quantitaMaglie)||1;
     totali[a.taglia] = (totali[a.taglia]||0) + q;
+    totaleGenerale += q;
   });
 
   // Render totali badges
-  const ordine = ['XS','S','M','L','XL','XXL','XXXL'];
   const totDiv = document.getElementById('maglie-anim-totali');
   if(totDiv){
-    totDiv.innerHTML = ordine.filter(t=>totali[t]).map(t=>`
-      <div style="background:var(--teal-light);border-radius:10px;padding:10px 18px;text-align:center;min-width:70px">
-        <div style="font-size:20px;font-weight:900;color:var(--teal-dark)">${totali[t]}</div>
+    const badges = ordine.filter(t=>totali[t]).map(t=>`
+      <div style="background:var(--teal-light);border-radius:10px;padding:10px 18px;text-align:center;min-width:70px;cursor:pointer;transition:transform .15s;box-shadow:0 2px 8px rgba(0,0,0,0.07)"
+           onclick="document.getElementById('maglie-anim-taglia').value=document.getElementById('maglie-anim-taglia').value==='${t}'?'':'${t}';renderMaglieAnimatori()"
+           title="Filtra per ${t}">
+        <div style="font-size:22px;font-weight:900;color:var(--teal-dark)">${totali[t]}</div>
         <div style="font-size:11px;font-weight:800;color:var(--text-muted)">${t}</div>
-      </div>`).join('') +
-      `<div style="background:#e8f5e9;border-radius:10px;padding:10px 18px;text-align:center;min-width:70px">
-        <div style="font-size:20px;font-weight:900;color:#2e7d32">${Object.values(totali).reduce((a,b)=>a+b,0)}</div>
+      </div>`).join('');
+    totDiv.innerHTML = badges + `
+      <div style="background:#e8f5e9;border-radius:10px;padding:10px 18px;text-align:center;min-width:70px;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+        <div style="font-size:22px;font-weight:900;color:#2e7d32">${totaleGenerale}</div>
         <div style="font-size:11px;font-weight:800;color:#2e7d32">TOTALE</div>
       </div>`;
   }
 
   // Filtra per ricerca e taglia
   let lista = animatori.filter(a => {
-    const nome = (a.nome||'').toLowerCase();
-    if(search && !nome.includes(search)) return false;
+    const nomeCompleto = ((a.nome||'')+' '+(a.cognome||'')).toLowerCase();
+    if(search && !nomeCompleto.includes(search)) return false;
     if(filtraTaglia && a.taglia !== filtraTaglia) return false;
     return true;
   });
 
-  // Ordina per taglia poi nome
-  const ord = ['XS','S','M','L','XL','XXL','XXXL'];
+  // Ordina per taglia poi cognome
   lista.sort((a,b) => {
-    const ia = ord.indexOf(a.taglia); const ib = ord.indexOf(b.taglia);
-    if(ia!==ib) return ia-ib;
-    return (a.nome||'').localeCompare(b.nome||'');
+    const ia = ordine.indexOf(a.taglia); const ib = ordine.indexOf(b.taglia);
+    if(ia!==ib) return (ia===-1?999:ia)-(ib===-1?999:ib);
+    return (a.cognome||'').localeCompare(b.cognome||'');
   });
 
   const tbody = document.getElementById('tbody-maglie-animatori');
   if(!tbody) return;
   if(!lista.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Nessun animatore trovato</td></tr>'; return; }
 
-  tbody.innerHTML = lista.map((a,i) => `
-    <tr>
-      <td style="color:var(--text-muted);font-size:12px">${i+1}</td>
-      <td style="text-align:left;font-weight:700">${a.nome||'—'}</td>
-      <td>${a.squadra||'—'}</td>
-      <td><span style="background:var(--teal-light);color:var(--teal-dark);padding:3px 10px;border-radius:20px;font-weight:800;font-size:13px">${a.taglia||'—'}</span></td>
-      <td style="font-weight:700">${a.quantitaMaglie||1}</td>
-    </tr>`).join('');
+  // Raggruppa per taglia con intestazione di gruppo
+  let html = '';
+  let currentTaglia = undefined;
+  let contatore = 0;
+  lista.forEach(a => {
+    const taglia = a.taglia||'';
+    if(taglia !== currentTaglia){
+      currentTaglia = taglia;
+      // Conta quanti in questo gruppo (nella lista filtrata)
+      const gruppoCount = lista.filter(x=>(x.taglia||'')=== taglia).length;
+      const gruppoQ = lista.filter(x=>(x.taglia||'')=== taglia).reduce((s,x)=>s+(parseInt(x.quantitaMaglie)||1),0);
+      const label = taglia || '— Taglia non assegnata';
+      const bgH = taglia ? 'var(--teal-light)' : '#fff3e0';
+      const fgH = taglia ? 'var(--teal-dark)' : '#e65100';
+      html += `<tr>
+        <td colspan="5" style="background:${bgH};color:${fgH};font-weight:900;font-size:13px;padding:8px 12px;letter-spacing:.5px;border-top:2px solid ${taglia?'var(--teal)':'#FFB74D'}">
+          👕 ${label} &nbsp;·&nbsp; <span style="font-weight:700">${gruppoCount} animator${gruppoCount===1?'e':'i'}</span> &nbsp;·&nbsp; <span style="font-weight:700">${gruppoQ} magl${gruppoQ===1?'ia':'ie'}</span>
+        </td>
+      </tr>`;
+      contatore = 0;
+    }
+    contatore++;
+    html += `<tr>
+      <td style="color:var(--text-muted);font-size:12px">${contatore}</td>
+      <td style="text-align:left;font-weight:700">${escapeHtml((a.cognome||''))} ${escapeHtml((a.nome||''))}</td>
+      <td>${escapeHtml(a.squadra||'—')}</td>
+      <td><span style="background:${a.taglia?'var(--teal-light)':'#fff3e0'};color:${a.taglia?'var(--teal-dark)':'#e65100'};padding:3px 10px;border-radius:20px;font-weight:800;font-size:13px">${a.taglia||'—'}</span></td>
+      <td style="font-weight:700">${parseInt(a.quantitaMaglie)||1}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
 }
 function initConsegnaMaglie(){
   const db=getDb();if(!db)return;
@@ -12774,16 +12884,14 @@ function calRenderSettimana() {
       }
     } else {
       html += `<div class="cal-day-orari-wrap">`;
-      html += `<div class="cal-day-orari-table">`;
+      html += `<table class="cal-day-orari-table">`;
       (g.orari || []).forEach((o, i) => {
-        html += `<div class="cal-periodo-slot">
-          <span class="cal-periodo-slot-time">${o.inizio}</span>
-          <span class="cal-periodo-slot-sep">–</span>
-          <span class="cal-periodo-slot-time">${o.fine}</span>
-          <span class="cal-periodo-slot-act">${o.attivita}</span>
-        </div>`;
+        html += `<tr>
+          <td class="cal-day-td-time">${o.inizio} - ${o.fine}</td>
+          <td class="cal-day-td-act">${o.attivita}</td>
+        </tr>`;
       });
-      html += `</div>`;
+      html += `</table>`;
       html += `<div class="cal-day-fill"></div>`;
       if (g.extra && g.extra.length) {
         g.extra.forEach(e => {
@@ -13020,17 +13128,16 @@ function calApriGiorno(iso) {
       html += `</div>`;
     }
   } else {
-    // Con orari: stessa struttura del periodo
-    html += `<div style="padding:4px 0">`;
+    // Con orari: tabella
+    html += `<table style="width:100%;border-collapse:collapse">`;
     (g.orari || []).forEach((o, i) => {
-      html += `<div class="cal-periodo-slot">
-        <span class="cal-periodo-slot-time">${o.inizio}</span>
-        <span class="cal-periodo-slot-sep">–</span>
-        <span class="cal-periodo-slot-time">${o.fine}</span>
-        <span class="cal-periodo-slot-act">${o.attivita}</span>
-      </div>`;
+      const bg = i%2===0 ? '#FFFDE7' : '#fff';
+      html += `<tr style="background:${bg}">
+        <td style="padding:10px 14px;font-size:13px;font-weight:800;color:#555;border-bottom:1px solid #f0f0f0;white-space:nowrap;width:38%">${o.inizio} - ${o.fine}</td>
+        <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#212121;border-bottom:1px solid #f0f0f0;text-transform:uppercase">${o.attivita}</td>
+      </tr>`;
     });
-    html += `</div>`;
+    html += `</table>`;
     if(g.extra && g.extra.length) {
       g.extra.forEach(e => {
         const isSera = e.toUpperCase().includes('SERATA');
@@ -13444,6 +13551,8 @@ function initFormAnimatore(){
   document.getElementById('a-tipo').value=a?.tipo||'GREST';
   document.getElementById('a-tel').value=a?.tel||'';
   document.getElementById('a-email').value=a?.email||'';
+  document.getElementById('a-taglia').value=a?.taglia||'';
+  document.getElementById('a-quantita-maglie').value=a?.quantitaMaglie||1;
   filtraSquadreAnimatore(a?.squadra);
   
   // Carica foto se presente
@@ -13471,6 +13580,8 @@ function saveAnimatore(e){
     squadra:document.getElementById('a-squadra').value,
     tel:document.getElementById('a-tel').value.replace(/\s/g,''),
     email:document.getElementById('a-email').value.trim().toLowerCase(),
+    taglia:document.getElementById('a-taglia').value,
+    quantitaMaglie:parseInt(document.getElementById('a-quantita-maglie').value)||1,
     foto:window.tempAnimatoreFoto||''
   };
   if(APP.editingId){const idx=db.animatori.findIndex(x=>x.id===APP.editingId);if(idx!==-1)db.animatori[idx]=dati;}
@@ -13630,6 +13741,223 @@ function deleteAnimatore(id){showConfirm('Eliminare questo animatore?',()=>{cons
 // ═══════════════════════════════════════════════
 // GITE
 // ═══════════════════════════════════════════════
+// ══ SONDAGGI ANIMATORI ══
+var _sondId = null;
+
+function renderSondaggiAnimatori() {
+  var db = getDb(); if (!db) return;
+  var cont = document.getElementById('sondaggi-animatori-list'); if (!cont) return;
+  var user = AUTH.currentUser;
+  var isAdmin = ['Admin','Responsabile Generale','Responsabile GREST','Responsabile Mini GREST','Segretario'].includes((user||{}).ruolo);
+  var animMe = (db.animatori||[]).find(function(a){
+    return !a._eliminato && a.nome && user && a.nome.toLowerCase()===(user.nome||'').toLowerCase();
+  });
+  var sondaggi = (db.sondaggi||[]).slice().sort(function(a,b){return (b.creato||'').localeCompare(a.creato||'');});
+  if (!sondaggi.length) {
+    cont.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px;color:var(--text-muted)"><div style="font-size:48px">📋</div><div style="font-size:15px;font-weight:700;margin-top:12px">Nessun sondaggio disponibile</div></div>';
+    return;
+  }
+
+  var squadre = (db.squadre||[]).filter(function(sq){ return !sq._eliminato; });
+
+  var html = '';
+  for (var i=0; i<sondaggi.length; i++) {
+    var s = sondaggi[i];
+    var animatori = (db.animatori||[]).filter(function(a){ return !a._eliminato && (!s.tipoAnim || a.tipo===s.tipoAnim); });
+    var risposte = s.risposte || {};
+    var nSi = 0, nNo = 0;
+    for (var k=0; k<animatori.length; k++) {
+      if (risposte[animatori[k].id]==='si') nSi++;
+      else if (risposte[animatori[k].id]==='no') nNo++;
+    }
+    var nAtt = animatori.length - nSi - nNo;
+    var dataLabel = s.data ? new Date(s.data+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'}) : '';
+    var mia = animMe ? (risposte[animMe.id]||'') : '';
+    var bgSi = mia==='si'?'#2e7d32':'#e8f5e9'; var fgSi = mia==='si'?'#fff':'#2e7d32';
+    var bgNo = mia==='no'?'#c62828':'#ffebee'; var fgNo = mia==='no'?'#fff':'#c62828';
+
+    html += '<div class="card" style="margin-bottom:18px">';
+
+    // Intestazione sondaggio
+    html += '<div style="font-size:17px;font-weight:900;margin-bottom:4px;text-transform:uppercase">'+escapeHtml(s.titolo)+'</div>';
+    if (s.desc) html += '<div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase">'+escapeHtml(s.desc)+'</div>';
+    if (dataLabel) html += '<div style="font-size:12px;color:var(--teal);font-weight:700;margin-bottom:14px">📅 '+dataLabel+'</div>';
+
+    // Bottoni voto personale
+    if (animMe) {
+      html += '<div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px">La tua risposta:</div>';
+      html += '<div style="display:flex;gap:10px;margin-bottom:14px">';
+      html += '<button onclick="sondaggiVota(\''+s.id+'\',\'si\')" style="flex:1;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;background:'+bgSi+';color:'+fgSi+'">✅ Ci sono</button>';
+      html += '<button onclick="sondaggiVota(\''+s.id+'\',\'no\')" style="flex:1;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;background:'+bgNo+';color:'+fgNo+'">❌ Non ci sono</button>';
+      html += '</div>';
+    }
+
+    // Contatori totali
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">';
+    html += '<span style="background:#e8f5e9;color:#2e7d32;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800">✅ '+nSi+' presenti</span>';
+    html += '<span style="background:#ffebee;color:#c62828;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800">❌ '+nNo+' assenti</span>';
+    if (nAtt>0) html += '<span style="background:#fff3e0;color:#e65100;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800">⏳ '+nAtt+' in attesa</span>';
+    html += '</div>';
+
+    // ── RESOCONTO PER SQUADRA ──
+    // Raccogli squadre coinvolte (da animatori filtrati per questo sondaggio)
+    var squadreIds = [];
+    animatori.forEach(function(a){
+      var sqId = a.squadra||'__nessuna__';
+      if(squadreIds.indexOf(sqId)===-1) squadreIds.push(sqId);
+    });
+    // Ordina: prima squadre con nome, poi senza
+    squadreIds.sort(function(a,b){
+      if(a==='__nessuna__') return 1;
+      if(b==='__nessuna__') return -1;
+      var sqA = squadre.find(function(sq){return sq.id===a;});
+      var sqB = squadre.find(function(sq){return sq.id===b;});
+      return ((sqA&&sqA.nome)||'').localeCompare((sqB&&sqB.nome)||'');
+    });
+
+    html += '<div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">';
+    html += '<div style="font-size:12px;font-weight:900;color:var(--text-muted);letter-spacing:.8px;margin-bottom:10px;text-transform:uppercase">📋 Dettaglio per squadra</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:10px">';
+
+    for (var q=0; q<squadreIds.length; q++) {
+      var sqId = squadreIds[q];
+      var sqObj = squadre.find(function(sq){return sq.id===sqId;});
+      var sqNome = sqObj ? sqObj.nome : (sqId==='__nessuna__' ? '— Senza squadra' : sqId);
+      var sqColor = sqObj ? (sqObj.colore||'var(--teal)') : '#999';
+
+      var animSq = animatori.filter(function(a){ return (a.squadra||'__nessuna__')===sqId; });
+      var presenti = animSq.filter(function(a){ return risposte[a.id]==='si'; });
+      var assenti  = animSq.filter(function(a){ return risposte[a.id]==='no'; });
+      var attesa   = animSq.filter(function(a){ return !risposte[a.id]; });
+
+      html += '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">';
+      // Header squadra
+      html += '<div style="background:'+sqColor+';padding:8px 14px;display:flex;align-items:center;justify-content:space-between">';
+      html += '<div style="font-weight:900;font-size:14px;color:#fff">'+escapeHtml(sqNome)+'</div>';
+      html += '<div style="display:flex;gap:6px">';
+      html += '<span style="background:rgba(255,255,255,0.25);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">✅ '+presenti.length+'</span>';
+      html += '<span style="background:rgba(255,255,255,0.25);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">❌ '+assenti.length+'</span>';
+      if(attesa.length>0) html += '<span style="background:rgba(255,255,255,0.25);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">⏳ '+attesa.length+'</span>';
+      html += '</div></div>';
+
+      // Elenco presenti
+      if (presenti.length > 0) {
+        html += '<div style="padding:8px 14px;background:#f9fffe;border-bottom:1px solid var(--border)">';
+        html += '<div style="font-size:10px;font-weight:900;color:#2e7d32;letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase">Presenti</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+        presenti.forEach(function(a){
+          html += '<span style="background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700">'+escapeHtml((a.nome||'')+(a.cognome?' '+a.cognome:''))+'</span>';
+        });
+        html += '</div></div>';
+      }
+
+      // Elenco assenti
+      if (assenti.length > 0) {
+        html += '<div style="padding:8px 14px;background:#fff9f9;border-bottom:1px solid var(--border)">';
+        html += '<div style="font-size:10px;font-weight:900;color:#c62828;letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase">Assenti</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+        assenti.forEach(function(a){
+          html += '<span style="background:#ffebee;color:#c62828;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700">'+escapeHtml((a.nome||'')+(a.cognome?' '+a.cognome:''))+'</span>';
+        });
+        html += '</div></div>';
+      }
+
+      // Elenco in attesa
+      if (attesa.length > 0) {
+        html += '<div style="padding:8px 14px;background:#fffdf5">';
+        html += '<div style="font-size:10px;font-weight:900;color:#e65100;letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase">In attesa</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+        attesa.forEach(function(a){
+          html += '<span style="background:#fff3e0;color:#e65100;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700">'+escapeHtml((a.nome||'')+(a.cognome?' '+a.cognome:''))+'</span>';
+        });
+        html += '</div></div>';
+      }
+
+      html += '</div>'; // fine card squadra
+    }
+
+    html += '</div></div>'; // fine resoconto squadre
+
+    // Bottoni admin
+    if (isAdmin) {
+      html += '<div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">';
+      html += '<button onclick="sondaggiModificaAdmin(\''+s.id+'\')" class="btn btn-sm btn-outline" style="font-size:12px">✏️ Modifica</button>';
+      html += '<button onclick="sondaggiEliminaAdmin(\''+s.id+'\')" class="btn btn-sm btn-danger" style="font-size:12px">🗑 Elimina</button>';
+      html += '</div>';
+    }
+    html += '</div>'; // fine card sondaggio
+  }
+  cont.innerHTML = html;
+}
+
+function sondaggiVota(sid, valore) {
+  var db = getDb(); if (!db) return;
+  var user = AUTH.currentUser;
+  var animMe = (db.animatori||[]).find(function(a){
+    return !a._eliminato && a.nome && user && a.nome.toLowerCase()===(user.nome||'').toLowerCase();
+  });
+  if (!animMe) { showToast('Account non associato a un animatore','warning'); return; }
+  var s = (db.sondaggi||[]).find(function(x){return x.id===sid;});
+  if (!s) return;
+  if (!s.risposte) s.risposte = {};
+  if (s.risposte[animMe.id]===valore) delete s.risposte[animMe.id];
+  else s.risposte[animMe.id] = valore;
+  saveStorage();
+  showToast(valore==='si'?'✅ Ci sono!':'❌ Non ci sono','success');
+  renderSondaggiAnimatori();
+}
+
+function sondaggiNuovo() {
+  _sondId = null;
+  document.getElementById('sondaggio-modal-title').textContent = 'Nuovo Sondaggio';
+  document.getElementById('s-titolo').value = '';
+  document.getElementById('s-desc').value = '';
+  document.getElementById('s-data').value = '';
+  document.getElementById('s-tipo').value = '';
+  openModal('modal-sondaggio');
+}
+
+function sondaggiModificaAdmin(sid) {
+  var db = getDb(); if (!db) return;
+  var s = (db.sondaggi||[]).find(function(x){return x.id===sid;});
+  if (!s) return;
+  _sondId = sid;
+  document.getElementById('sondaggio-modal-title').textContent = 'Modifica Sondaggio';
+  document.getElementById('s-titolo').value = s.titolo||'';
+  document.getElementById('s-desc').value = s.desc||'';
+  document.getElementById('s-data').value = s.data||'';
+  document.getElementById('s-tipo').value = s.tipoAnim||'';
+  openModal('modal-sondaggio');
+}
+
+function sondaggiSalva() {
+  var titolo = document.getElementById('s-titolo').value.trim().toUpperCase();
+  if (!titolo) { showToast('Inserisci un titolo','warning'); return; }
+  var db = getDb(); if (!db) return;
+  if (!db.sondaggi) db.sondaggi = [];
+  if (_sondId) {
+    var s = db.sondaggi.find(function(x){return x.id===_sondId;});
+    if (s) { s.titolo=titolo; s.desc=document.getElementById('s-desc').value.trim().toUpperCase(); s.data=document.getElementById('s-data').value; s.tipoAnim=document.getElementById('s-tipo').value; }
+  } else {
+    db.sondaggi.push({ id:'sond_'+Date.now(), titolo:titolo, desc:document.getElementById('s-desc').value.trim().toUpperCase(), data:document.getElementById('s-data').value, tipoAnim:document.getElementById('s-tipo').value, creato:new Date().toISOString(), risposte:{} });
+  }
+  saveStorage();
+  closeModal('modal-sondaggio');
+  showToast('Sondaggio salvato','success');
+  renderSondaggiAnimatori();
+}
+
+function sondaggiEliminaAdmin(sid) {
+  showConfirm('Eliminare questo sondaggio?', function(){
+    var db = getDb(); if (!db) return;
+    db.sondaggi = (db.sondaggi||[]).filter(function(x){return x.id!==sid;});
+    saveStorage();
+    showToast('Sondaggio eliminato','success');
+    renderSondaggiAnimatori();
+  });
+}
+
+
 function renderGite(){
   const db=getDb();const cont=document.getElementById('gite-list');if(!cont)return;
   const gite=db?db.gite:[];
@@ -19622,7 +19950,7 @@ function eliminaUtente(id){
 
 // Mappa view → gruppo di appartenenza
 const VIEW_TO_GROUP = {
-  'anagrafica':'persone','animatori':'persone','squadre':'persone','squadre-animatori':'persone',
+  'anagrafica':'persone','animatori':'persone','sondaggi-animatori':'persone','squadre':'persone','squadre-animatori':'persone',
   'presenze':'attivita','mensa':'attivita','calendario':'attivita','pianificatore':'attivita',
   'contabilita':'economico','spese':'economico','ricevute':'economico',
   'classifica':'tornei','campionati':'tornei',
