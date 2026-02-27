@@ -4591,17 +4591,17 @@ input[type="checkbox"]:checked {
   }
   /* Intestazione giorno: colonna sinistra verticale */
   .cal-day-head {
-    width: 72px !important;
-    min-width: 72px !important;
+    width: 58px !important;
+    min-width: 58px !important;
     flex-shrink: 0 !important;
     border-bottom: none !important;
     border-right: 1px solid var(--border) !important;
-    padding: 14px 8px !important;
+    padding: 12px 4px !important;
     justify-content: center !important;
   }
-  .cal-day-head-nome { font-size: 9px !important; letter-spacing: 1px !important; }
-  .cal-day-head-num  { font-size: 26px !important; }
-  .cal-day-head-mese { font-size: 9px !important; }
+  .cal-day-head-nome { font-size: 8px !important; letter-spacing: 1px !important; }
+  .cal-day-head-num  { font-size: 22px !important; }
+  .cal-day-head-mese { font-size: 8px !important; }
   .cal-day-head::after { margin-top: 4px !important; }
 
   /* Corpo card: tutta la larghezza rimanente */
@@ -4621,13 +4621,18 @@ input[type="checkbox"]:checked {
 
   /* Tabella orari: font leggibile */
   .cal-day-td-time {
-    font-size: 11px !important;
-    padding: 8px 10px !important;
-    width: 36% !important;
+    font-size: 10px !important;
+    padding: 8px 4px 8px 6px !important;
+    width: 24% !important;
+    white-space: nowrap !important;
   }
   .cal-day-td-act {
-    font-size: 11px !important;
-    padding: 8px 10px !important;
+    font-size: 12px !important;
+    padding: 8px 4px 8px 6px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.4 !important;
+    width: 76% !important;
   }
   .cal-day-fill { min-height: 4px !important; }
   .cal-day-extra { font-size: 10px !important; padding: 6px 10px !important; }
