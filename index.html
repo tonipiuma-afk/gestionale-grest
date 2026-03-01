@@ -7831,6 +7831,18 @@ img:not([loading]) { loading: lazy; }
     <p style="color:rgba(255,255,255,0.9);margin-bottom:20px">Proteggi i tuoi dati esportando un backup completo o esporta singole tabelle in formato Excel.</p>
     
     <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:20px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">🖥️ BACKUP AUTOMATICO SUL TUO PC</div>
+      <p style="font-size:13px;opacity:0.9;margin-bottom:12px">Configura una cartella sul tuo PC: ad ogni accesso verrà salvato automaticamente un file JSON datato. I file vecchi non vengono mai sovrascritti.</p>
+      <div id="backup-pc-stato"></div>
+      <div class="flex gap-2" style="flex-wrap:wrap">
+        <button type="button" class="btn" style="background:#fff;color:#667eea;font-weight:700" onclick="configuraCartellaBackupPc()">📁 Configura cartella PC</button>
+        <button type="button" class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid #fff" onclick="richiediCartellaBackupPc()">🔗 Ricollegati</button>
+        <button type="button" class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid #fff" onclick="eseguiBackupLocalePC('manuale')">💾 Salva ora</button>
+        <button type="button" class="btn btn-sm" style="background:rgba(220,53,69,0.4);color:#fff;border:1px solid rgba(220,53,69,0.6)" onclick="showConfirm('Rimuovere la configurazione cartella backup PC?',rimuoviCartellaBackupPc,'Rimuovi','🗑️')">🗑️ Rimuovi</button>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:20px">
       <div style="font-size:14px;font-weight:700;margin-bottom:12px">📦 BACKUP COMPLETO</div>
       <p style="font-size:13px;opacity:0.9;margin-bottom:16px">Salva tutti i dati del gestionale in un unico file JSON. Include: iscritti, animatori, squadre, pagamenti, presenze, gite, mare, maglie, spese, contabilità e impostazioni.</p>
       <div class="flex gap-2" style="flex-wrap:wrap">
@@ -15204,6 +15216,156 @@ function eliminaIscrittiDemo(){
 // BACKUP & EXPORT
 // ═══════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════
+// BACKUP LOCALE PC — File System Access API
+// ══════════════════════════════════════════════════
+const BACKUP_PC_LS_KEY = 'grest_backup_pc_enabled';
+let _backupPcDirHandle = null; // handle cartella in memoria sessione
+
+// Serializza handle cartella nel localStorage (solo nome, non l'handle vero)
+function isBackupPcConfigurato(){
+  return localStorage.getItem(BACKUP_PC_LS_KEY) === '1';
+}
+
+function isFileSystemAccessSupported(){
+  return 'showDirectoryPicker' in window;
+}
+
+// Chiede all'utente di scegliere la cartella dove salvare i backup
+async function configuraCartellaBackupPc(){
+  if(!isFileSystemAccessSupported()){
+    showToast('⚠️ Il tuo browser non supporta questa funzione. Usa Chrome o Edge.','error');
+    return;
+  }
+  try{
+    const dirHandle = await window.showDirectoryPicker({ mode:'readwrite', startIn:'documents' });
+    _backupPcDirHandle = dirHandle;
+    localStorage.setItem(BACKUP_PC_LS_KEY,'1');
+    localStorage.setItem('grest_backup_pc_dirname', dirHandle.name);
+    showToast(`✅ Cartella configurata: "${dirHandle.name}". D'ora in poi ogni accesso salverà un backup qui.`,'success');
+    aggiornaUIBackupPc();
+    // Fai subito un backup
+    await eseguiBackupLocalePC('manuale');
+  }catch(e){
+    if(e.name !== 'AbortError'){
+      showToast('❌ Errore configurazione cartella: '+e.message,'error');
+    }
+  }
+}
+
+// Esegue il backup nella cartella configurata
+async function eseguiBackupLocalePC(tipo='automatico'){
+  if(!_backupPcDirHandle) return; // cartella non configurata in questa sessione
+  const db = getDb();
+  if(!db) return;
+
+  try{
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const dataOra = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+    const nomeFile = `GREST_Backup_${dataOra}.json`;
+
+    const backup = {
+      versione:'1.0',
+      dataExport: now.toISOString(),
+      tipo: tipo,
+      nomeGrest: db.impostazioni?.nomeGrest||'GREST',
+      anno: db.impostazioni?.anno||now.getFullYear(),
+      database: db
+    };
+
+    const json = JSON.stringify(backup, null, 2);
+    const fileHandle = await _backupPcDirHandle.getFileHandle(nomeFile, { create:true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(json);
+    await writable.close();
+
+    const oraStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    localStorage.setItem('grest_backup_pc_last', now.toISOString());
+    localStorage.setItem('grest_backup_pc_lastfile', nomeFile);
+    aggiornaUIBackupPc();
+
+    if(tipo === 'manuale'){
+      showToast(`💾 Backup salvato: ${nomeFile}`,'success');
+    } else {
+      showToast(`💾 Backup locale salvato (${oraStr})`,'success');
+    }
+    console.log(`💾 Backup PC: ${nomeFile}`);
+  }catch(e){
+    console.error('Backup PC error:',e);
+    if(tipo === 'manuale') showToast('❌ Errore salvataggio backup: '+e.message,'error');
+  }
+}
+
+// Richiede di ri-selezionare la cartella (necessario ad ogni apertura del browser)
+async function richiediCartellaBackupPc(){
+  if(!isFileSystemAccessSupported()) return;
+  if(!isBackupPcConfigurato()) return;
+  const nomeSalvato = localStorage.getItem('grest_backup_pc_dirname') || 'backup';
+  try{
+    const dirHandle = await window.showDirectoryPicker({ mode:'readwrite', startIn:'documents' });
+    _backupPcDirHandle = dirHandle;
+    localStorage.setItem('grest_backup_pc_dirname', dirHandle.name);
+    showToast(`📁 Cartella backup "${dirHandle.name}" ricollegata`,'success');
+    aggiornaUIBackupPc();
+  }catch(e){
+    if(e.name !== 'AbortError'){
+      console.warn('Cartella backup non ricollegata:',e);
+    }
+  }
+}
+
+// Rimuove configurazione cartella
+function rimuoviCartellaBackupPc(){
+  _backupPcDirHandle = null;
+  localStorage.removeItem(BACKUP_PC_LS_KEY);
+  localStorage.removeItem('grest_backup_pc_dirname');
+  localStorage.removeItem('grest_backup_pc_last');
+  localStorage.removeItem('grest_backup_pc_lastfile');
+  aggiornaUIBackupPc();
+  showToast('🗑️ Backup locale PC disattivato','success');
+}
+
+// Aggiorna lo stato nell'interfaccia
+function aggiornaUIBackupPc(){
+  const statoEl = document.getElementById('backup-pc-stato');
+  if(!statoEl) return;
+  const configurato = isBackupPcConfigurato();
+  const nomCartella = localStorage.getItem('grest_backup_pc_dirname') || '—';
+  const ultimoFile = localStorage.getItem('grest_backup_pc_lastfile') || '—';
+  const ultimaData = localStorage.getItem('grest_backup_pc_last');
+  const ultimaStr = ultimaData ? new Date(ultimaData).toLocaleString('it-IT') : '—';
+  const attivo = _backupPcDirHandle !== null;
+
+  if(!isFileSystemAccessSupported()){
+    statoEl.innerHTML = `<div style="background:#fff3e0;border:1px solid #ff9800;border-radius:8px;padding:12px;font-size:13px;color:#e65100">
+      ⚠️ Questo browser non supporta il salvataggio diretto su PC. Usa <strong>Chrome</strong> o <strong>Edge</strong>.
+    </div>`;
+    return;
+  }
+
+  if(!configurato){
+    statoEl.innerHTML = `<div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:12px">
+      📁 Nessuna cartella configurata. Clicca il pulsante per scegliere dove salvare i backup automatici.
+    </div>`;
+    return;
+  }
+
+  const dotColor = attivo ? '#4caf50' : '#ff9800';
+  const dotLabel = attivo ? 'Attivo in questa sessione' : 'Cartella da ricollegare (clicca "Ricollegati")';
+
+  statoEl.innerHTML = `
+    <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:14px;font-size:13px;color:rgba(255,255,255,0.95);margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+        <strong>${dotLabel}</strong>
+      </div>
+      <div>📁 Cartella: <strong>${nomCartella}</strong></div>
+      <div>🕐 Ultimo backup: <strong>${ultimaStr}</strong></div>
+      <div>📄 File: <strong>${ultimoFile}</strong></div>
+    </div>`;
+}
+
 function esportaBackup(){
   const db=getDb();
   if(!db){showToast('❌ Nessun dato da esportare','error');return;}
@@ -15384,6 +15546,11 @@ function switchImpTab(tab){
     const cfg = caricaConfigJB();
     if (cfg.apiKey) { const el=document.getElementById('jb-apikey'); if(el) el.value=cfg.apiKey; }
     if (cfg.binId)  { const el=document.getElementById('jb-binid');  if(el) el.value=cfg.binId; }
+  }
+  
+  // Se apre il tab backup, aggiorna UI backup PC
+  if(tab==='backup') {
+    aggiornaUIBackupPc();
   }
 }
 
@@ -18675,6 +18842,9 @@ async function loginSubmit(){
     
     // Avvia auto-sync in background ogni 30 secondi
     avviaAutoSync();
+    
+    // 💾 Backup automatico su PC (solo se cartella configurata in questa sessione)
+    setTimeout(()=> eseguiBackupLocalePC('accesso'), 2000);
   } else {
     // Nessun db: mostra splash per crearne uno
     splashInit();
@@ -20277,6 +20447,8 @@ window.onload = function(){
     updateDashboard();
     onlineStart();
     avviaAutoSync();
+    // 💾 Backup automatico su PC (solo se cartella configurata in questa sessione)
+    setTimeout(()=> eseguiBackupLocalePC('accesso'), 2000);
     console.log('✅ Sessione ripristinata per:', utente.nome);
   }
 
@@ -21288,12 +21460,15 @@ async function onlineHeartbeat() {
     Object.keys(online).forEach(k => { if (now - online[k].ts > ONLINE_TTL) delete online[k]; });
 
     // Scrivi la mia presenza
+    const _dev = rilevaTipoDispositivo();
     online[_onlineSessionId] = {
       nome: AUTH.currentUser.nome,
       ruolo: AUTH.currentUser.ruolo,
       username: AUTH.currentUser.username,
       db: APP.currentDb || '–',
-      ts: now
+      ts: now,
+      dispositivo: _dev.label,
+      dispositivoEmoji: _dev.emoji
     };
 
     // 3. Salva SOLO la riga online — payload minimo (~poche centinaia di byte)
@@ -21344,13 +21519,24 @@ function onlineStart() {
   _onlineInterval = setInterval(onlineHeartbeat, ONLINE_POLL);
 }
 
+function rilevaTipoDispositivo() {
+  const ua = navigator.userAgent;
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) {
+    if (/iPad|Tablet/i.test(ua)) return { label: 'Tablet', emoji: '📱' };
+    return { label: 'Telefono', emoji: '📱' };
+  }
+  return { label: 'PC', emoji: '💻' };
+}
+
 function onlineAggiornaPillola(online) {
   const isAdmin = ['Admin','Responsabile Generale'].includes(AUTH.currentUser?.ruolo);
   const pill = document.getElementById('online-users-pill');
   if (!pill) return;
   if (!isAdmin) { pill.style.display = 'none'; return; }
   const sessioni = Object.values(online || {});
-  document.getElementById('online-count').textContent = sessioni.length;
+  // Conta utenti UNICI (non sessioni)
+  const utentiUnici = new Set(sessioni.map(s => s.username)).size;
+  document.getElementById('online-count').textContent = utentiUnici;
   pill.style.display = 'flex';
   // Aggiorna pannello se aperto
   if (document.getElementById('online-panel').style.display !== 'none') {
@@ -21367,19 +21553,33 @@ function onlineRenderPannello(sessioni) {
     return;
   }
   const now = Date.now();
-  lista.innerHTML = sessioni.map(s => {
-    const isSelf = s.username === AUTH.currentUser?.username;
-    const secs = Math.floor((now - s.ts) / 1000);
-    const tempo = secs < 10 ? 'adesso' : secs < 60 ? `${secs}s fa` : `${Math.floor(secs/60)}m fa`;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border)">
-      <span style="font-size:16px">${cfg[s.ruolo] || '⚪'}</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:800;color:var(--text)">${s.nome}${isSelf ? ' <span style="font-size:10px;color:var(--teal);font-weight:700">(tu)</span>' : ''}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${s.ruolo} · DB: ${s.db} · ${tempo}</div>
-      </div>
-      <span style="width:8px;height:8px;background:#4CAF50;border-radius:50%;flex-shrink:0;box-shadow:0 0 4px rgba(76,175,80,0.6)"></span>
-    </div>`;
-  }).join('');
+  // Raggruppa per username per evidenziare multi-dispositivo
+  const perUtente = {};
+  sessioni.forEach(s => {
+    if (!perUtente[s.username]) perUtente[s.username] = [];
+    perUtente[s.username].push(s);
+  });
+  const righe = [];
+  Object.values(perUtente).forEach(sessUtente => {
+    sessUtente.forEach((s, idx) => {
+      const isSelf = s.username === AUTH.currentUser?.username;
+      const secs = Math.floor((now - s.ts) / 1000);
+      const tempo = secs < 10 ? 'adesso' : secs < 60 ? `${secs}s fa` : `${Math.floor(secs/60)}m fa`;
+      const devEmoji = s.dispositivoEmoji || '💻';
+      const devLabel = s.dispositivo || 'PC';
+      const multiTag = sessUtente.length > 1 ? ` <span style="font-size:10px;background:#e3f2fd;color:#1565c0;border-radius:4px;padding:1px 5px;font-weight:700">${devEmoji} ${devLabel}</span>` : '';
+      const selfTag = isSelf ? ` <span style="font-size:10px;color:var(--teal);font-weight:700">(tu)</span>` : '';
+      righe.push(`<div style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border)">
+        <span style="font-size:16px">${cfg[s.ruolo] || '⚪'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">${s.nome}${selfTag}${multiTag}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${s.ruolo} · DB: ${s.db} · ${tempo}</div>
+        </div>
+        <span style="width:8px;height:8px;background:#4CAF50;border-radius:50%;flex-shrink:0;box-shadow:0 0 4px rgba(76,175,80,0.6)"></span>
+      </div>`);
+    });
+  });
+  lista.innerHTML = righe.join('');
 }
 
 function toggleOnlinePanel() {
