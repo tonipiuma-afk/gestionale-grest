@@ -4956,14 +4956,16 @@ input[type="checkbox"]:checked {
 .cal-periodo-slot-time {
   font-size: 10px; font-weight: 700; color: var(--text-muted);
   white-space: nowrap; font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 .cal-periodo-slot-sep {
   font-size: 9px; color: var(--border); font-weight: 600;
+  flex-shrink: 0;
 }
 .cal-periodo-slot-act {
   font-size: 10px; font-weight: 700; color: var(--text);
   text-transform: uppercase; letter-spacing: .2px; line-height: 1.3;
-  text-align: left; flex: 1;
+  text-align: left; flex: 1; margin-left: 6px;
 }
 
 /* Extra note */
@@ -20971,10 +20973,13 @@ async function _uploadSingoloDb(nomeDb, db, retries = 3) {
     const timeoutMs = (db.iscritti||[]).length > 50 ? 30000 : 15000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     const now = new Date().toISOString();
+    // Escludi calendarioFile (PDF base64 pesante) dall'upload cloud
+    const dbPerUpload = Object.assign({}, db);
+    delete dbPerUpload.calendarioFile;
     const payload = {
       id: dbKey,
       db_key: dbKey,
-      data: { db: db, dbName: nomeDb, aggiornato: now },
+      data: { db: dbPerUpload, dbName: nomeDb, aggiornato: now },
       updated_at: now
     };
     const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
@@ -21266,7 +21271,10 @@ async function sincronizzaOra() {
         const cloudData = JSON.stringify(record.data.db);
         const localData = JSON.stringify(APP.databases[nomeDb]);
         if (cloudData !== localData) {
+          // Preserva calendarioFile locale (non viene mai caricato sul cloud)
+          const calendarioFileLocale = APP.databases[nomeDb]?.calendarioFile;
           APP.databases[nomeDb] = record.data.db;
+          if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
           aggiornati++;
           console.log('📥 Database aggiornato dal cloud:', nomeDb);
         }
@@ -21820,7 +21828,10 @@ async function autoSyncSilenzioso() {
               showToast('📥 ' + (parti.length ? parti.join(', ') : 'Dati aggiornati') + ' dal cloud', 'info');
             }
           }
+          // Preserva calendarioFile locale (non viene mai caricato sul cloud)
+          const _calFile = APP.databases[nomeDb]?.calendarioFile;
           APP.databases[nomeDb] = record.data.db;
+          if (_calFile) APP.databases[nomeDb].calendarioFile = _calFile;
           delete _uploadedDataHashes[nomeDb];
           hasChanges = true;
           console.log('📥 [auto-sync] DB aggiornato dal cloud:', nomeDb);
