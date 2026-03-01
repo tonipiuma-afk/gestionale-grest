@@ -21358,17 +21358,89 @@ async function forzaDownload() {
 
 let _autoSyncInterval = null;
 let _ultimoAggiornamentoCloud = null;
-let _operazioneCriticaInCorso = false; // NUOVO: blocca auto-sync durante operazioni importanti
+let _operazioneCriticaInCorso = false;
+let _realtimeChannel = null;
+let _realtimeConnesso = false;
 
-// Avvia sync automatico ogni 30 secondi
+// ── Supabase Realtime — subscription alla tabella grest_sync ──
+function avviaRealtime() {
+  if (!_jbSyncEnabled) return;
+  if (_realtimeChannel) return; // già attivo
+
+  // Carica la libreria Supabase JS se non già presente
+  if (!window._supabaseRealtimeLib) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    script.onload = () => {
+      window._supabaseRealtimeLib = true;
+      _avviaRealtimeChannel();
+    };
+    script.onerror = () => {
+      console.warn('⚠️ Supabase JS non caricato — uso solo polling fallback');
+    };
+    document.head.appendChild(script);
+  } else {
+    _avviaRealtimeChannel();
+  }
+}
+
+function _avviaRealtimeChannel() {
+  try {
+    const client = window.supabase.createClient(SB_URL, SB_KEY);
+    _realtimeChannel = client
+      .channel('grest-sync-changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: SB_TABLE
+      }, (payload) => {
+        // Ignora notifiche dalla riga online (heartbeat) e utenti
+        if (payload.new?.id === SB_ONLINE_ID || payload.new?.id === SB_UTENTI_ID) return;
+        console.log('🔔 Realtime: modifica rilevata su', payload.new?.id);
+        // Aspetta 500ms per evitare loop se siamo noi stessi ad aver appena salvato
+        setTimeout(() => autoSyncSilenzioso(), 500);
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          _realtimeConnesso = true;
+          console.log('✅ Realtime connesso — sync istantaneo attivo');
+          aggiornaStatoFB('connected');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          _realtimeConnesso = false;
+          console.warn('⚠️ Realtime disconnesso — uso polling fallback');
+        }
+      });
+  } catch(e) {
+    console.warn('Realtime error:', e);
+    _realtimeConnesso = false;
+  }
+}
+
+function fermaRealtime() {
+  if (_realtimeChannel) {
+    try { _realtimeChannel.unsubscribe(); } catch(e) {}
+    _realtimeChannel = null;
+    _realtimeConnesso = false;
+  }
+}
+
+// Avvia sync: realtime + polling fallback ogni 5 minuti
 function avviaAutoSync() {
   if (_autoSyncInterval) clearInterval(_autoSyncInterval);
-  
+
   // Sync immediato al primo avvio
   autoSyncSilenzioso();
-  
-  // Poi ogni 45 secondi — check leggero su updated_at costa pochissimo
-  _autoSyncInterval = setInterval(autoSyncSilenzioso, 45000);
+
+  // Avvia realtime
+  avviaRealtime();
+
+  // Polling fallback ogni 5 minuti (copre disconnessioni websocket)
+  _autoSyncInterval = setInterval(() => {
+    if (!_realtimeConnesso) {
+      console.log('🔄 Polling fallback (realtime non attivo)');
+      autoSyncSilenzioso();
+    }
+  }, 5 * 60 * 1000);
 }
 
 // Ferma auto-sync (chiamato al logout)
@@ -21376,8 +21448,9 @@ function fermaAutoSync() {
   if (_autoSyncInterval) {
     clearInterval(_autoSyncInterval);
     _autoSyncInterval = null;
-    console.log('🛑 Auto-sync fermato');
   }
+  fermaRealtime();
+  console.log('🛑 Auto-sync fermato');
 }
 
 // ══════════════════════════════════════════════════
