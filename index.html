@@ -7832,13 +7832,13 @@ img:not([loading]) { loading: lazy; }
     
     <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:20px">
       <div style="font-size:14px;font-weight:700;margin-bottom:8px">🖥️ BACKUP AUTOMATICO SUL TUO PC</div>
-      <p style="font-size:13px;opacity:0.9;margin-bottom:12px">Configura una cartella sul tuo PC: ad ogni accesso verrà salvato automaticamente un file JSON datato. I file vecchi non vengono mai sovrascritti.</p>
-      <div id="backup-pc-stato"></div>
+      <p style="font-size:13px;opacity:0.9;margin-bottom:12px">Scegli una cartella dedicata sul tuo PC: ad ogni accesso verrà salvato un file JSON datato. All'apertura del browser apparirà un banner per riattivare con un solo click.</p>
+      <div id="backup-pc-stato" style="margin-bottom:14px"></div>
       <div class="flex gap-2" style="flex-wrap:wrap">
-        <button type="button" class="btn" style="background:#fff;color:#667eea;font-weight:700" onclick="configuraCartellaBackupPc()">📁 Configura cartella PC</button>
-        <button type="button" class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid #fff" onclick="richiediCartellaBackupPc()">🔗 Ricollegati</button>
+        <button type="button" class="btn" style="background:#fff;color:#667eea;font-weight:700" onclick="backupPcConfigura()">📁 Configura cartella</button>
+        <button type="button" class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid #fff" onclick="backupPcRiattiva()">🔗 Riattiva</button>
         <button type="button" class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid #fff" onclick="eseguiBackupLocalePC('manuale')">💾 Salva ora</button>
-        <button type="button" class="btn btn-sm" style="background:rgba(220,53,69,0.4);color:#fff;border:1px solid rgba(220,53,69,0.6)" onclick="showConfirm('Rimuovere la configurazione cartella backup PC?',rimuoviCartellaBackupPc,'Rimuovi','🗑️')">🗑️ Rimuovi</button>
+        <button type="button" class="btn btn-sm" style="background:rgba(220,53,69,0.4);color:#fff;border:1px solid rgba(220,53,69,0.6)" onclick="showConfirm('Rimuovere la cartella backup PC?',backupPcRimuovi,'Rimuovi','🗑️')">🗑️ Rimuovi</button>
       </div>
     </div>
 
@@ -15219,52 +15219,182 @@ function eliminaIscrittiDemo(){
 // ══════════════════════════════════════════════════
 // BACKUP LOCALE PC — File System Access API
 // ══════════════════════════════════════════════════
-const BACKUP_PC_LS_KEY = 'grest_backup_pc_enabled';
-let _backupPcDirHandle = null; // handle cartella in memoria sessione
+// BACKUP LOCALE PC — cartella dedicata via File System Access API
+// ══════════════════════════════════════════════════
+let _backupPcDirHandle = null;
 
-// Serializza handle cartella nel localStorage (solo nome, non l'handle vero)
-function isBackupPcConfigurato(){
-  return localStorage.getItem(BACKUP_PC_LS_KEY) === '1';
+// ── IndexedDB per persistere l'handle tra sessioni ──
+const _idbName = 'GrestBackupPC';
+const _idbStore = 'handles';
+
+function _idbOpen(){
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(_idbName,1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(_idbStore);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+async function _idbSaveHandle(handle){
+  try{
+    const db = await _idbOpen();
+    const tx = db.transaction(_idbStore,'readwrite');
+    tx.objectStore(_idbStore).put(handle,'dirHandle');
+    await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej;});
+    db.close();
+  }catch(e){console.warn('idb save:',e);}
+}
+async function _idbLoadHandle(){
+  try{
+    const db = await _idbOpen();
+    const tx = db.transaction(_idbStore,'readonly');
+    const req = tx.objectStore(_idbStore).get('dirHandle');
+    const h = await new Promise((res,rej)=>{req.onsuccess=()=>res(req.result);req.onerror=rej;});
+    db.close();
+    return h||null;
+  }catch(e){return null;}
+}
+async function _idbDeleteHandle(){
+  try{
+    const db=await _idbOpen();
+    const tx=db.transaction(_idbStore,'readwrite');
+    tx.objectStore(_idbStore).delete('dirHandle');
+    await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej;});
+    db.close();
+  }catch(e){}
 }
 
 function isFileSystemAccessSupported(){
   return 'showDirectoryPicker' in window;
 }
+function isBackupPcConfigurato(){
+  return localStorage.getItem('grest_backup_pc_enabled')==='1';
+}
 
-// Chiede all'utente di scegliere la cartella dove salvare i backup
-async function configuraCartellaBackupPc(){
-  if(!isFileSystemAccessSupported()){
-    showToast('⚠️ Il tuo browser non supporta questa funzione. Usa Chrome o Edge.','error');
-    return;
-  }
-  try{
-    const dirHandle = await window.showDirectoryPicker({ mode:'readwrite', startIn:'documents' });
-    _backupPcDirHandle = dirHandle;
-    localStorage.setItem(BACKUP_PC_LS_KEY,'1');
-    localStorage.setItem('grest_backup_pc_dirname', dirHandle.name);
-    showToast(`✅ Cartella configurata: "${dirHandle.name}". D'ora in poi ogni accesso salverà un backup qui.`,'success');
-    aggiornaUIBackupPc();
-    // Fai subito un backup
-    await eseguiBackupLocalePC('manuale');
-  }catch(e){
-    if(e.name !== 'AbortError'){
-      showToast('❌ Errore configurazione cartella: '+e.message,'error');
-    }
+// Mostra banner se cartella configurata ma handle non ancora attivo
+async function backupPcCheckBanner(){
+  if(!isFileSystemAccessSupported()) return;
+  if(!isBackupPcConfigurato()) return;
+  if(_backupPcDirHandle) return; // già attivo, nessun banner
+  const handle = await _idbLoadHandle();
+  if(!handle) return;
+  const nomCartella = localStorage.getItem('grest_backup_pc_dirname')||'Backup';
+  // Mostra banner
+  let banner = document.getElementById('backup-pc-banner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'backup-pc-banner';
+    banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a237e;color:#fff;border-radius:12px;padding:12px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3);font-size:14px;max-width:90vw';
+    banner.innerHTML = `
+      <span style="font-size:20px">💾</span>
+      <span>Cartella backup <strong>"${nomCartella}"</strong> da riattivare</span>
+      <button onclick="backupPcRiattiva()" style="background:#fff;color:#1a237e;border:none;border-radius:8px;padding:6px 14px;font-weight:800;cursor:pointer;font-size:13px">Riattiva</button>
+      <button onclick="document.getElementById('backup-pc-banner').remove()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px">✕</button>
+    `;
+    document.body.appendChild(banner);
   }
 }
 
-// Esegue il backup nella cartella configurata
+// Riattiva la cartella con un click (usa l'handle salvato, richiede solo permesso)
+async function backupPcRiattiva(){
+  const handle = await _idbLoadHandle();
+  if(!handle){ backupPcConfigura(); return; }
+  try{
+    const perm = await handle.requestPermission({mode:'readwrite'});
+    if(perm==='granted'){
+      _backupPcDirHandle = handle;
+      localStorage.setItem('grest_backup_pc_dirname', handle.name);
+      document.getElementById('backup-pc-banner')?.remove();
+      showToast(`✅ Cartella "${handle.name}" riattivata — backup attivo`,'success');
+      aggiornaBannerBackupPc();
+      // Fai subito un backup
+      await eseguiBackupLocalePC('accesso');
+    } else {
+      showToast('⚠️ Permesso negato. Riconfigura la cartella.','error');
+      backupPcConfigura();
+    }
+  }catch(e){
+    console.warn('riattiva error:',e);
+    backupPcConfigura();
+  }
+}
+
+// Configura cartella per la prima volta (o riconfigura)
+async function backupPcConfigura(){
+  if(!isFileSystemAccessSupported()){
+    showToast('⚠️ Usa Chrome o Edge per questa funzione.','error');
+    return;
+  }
+  try{
+    const dirHandle = await window.showDirectoryPicker({mode:'readwrite', startIn:'documents'});
+    _backupPcDirHandle = dirHandle;
+    localStorage.setItem('grest_backup_pc_enabled','1');
+    localStorage.setItem('grest_backup_pc_dirname', dirHandle.name);
+    await _idbSaveHandle(dirHandle);
+    document.getElementById('backup-pc-banner')?.remove();
+    showToast(`✅ Cartella "${dirHandle.name}" configurata!`,'success');
+    aggiornaBannerBackupPc();
+    await eseguiBackupLocalePC('manuale');
+  }catch(e){
+    if(e.name!=='AbortError') showToast('❌ '+e.message,'error');
+  }
+}
+
+// Rimuove configurazione
+async function backupPcRimuovi(){
+  _backupPcDirHandle = null;
+  localStorage.removeItem('grest_backup_pc_enabled');
+  localStorage.removeItem('grest_backup_pc_dirname');
+  localStorage.removeItem('grest_backup_pc_last');
+  localStorage.removeItem('grest_backup_pc_lastfile');
+  await _idbDeleteHandle();
+  document.getElementById('backup-pc-banner')?.remove();
+  aggiornaBannerBackupPc();
+  showToast('🗑️ Backup locale PC disattivato','success');
+}
+
+// Aggiorna UI nella card impostazioni
+function aggiornaBannerBackupPc(){
+  const el = document.getElementById('backup-pc-stato');
+  if(!el) return;
+  const configurato = isBackupPcConfigurato();
+  const attivo = _backupPcDirHandle !== null;
+  const nomCartella = localStorage.getItem('grest_backup_pc_dirname')||'—';
+  const ultimaData = localStorage.getItem('grest_backup_pc_last');
+  const ultimaStr = ultimaData ? new Date(ultimaData).toLocaleString('it-IT') : '—';
+  if(!isFileSystemAccessSupported()){
+    el.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.7)">⚠️ Usa Chrome o Edge per questa funzione.</div>';
+    return;
+  }
+  if(!configurato){
+    el.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.8)">📁 Nessuna cartella configurata.</div>';
+    return;
+  }
+  const dot = attivo ? '🟢' : '🟡';
+  const stato = attivo ? 'Attivo' : 'Da riattivare (clicca Riattiva)';
+  el.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.95);line-height:1.8">
+    ${dot} <strong>${stato}</strong><br>
+    📁 Cartella: <strong>${nomCartella}</strong><br>
+    🕐 Ultimo backup: <strong>${ultimaStr}</strong>
+  </div>`;
+}
+
+// Esegue il backup nella cartella
 async function eseguiBackupLocalePC(tipo='automatico'){
-  if(!_backupPcDirHandle) return; // cartella non configurata in questa sessione
   const db = getDb();
   if(!db) return;
+
+  // Se cartella configurata ma handle non attivo, fallback su Download
+  if(isBackupPcConfigurato() && !_backupPcDirHandle){
+    if(tipo==='manuale') showToast('⚠️ Riattiva prima la cartella backup','error');
+    return;
+  }
 
   try{
     const now = new Date();
     const pad = n => String(n).padStart(2,'0');
     const dataOra = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
     const nomeFile = `GREST_Backup_${dataOra}.json`;
-
     const backup = {
       versione:'1.0',
       dataExport: now.toISOString(),
@@ -15273,19 +15403,29 @@ async function eseguiBackupLocalePC(tipo='automatico'){
       anno: db.impostazioni?.anno||now.getFullYear(),
       database: db
     };
-
     const json = JSON.stringify(backup, null, 2);
-    const fileHandle = await _backupPcDirHandle.getFileHandle(nomeFile, { create:true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(json);
-    await writable.close();
+
+    if(_backupPcDirHandle){
+      // Salva nella cartella dedicata
+      const fileHandle = await _backupPcDirHandle.getFileHandle(nomeFile,{create:true});
+      const writable = await fileHandle.createWritable();
+      await writable.write(json);
+      await writable.close();
+    } else {
+      // Fallback: scarica nella cartella Download
+      const blob = new Blob([json],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download=nomeFile; a.click();
+      URL.revokeObjectURL(url);
+    }
 
     const oraStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
     localStorage.setItem('grest_backup_pc_last', now.toISOString());
     localStorage.setItem('grest_backup_pc_lastfile', nomeFile);
-    aggiornaUIBackupPc();
+    aggiornaBannerBackupPc();
 
-    if(tipo === 'manuale'){
+    if(tipo==='manuale'){
       showToast(`💾 Backup salvato: ${nomeFile}`,'success');
     } else {
       showToast(`💾 Backup locale salvato (${oraStr})`,'success');
@@ -15293,77 +15433,9 @@ async function eseguiBackupLocalePC(tipo='automatico'){
     console.log(`💾 Backup PC: ${nomeFile}`);
   }catch(e){
     console.error('Backup PC error:',e);
-    if(tipo === 'manuale') showToast('❌ Errore salvataggio backup: '+e.message,'error');
+    if(e.name==='NotAllowedError'){ _backupPcDirHandle=null; aggiornaBannerBackupPc(); }
+    if(tipo==='manuale') showToast('❌ Errore backup: '+e.message,'error');
   }
-}
-
-// Richiede di ri-selezionare la cartella (necessario ad ogni apertura del browser)
-async function richiediCartellaBackupPc(){
-  if(!isFileSystemAccessSupported()) return;
-  if(!isBackupPcConfigurato()) return;
-  const nomeSalvato = localStorage.getItem('grest_backup_pc_dirname') || 'backup';
-  try{
-    const dirHandle = await window.showDirectoryPicker({ mode:'readwrite', startIn:'documents' });
-    _backupPcDirHandle = dirHandle;
-    localStorage.setItem('grest_backup_pc_dirname', dirHandle.name);
-    showToast(`📁 Cartella backup "${dirHandle.name}" ricollegata`,'success');
-    aggiornaUIBackupPc();
-  }catch(e){
-    if(e.name !== 'AbortError'){
-      console.warn('Cartella backup non ricollegata:',e);
-    }
-  }
-}
-
-// Rimuove configurazione cartella
-function rimuoviCartellaBackupPc(){
-  _backupPcDirHandle = null;
-  localStorage.removeItem(BACKUP_PC_LS_KEY);
-  localStorage.removeItem('grest_backup_pc_dirname');
-  localStorage.removeItem('grest_backup_pc_last');
-  localStorage.removeItem('grest_backup_pc_lastfile');
-  aggiornaUIBackupPc();
-  showToast('🗑️ Backup locale PC disattivato','success');
-}
-
-// Aggiorna lo stato nell'interfaccia
-function aggiornaUIBackupPc(){
-  const statoEl = document.getElementById('backup-pc-stato');
-  if(!statoEl) return;
-  const configurato = isBackupPcConfigurato();
-  const nomCartella = localStorage.getItem('grest_backup_pc_dirname') || '—';
-  const ultimoFile = localStorage.getItem('grest_backup_pc_lastfile') || '—';
-  const ultimaData = localStorage.getItem('grest_backup_pc_last');
-  const ultimaStr = ultimaData ? new Date(ultimaData).toLocaleString('it-IT') : '—';
-  const attivo = _backupPcDirHandle !== null;
-
-  if(!isFileSystemAccessSupported()){
-    statoEl.innerHTML = `<div style="background:#fff3e0;border:1px solid #ff9800;border-radius:8px;padding:12px;font-size:13px;color:#e65100">
-      ⚠️ Questo browser non supporta il salvataggio diretto su PC. Usa <strong>Chrome</strong> o <strong>Edge</strong>.
-    </div>`;
-    return;
-  }
-
-  if(!configurato){
-    statoEl.innerHTML = `<div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:12px">
-      📁 Nessuna cartella configurata. Clicca il pulsante per scegliere dove salvare i backup automatici.
-    </div>`;
-    return;
-  }
-
-  const dotColor = attivo ? '#4caf50' : '#ff9800';
-  const dotLabel = attivo ? 'Attivo in questa sessione' : 'Cartella da ricollegare (clicca "Ricollegati")';
-
-  statoEl.innerHTML = `
-    <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:14px;font-size:13px;color:rgba(255,255,255,0.95);margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:10px;height:10px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
-        <strong>${dotLabel}</strong>
-      </div>
-      <div>📁 Cartella: <strong>${nomCartella}</strong></div>
-      <div>🕐 Ultimo backup: <strong>${ultimaStr}</strong></div>
-      <div>📄 File: <strong>${ultimoFile}</strong></div>
-    </div>`;
 }
 
 function esportaBackup(){
@@ -15550,7 +15622,7 @@ function switchImpTab(tab){
   
   // Se apre il tab backup, aggiorna UI backup PC
   if(tab==='backup') {
-    aggiornaUIBackupPc();
+    aggiornaBannerBackupPc();
   }
 }
 
@@ -18843,8 +18915,8 @@ async function loginSubmit(){
     // Avvia auto-sync in background ogni 30 secondi
     avviaAutoSync();
     
-    // 💾 Backup automatico su PC (solo se cartella configurata in questa sessione)
-    setTimeout(()=> eseguiBackupLocalePC('accesso'), 2000);
+    // 💾 Backup automatico su PC — ripristina handle e salva
+    if(AUTH.currentUser?.username === 'tonino') setTimeout(async()=>{ await backupPcCheckBanner(); await eseguiBackupLocalePC('accesso'); }, 1500);
   } else {
     // Nessun db: mostra splash per crearne uno
     splashInit();
@@ -20447,8 +20519,8 @@ window.onload = function(){
     updateDashboard();
     onlineStart();
     avviaAutoSync();
-    // 💾 Backup automatico su PC (solo se cartella configurata in questa sessione)
-    setTimeout(()=> eseguiBackupLocalePC('accesso'), 2000);
+    // 💾 Backup automatico su PC — ripristina handle e salva
+    if(AUTH.currentUser?.username === 'tonino') setTimeout(async()=>{ await backupPcCheckBanner(); await eseguiBackupLocalePC('accesso'); }, 1500);
     console.log('✅ Sessione ripristinata per:', utente.nome);
   }
 
