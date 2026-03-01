@@ -4944,10 +4944,9 @@ input[type="checkbox"]:checked {
   display: flex; flex-direction: column;
 }
 .cal-periodo-slot {
-  display: grid;
-  grid-template-columns: auto auto auto 1fr;
+  display: flex;
   align-items: baseline;
-  gap: 2px 4px;
+  gap: 4px;
   padding: 4px 10px;
   border-bottom: 1px solid var(--border);
   transition: background .1s;
@@ -4964,7 +4963,7 @@ input[type="checkbox"]:checked {
 .cal-periodo-slot-act {
   font-size: 10px; font-weight: 700; color: var(--text);
   text-transform: uppercase; letter-spacing: .2px; line-height: 1.3;
-  text-align: left;
+  text-align: left; flex: 1;
 }
 
 /* Extra note */
