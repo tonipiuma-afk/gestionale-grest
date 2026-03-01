@@ -5640,6 +5640,17 @@ img:not([loading]) { loading: lazy; }
       <button type="button" class="btn btn-outline btn-sm" onclick="switchDashTab('giornata');setTimeout(()=>gtSwitchSub('diario'),100)" style="font-size:12px">Vedi tutto →</button>
     </div>
     <div id="dash-diario-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
+
+    <!-- ══ WIDGET LEADERBOARD XP ══ -->
+    <div class="card" id="widget-leaderboard" style="margin-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="card-title" style="margin:0">🏆 Classifica Animatori</div>
+        <button onclick="aggiornaLeaderboard()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--teal)" title="Aggiorna">🔄</button>
+      </div>
+      <div id="leaderboard-list">
+        <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Caricamento...</div>
+      </div>
+    </div>
   </div>
 
     <!-- TAB: ISCRITTI                      -->
@@ -5789,16 +5800,6 @@ img:not([loading]) { loading: lazy; }
       <div id="report-settimanale" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px"></div>
     </div>
 
-    <!-- ══ WIDGET LEADERBOARD XP ══ -->
-    <div class="card" id="widget-leaderboard" style="margin-top:0">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div class="card-title" style="margin:0">🏆 Classifica Animatori</div>
-        <button onclick="aggiornaLeaderboard()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--teal)" title="Aggiorna">🔄</button>
-      </div>
-      <div id="leaderboard-list">
-        <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Caricamento...</div>
-      </div>
-    </div>
   </div>
 
   <!-- ══════════════════════════════════════════════ -->
@@ -19764,7 +19765,10 @@ async function aggiornaLeaderboard() {
   if(ls){
     const obs = new MutationObserver(()=>{
       if(ls.classList.contains('hidden')){
-        setTimeout(()=> GAMIFY.trackLogin(), 800);
+        setTimeout(()=> {
+          GAMIFY.trackLogin();
+          setTimeout(()=> sincronizzaXpCloud(), 1500);
+        }, 800);
       }
     });
     obs.observe(ls, { attributes: true, attributeFilter: ['class'] });
