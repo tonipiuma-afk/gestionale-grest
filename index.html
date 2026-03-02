@@ -20,7 +20,7 @@
 <link id="pwa-manifest" rel="manifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <title>Gestionale GREST</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -5062,6 +5062,17 @@ img:not([loading]) { loading: lazy; }
   </div>
 </div>
 
+<!-- ═══════════ MESSAGGIO DEL GIORNO ═══════════ -->
+<div id="modal-msg-giorno" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:fadeInUp .4s ease">
+    <div style="font-size:48px;margin-bottom:12px" id="msg-giorno-emoji">☀️</div>
+    <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Messaggio del giorno</div>
+    <div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:8px" id="msg-giorno-testo">Buona giornata a tutti!</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:24px" id="msg-giorno-firma">— Admin</div>
+    <button onclick="chiudiMsgGiorno()" style="width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">🚀 Iniziamo!</button>
+  </div>
+</div>
+
 <!-- ═══════════ SPLASH SCREEN ═══════════ -->
 <div id="splash-screen">
   <!-- Canvas particelle animate -->
@@ -5167,6 +5178,11 @@ img:not([loading]) { loading: lazy; }
     <div style="border-top:1px solid var(--border)"></div>
     <!-- Gamification mini-panel -->
     <div id="xp-menu-panel" style="padding:14px 16px;">
+      <!-- Foto profilo -->
+      <div style="text-align:center;margin-bottom:14px">
+        <div id="xp-avatar-display" onclick="toggleAvatarPicker()" style="cursor:pointer;display:inline-block" title="Vai al profilo"></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px;font-weight:600">👤 Tocca per aprire il profilo</div>
+      </div>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
         <div class="xp-menu-level-ring" id="xp-menu-ring">1</div>
         <div style="flex:1;min-width:0">
@@ -5185,6 +5201,11 @@ img:not([loading]) { loading: lazy; }
       <!-- Streak -->
       <div id="xp-menu-streak" style="display:none;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:10px;padding:6px 12px;margin-bottom:8px;text-align:center">
         <span style="font-size:12px;font-weight:800;color:#E65100" id="xp-streak-text">🔥 0 giorni di fila</span>
+      </div>
+      <!-- Sfide settimanali -->
+      <div id="xp-sfide-wrap" style="margin-bottom:8px;display:none">
+        <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⚡ Sfide questa settimana</div>
+        <div id="xp-sfide-list"></div>
       </div>
       <!-- Badge -->
       <div id="xp-menu-badges" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center"></div>
@@ -5522,6 +5543,7 @@ img:not([loading]) { loading: lazy; }
       style="flex:1;min-width:100px;padding:10px 8px;border:none;border-radius:12px;background:#fff;color:#999;cursor:pointer;font-weight:800;font-size:11px;letter-spacing:.5px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow)">
       <span style="font-size:15px">🌅</span>GIORNATA
     </button>
+
   </div>
 
     <!-- ALERT AUTOMATICI -->
@@ -6979,6 +7001,7 @@ img:not([loading]) { loading: lazy; }
       <div class="table-wrap"><table class="data-table" id="table-consegna"></table></div>
     </div>
   </div>
+
 </div>
 
 <!-- ════ ANIMATORI ════ -->
@@ -7600,6 +7623,45 @@ img:not([loading]) { loading: lazy; }
   
   <!-- TAB ASPETTO -->
   <div class="imp-tab-content" id="imp-tab-aspetto">
+
+  <!-- FONT -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-title">🔤 Font Interfaccia</div>
+    <p class="text-muted mb-3">Scegli il font che preferisci per tutta l'interfaccia</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px" id="font-picker">
+      <div onclick="cambioFont('system')" class="font-option" data-font="system" style="padding:16px;border-radius:14px;border:2px solid var(--teal);background:var(--teal-light);cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px">Aa</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">Sistema</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">Default</div>
+      </div>
+      <div onclick="cambioFont('inter')" class="font-option" data-font="inter" style="padding:16px;border-radius:14px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px">Aa</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">Inter</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">Moderno</div>
+      </div>
+      <div onclick="cambioFont('poppins')" class="font-option" data-font="poppins" style="padding:16px;border-radius:14px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px">Aa</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">Poppins</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">Geometrico</div>
+      </div>
+      <div onclick="cambioFont('outfit')" class="font-option" data-font="outfit" style="padding:16px;border-radius:14px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px">Aa</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">Outfit</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">Pulito</div>
+      </div>
+      <div onclick="cambioFont('dm-sans')" class="font-option" data-font="dm-sans" style="padding:16px;border-radius:14px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-family:'DM Sans',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px">Aa</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">DM Sans</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">Minimal</div>
+      </div>
+      <div onclick="cambioFont('plus-jakarta')" class="font-option" data-font="plus-jakarta" style="padding:16px;border-radius:14px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all .2s">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px">Aa</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">Jakarta</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">Professionale</div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="section-title">🎨 Tema Interfaccia</div>
     <p class="text-muted mb-3">Scegli il tema colori che preferisci per l'interfaccia del gestionale</p>
@@ -7776,6 +7838,27 @@ img:not([loading]) { loading: lazy; }
   
   <!-- TAB CONFIGURAZIONE -->
   <div class="imp-tab-content" id="imp-tab-config" style="display:none">
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-title">💬 Messaggio del Giorno</div>
+    <p class="text-muted mb-3">Scrivi un messaggio motivazionale che apparirà a tutti gli animatori dopo il login (una volta al giorno)</p>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px">EMOJI</label>
+      <input type="text" id="msg-giorno-emoji-input" placeholder="☀️" maxlength="4" style="width:60px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:22px;text-align:center">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px">MESSAGGIO</label>
+      <textarea id="msg-giorno-testo-input" placeholder="Scrivi un messaggio motivazionale..." rows="3" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px">FIRMA</label>
+      <input type="text" id="msg-giorno-firma-input" placeholder="— Don Mario" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;box-sizing:border-box">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="salvaMsgGiorno()" class="btn btn-teal" style="flex:1">💾 Salva e attiva</button>
+      <button onclick="anteprima MsgGiorno()" class="btn btn-outline" style="flex:1" onclick="anteprimaMsgGiorno()">👁️ Anteprima</button>
+    </div>
+    <div id="msg-giorno-status" style="margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center"></div>
+  </div>
 
   <div class="card">
     <div class="section-title">Info GREST</div>
@@ -8607,6 +8690,64 @@ function loadStorage(){
 }
 let _saveTimer=null;
 let _lastSavedHash=null;
+// ══════════════════════════════════════════════════
+// UNDO GLOBALE — stack degli ultimi 10 stati
+// ══════════════════════════════════════════════════
+const UNDO_STACK = [];
+const UNDO_MAX = 10;
+let _undoToastTimeout = null;
+
+function undoPush(descrizione) {
+  const db = getDb();
+  if (!db || !APP.currentDb) return;
+  UNDO_STACK.push({
+    db: JSON.parse(JSON.stringify(db)),
+    dbName: APP.currentDb,
+    desc: descrizione || 'modifica',
+    ts: Date.now()
+  });
+  if (UNDO_STACK.length > UNDO_MAX) UNDO_STACK.shift();
+  mostraUndoButton(descrizione);
+}
+
+function undoEsegui() {
+  if (UNDO_STACK.length === 0) { showToast('Niente da annullare', 'info'); return; }
+  const snap = UNDO_STACK.pop();
+  APP.databases[snap.dbName] = snap.db;
+  saveStorage(true);
+  autoSyncSilenzioso();
+  nascondiUndoButton();
+  showToast('↩️ Annullato: ' + snap.desc, 'success');
+  // Ricarica la vista corrente
+  const view = document.querySelector('.view.active')?.id?.replace('view-','');
+  if (view && typeof window['update' + view.charAt(0).toUpperCase() + view.slice(1)] === 'function') {
+    window['update' + view.charAt(0).toUpperCase() + view.slice(1)]();
+  }
+  updateHeader();
+}
+
+function mostraUndoButton(desc) {
+  clearTimeout(_undoToastTimeout);
+  let btn = document.getElementById('undo-fab');
+  if (!btn) {
+    btn = document.createElement('div');
+    btn.id = 'undo-fab';
+    btn.onclick = undoEsegui;
+    btn.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9990;background:#323232;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.3);transition:all .3s;white-space:nowrap';
+    document.body.appendChild(btn);
+  }
+  btn.innerHTML = `↩️ Annulla: <b>${desc || 'ultima azione'}</b> &nbsp;✕`;
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+  // Sparisce dopo 6 secondi
+  _undoToastTimeout = setTimeout(nascondiUndoButton, 6000);
+}
+
+function nascondiUndoButton() {
+  const btn = document.getElementById('undo-fab');
+  if (btn) { btn.style.opacity = '0'; btn.style.pointerEvents = 'none'; setTimeout(()=>btn.remove(), 300); }
+}
+
 function saveStorage(immediate){
   // Calcola hash leggero per evitare write inutili
   const db=getDb();
@@ -19240,19 +19381,48 @@ const GAMIFY = {
 
   // Badge sbloccabili
   BADGES: [
-    { id:'streak_3',       emoji:'🔥', label:'3 giorni di fila',  desc:'Login per 3 giorni consecutivi',              check: s => s.streak >= 3 },
-    { id:'streak_7',       emoji:'🔥', label:'Settimana perfetta',desc:'Login per 7 giorni consecutivi',              check: s => s.streak >= 7 },
-    { id:'presenze_10',    emoji:'📋', label:'Segna-presenze',    desc:'Segna presenze 10 volte',                     check: s => s.presenze >= 10 },
-    { id:'presenze_50',    emoji:'📋', label:'Re delle presenze', desc:'Segna presenze 50 volte',                     check: s => s.presenze >= 50 },
-    { id:'diario_5',       emoji:'📝', label:'Diarista',          desc:'Scrivi 5 voci nel diario',                    check: s => s.diario >= 5 },
-    { id:'diario_20',      emoji:'📖', label:'Scrittore',         desc:'Scrivi 20 voci nel diario',                   check: s => s.diario >= 20 },
-    { id:'checklist_10',   emoji:'✅', label:'Organizzato',       desc:'Completa 10 item checklist',                  check: s => s.checklist >= 10 },
-    { id:'iscritti_5',     emoji:'👥', label:'Reclutatore',       desc:'Aggiungi 5 iscritti',                         check: s => s.iscritti >= 5 },
-    { id:'xp_500',         emoji:'⭐', label:'Mezzo migliaio',    desc:'Raggiungi 500 XP',                            check: s => s.xp >= 500 },
-    { id:'xp_1000',        emoji:'💫', label:'Mille!',            desc:'Raggiungi 1000 XP',                           check: s => s.xp >= 1000 },
-    { id:'lvl_5',          emoji:'🏅', label:'Livello 5',         desc:'Raggiungi il livello 5',                      check: s => s.level >= 5 },
-    { id:'lvl_10',         emoji:'💎', label:'GREST Master',      desc:'Raggiungi il livello 10',                     check: s => s.level >= 10 },
-    { id:'multi_50',       emoji:'🎯', label:'Tuttofare',         desc:'50+ azioni totali tra presenze, diario e checklist', check: s => (s.presenze+s.diario+s.checklist) >= 50 },
+    // ── Streak ──
+    { id:'streak_3',       emoji:'🔥', label:'3 giorni di fila',    desc:'Login per 3 giorni consecutivi',                    check: s => s.streak >= 3 },
+    { id:'streak_7',       emoji:'🌋', label:'Settimana di fuoco',   desc:'Login per 7 giorni consecutivi',                    check: s => s.streak >= 7 },
+    { id:'streak_14',      emoji:'💥', label:'Due settimane!',       desc:'Login per 14 giorni consecutivi',                   check: s => s.streak >= 14 },
+
+    // ── Presenze ──
+    { id:'presenze_10',    emoji:'📋', label:'Appuntato',            desc:'Segna presenze 10 volte',                           check: s => s.presenze >= 10 },
+    { id:'presenze_50',    emoji:'🪖', label:'Sergente',             desc:'Segna presenze 50 volte',                           check: s => s.presenze >= 50 },
+    { id:'presenze_100',   emoji:'⚔️', label:'Generale',             desc:'Segna presenze 100 volte — sei un veterano!',       check: s => s.presenze >= 100 },
+
+    // ── Diario ──
+    { id:'diario_1',       emoji:'🖊️', label:'Prima voce',           desc:'Scrivi la prima voce nel diario',                   check: s => s.diario >= 1 },
+    { id:'diario_5',       emoji:'📝', label:'Cronista',             desc:'Scrivi 5 voci nel diario',                          check: s => s.diario >= 5 },
+    { id:'diario_20',      emoji:'📖', label:'Storico del GREST',    desc:'Scrivi 20 voci nel diario',                         check: s => s.diario >= 20 },
+
+    // ── Checklist ──
+    { id:'checklist_10',   emoji:'✅', label:'Organizzato',          desc:'Completa 10 item checklist',                        check: s => s.checklist >= 10 },
+    { id:'checklist_50',   emoji:'🗂️', label:'Perfezionista',        desc:'Completa 50 item checklist',                        check: s => s.checklist >= 50 },
+
+    // ── Iscritti ──
+    { id:'iscritti_1',     emoji:'👶', label:'Primo iscritto!',      desc:'Aggiungi il primo iscritto',                        check: s => s.iscritti >= 1 },
+    { id:'iscritti_5',     emoji:'👥', label:'Reclutatore',          desc:'Aggiungi 5 iscritti',                               check: s => s.iscritti >= 5 },
+    { id:'iscritti_20',    emoji:'🏟️', label:'Riempitore di squadre',desc:'Aggiungi 20 iscritti',                              check: s => s.iscritti >= 20 },
+
+    // ── GREST specifici ──
+    { id:'mattiniero',     emoji:'🌅', label:'Mattiniero',           desc:'Primo login del giorno prima delle 8:00',           check: s => s.loginMattina >= 1 },
+    { id:'tuttofare',      emoji:'🎯', label:'Tuttofare',            desc:'50+ azioni totali tra presenze, diario e checklist', check: s => (s.presenze+s.diario+s.checklist) >= 50 },
+    { id:'supereroe',      emoji:'🦸', label:'Supereroe del GREST',  desc:'100+ azioni totali',                                check: s => (s.presenze+s.diario+s.checklist) >= 100 },
+    { id:'maratoneta',     emoji:'🏃', label:'Maratoneta',           desc:'Guadagna XP per 10 giorni diversi',                 check: s => Object.keys(s.dailyXp||{}).length >= 10 },
+    { id:'instancabile',   emoji:'⚡', label:'Instancabile',         desc:'Guadagna XP per 20 giorni diversi',                 check: s => Object.keys(s.dailyXp||{}).length >= 20 },
+
+    // ── XP milestone ──
+    { id:'xp_100',         emoji:'🌱', label:'Primi 100 XP',         desc:'Raggiungi 100 XP',                                  check: s => s.xp >= 100 },
+    { id:'xp_500',         emoji:'⭐', label:'Mezzo migliaio',       desc:'Raggiungi 500 XP',                                  check: s => s.xp >= 500 },
+    { id:'xp_1000',        emoji:'💫', label:'Mille!',               desc:'Raggiungi 1000 XP',                                 check: s => s.xp >= 1000 },
+    { id:'xp_2000',        emoji:'🚀', label:'Razzo',                desc:'Raggiungi 2000 XP',                                 check: s => s.xp >= 2000 },
+
+    // ── Livelli ──
+    { id:'lvl_3',          emoji:'🌿', label:'Animatore doc',        desc:'Raggiungi il livello 3',                            check: s => s.level >= 3 },
+    { id:'lvl_5',          emoji:'🏅', label:'Esperto del GREST',    desc:'Raggiungi il livello 5',                            check: s => s.level >= 5 },
+    { id:'lvl_8',          emoji:'👑', label:'Leggenda',             desc:'Raggiungi il livello 8',                            check: s => s.level >= 8 },
+    { id:'lvl_10',         emoji:'💎', label:'GREST Master',         desc:'Raggiungi il livello 10 — il massimo!',             check: s => s.level >= 10 },
   ],
 
   // ── Stato utente ──
@@ -19316,6 +19486,10 @@ const GAMIFY = {
     if(action === 'iscritto_add') s.iscritti = (s.iscritti||0) + 1;
     if(action === 'animatore_add') s.animatori = (s.animatori||0) + 1;
 
+    // Sfide settimanali
+    const xpSfide = typeof SFIDE !== 'undefined' ? SFIDE.aggiorna(s, action) : 0;
+    if (xpSfide > 0) { pts += xpSfide; s.xp += xpSfide; }
+
     const newLvl = this.calcLevel(s.xp);
     s.level = newLvl.lvl;
     this.saveStats(s);
@@ -19340,6 +19514,8 @@ const GAMIFY = {
     if(!AUTH.currentUser) return;
     const s = this.getStats();
     const today = new Date().toISOString().slice(0,10);
+    const ora = new Date().getHours();
+    if(ora < 8) s.loginMattina = (s.loginMattina||0) + 1;
 
     if(s.lastLogin === today) { this._updateUI(s); return; } // già fatto oggi
 
@@ -19494,6 +19670,9 @@ const GAMIFY = {
       }
     }
 
+    // Sfide settimanali
+    if(typeof SFIDE !== 'undefined') SFIDE.renderUI(s);
+
     // Badges — mostra tutti con earned/locked
     const mBadges = document.getElementById('xp-menu-badges');
     if(mBadges){
@@ -19598,6 +19777,146 @@ function mostraMessaggioMotivazionale(nome){
 }
 
 // ══════════════════════════════════════════════════
+// SISTEMA FOTO PROFILO
+// ══════════════════════════════════════════════════
+
+// Usa foto da AUTH.currentUser.foto (sistema profilo esistente)
+function getMyFoto() { return AUTH.currentUser?.foto || null; }
+
+function aggiornaAvatarUI() {
+  const disp = document.getElementById('xp-avatar-display');
+  if (!disp) return;
+  const foto = getMyFoto();
+  const nome = AUTH.currentUser?.nome || AUTH.currentUser?.username || 'U';
+  const iniziali = nome.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const colors = ['#26A69A','#EC407A','#7E57C2','#FF7043','#29B6F6','#66BB6A','#FFA726'];
+  const col = colors[(AUTH.currentUser?.id||'x').charCodeAt(0) % colors.length];
+  disp.innerHTML = foto
+    ? `<img src="${foto}" style="width:72px;height:72px;border-radius:50%;border:3px solid var(--teal);box-shadow:0 4px 16px rgba(38,166,154,0.3);object-fit:cover">`
+    : `<div style="width:72px;height:72px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;border:3px solid ${col};box-shadow:0 4px 16px ${col}44">${iniziali}</div>`;
+}
+
+function toggleAvatarPicker() {
+  openModalMioProfilo();
+}
+
+function getMyAvatar() { return getMyFoto() || AUTH.currentUser?.username || 'user'; }
+
+// ══════════════════════════════════════════════════
+// SFIDE SETTIMANALI
+// ══════════════════════════════════════════════════
+
+const SFIDE = {
+  // Ottieni ISO della settimana corrente (lunedì)
+  _settimanaKey() {
+    const d = new Date();
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - day + 1);
+    return d.toISOString().slice(0, 10);
+  },
+
+  // Definizione sfide — variano ogni settimana in base al giorno della settimana ISO
+  _getSfide(settKey) {
+    // Usa hash della settimana per variare le sfide
+    const hash = settKey.replace(/-/g,'').slice(-2);
+    const n = parseInt(hash) % 3;
+    const pool = [
+      [
+        { id:'s_presenze', emoji:'📋', label:'Segna presenze 5 volte',     target: 5,  field:'presenze',  xp:30 },
+        { id:'s_diario',   emoji:'📝', label:'Scrivi 3 voci nel diario',   target: 3,  field:'diario',    xp:40 },
+        { id:'s_login',    emoji:'🌅', label:'Accedi 5 giorni di fila',    target: 5,  field:'streak',    xp:25 },
+      ],
+      [
+        { id:'s_presenze', emoji:'📋', label:'Segna presenze 8 volte',     target: 8,  field:'presenze',  xp:40 },
+        { id:'s_check',    emoji:'✅', label:'Completa 10 checklist',      target: 10, field:'checklist', xp:35 },
+        { id:'s_login',    emoji:'🌅', label:'Accedi 4 giorni di fila',    target: 4,  field:'streak',    xp:20 },
+      ],
+      [
+        { id:'s_multi',    emoji:'🎯', label:'Fai 15 azioni totali',       target: 15, field:'multi',     xp:50 },
+        { id:'s_diario',   emoji:'📝', label:'Scrivi 5 voci nel diario',   target: 5,  field:'diario',    xp:45 },
+        { id:'s_login',    emoji:'🌅', label:'Accedi 3 giorni di fila',    target: 3,  field:'streak',    xp:15 },
+      ],
+    ];
+    return pool[n];
+  },
+
+  getProgresso(s) {
+    const settKey = this._settimanaKey();
+    const sfide = this._getSfide(settKey);
+    const sw = s.sfideSettimana || {};
+
+    // Reset se nuova settimana
+    const savedKey = sw.settKey;
+    const progresso = (savedKey === settKey) ? (sw.progresso || {}) : {};
+
+    return { sfide, progresso, settKey };
+  },
+
+  // Aggiorna progresso sfide dopo un'azione
+  aggiorna(s, action) {
+    const { sfide, progresso, settKey } = this.getProgresso(s);
+    if (!s.sfideSettimana) s.sfideSettimana = {};
+    s.sfideSettimana.settKey = settKey;
+    s.sfideSettimana.progresso = progresso;
+
+    let xpBonus = 0;
+    sfide.forEach(sf => {
+      if (progresso[sf.id] >= sf.target) return; // già completata
+
+      let val = progresso[sf.id] || 0;
+      let increment = false;
+
+      if (sf.field === 'presenze' && (action === 'presenze' || action === 'presenze_massa')) increment = true;
+      if (sf.field === 'diario' && action === 'diario') increment = true;
+      if (sf.field === 'checklist' && action === 'checklist') increment = true;
+      if (sf.field === 'streak') { progresso[sf.id] = s.streak; return; }
+      if (sf.field === 'multi' && ['presenze','presenze_massa','diario','checklist'].includes(action)) increment = true;
+
+      if (increment) {
+        val++;
+        progresso[sf.id] = val;
+        if (val >= sf.target) {
+          // Completata!
+          xpBonus += sf.xp;
+          setTimeout(() => {
+            GAMIFY._showBadgeUnlock({ emoji: sf.emoji, label: 'Sfida completata!', desc: `${sf.label} (+${sf.xp} XP bonus)` });
+          }, 500);
+        }
+      }
+    });
+
+    s.sfideSettimana.progresso = progresso;
+    return xpBonus;
+  },
+
+  // Renderizza nel pannello
+  renderUI(s) {
+    const wrap = document.getElementById('xp-sfide-wrap');
+    const list = document.getElementById('xp-sfide-list');
+    if (!wrap || !list) return;
+
+    const { sfide, progresso } = this.getProgresso(s);
+    wrap.style.display = 'block';
+
+    list.innerHTML = sfide.map(sf => {
+      const val = sf.field === 'streak' ? (s.streak || 0) : (progresso[sf.id] || 0);
+      const done = val >= sf.target;
+      const pct = Math.min(100, Math.round((val / sf.target) * 100));
+      return `<div style="margin-bottom:6px;padding:7px 10px;border-radius:8px;background:${done ? 'linear-gradient(135deg,rgba(38,166,154,0.1),rgba(102,187,106,0.1))' : 'var(--bg)'};border:1px solid ${done ? 'var(--teal)' : 'var(--border)'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:11px;font-weight:700;color:${done ? 'var(--teal)' : 'var(--text)'}">${sf.emoji} ${sf.label}</span>
+          <span style="font-size:10px;font-weight:800;color:${done ? 'var(--teal)' : 'var(--text-muted)'}">${done ? '✅' : `${val}/${sf.target}`}</span>
+        </div>
+        <div style="height:4px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${done ? 'linear-gradient(90deg,var(--teal),#66BB6A)' : 'var(--teal)'};border-radius:2px;transition:width .5s"></div>
+        </div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px;text-align:right">+${sf.xp} XP bonus</div>
+      </div>`;
+    }).join('');
+  }
+};
+
+// ══════════════════════════════════════════════════
 // LEADERBOARD XP — sincronizzazione e rendering
 // ══════════════════════════════════════════════════
 
@@ -19613,6 +19932,7 @@ async function sincronizzaXpCloud() {
         username: AUTH.currentUser.username,
         nome: AUTH.currentUser.nome,
         ruolo: AUTH.currentUser.ruolo,
+        fotoUrl: AUTH.currentUser?.foto || null,
         xp: s.xp,
         level: lvl.lvl,
         levelTitle: lvl.title,
@@ -19631,6 +19951,8 @@ async function sincronizzaXpCloud() {
   } catch(e) { console.warn('XP sync error:', e); }
 }
 
+let _lastMyPosition = null; // posizione precedente in classifica
+
 async function aggiornaLeaderboard() {
   const el = document.getElementById('leaderboard-list');
   if (!el) return;
@@ -19648,26 +19970,60 @@ async function aggiornaLeaderboard() {
     const myId = AUTH.currentUser?.id;
     const medaglie = ['🥇','🥈','🥉'];
 
+    // Recupera utenti online per pallino verde
+    let onlineUsernames = new Set();
+    try {
+      const resOnline = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ONLINE_ID}&select=data`, { headers: sbHeaders() });
+      const onlineJson = await resOnline.json();
+      const onlineUsers = onlineJson?.[0]?.data?.onlineUsers || {};
+      const now = Date.now();
+      Object.values(onlineUsers).forEach(u => {
+        if (now - u.ts < 120000) onlineUsernames.add(u.username);
+      });
+    } catch(e) {}
+
+    // Controlla se qualcuno ci ha superato
+    const myPos = rows.findIndex(r => r.data?.userId === myId);
+    if (_lastMyPosition !== null && myPos > _lastMyPosition && myPos > 0) {
+      const sorpassatoDa = rows[myPos - 1]?.data;
+      if (sorpassatoDa) {
+        showToast(`😱 ${sorpassatoDa.nome || sorpassatoDa.username} ti ha superato in classifica!`, 'warning');
+      }
+    }
+    if (myPos >= 0) _lastMyPosition = myPos;
+
     el.innerHTML = rows.map((r, i) => {
       const d = r.data;
       const isMe = d.userId === myId;
-      const medaglia = medaglie[i] || `${i+1}.`;
+      const medaglia = medaglie[i] || `<b style="color:var(--text-muted);font-size:12px">${i+1}</b>`;
       const barPct = rows[0]?.data?.xp > 0 ? Math.round((d.xp / rows[0].data.xp) * 100) : 0;
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:${isMe ? 'var(--teal-light)' : 'var(--bg)'};border:${isMe ? '2px solid var(--teal)' : '1px solid var(--border)'};transition:all .2s">
-        <div style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${medaglia}</div>
+      const ultimiBadge = (d.badges||[]).slice(-4).map(b => {
+        const found = GAMIFY.BADGES.find(x=>x.id===b);
+        return found ? found.emoji : '';
+      }).join('');
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:6px;background:${isMe ? 'var(--teal-light)' : 'var(--bg)'};border:${isMe ? '2px solid var(--teal)' : '1px solid var(--border)'}">
+        <div style="font-size:22px;width:28px;text-align:center;flex-shrink:0">${medaglia}</div>
+        <div style="flex-shrink:0">
+          ${d.fotoUrl 
+            ? `<img src="${d.fotoUrl}" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--border);object-fit:cover">`
+            : `<div style="width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff">${(d.nome||d.username||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>`
+          }
+        </div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-            <span style="font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.nome || d.username}</span>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap">
+            ${onlineUsernames.has(d.username) ? '<span style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;flex-shrink:0;box-shadow:0 0 4px #4CAF50" title="Online ora"></span>' : '<span style="width:8px;height:8px;border-radius:50%;background:var(--border);display:inline-block;flex-shrink:0" title="Offline"></span>'}
+            <span style="font-size:13px;font-weight:800;color:var(--text)">${d.nome || d.username}</span>
             ${isMe ? '<span style="font-size:9px;background:var(--teal);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700">TU</span>' : ''}
-            <span style="font-size:10px;margin-left:auto;flex-shrink:0">${d.levelEmoji} Lv.${d.level}</span>
+            ${ultimiBadge ? `<span style="font-size:12px">${ultimiBadge}</span>` : ''}
+            <span style="font-size:9px;color:var(--text-muted);margin-left:auto">${d.levelEmoji} ${d.levelTitle} Lv.${d.level}</span>
           </div>
           <div style="height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,var(--teal),#66BB6A);border-radius:3px;transition:width .8s"></div>
+            <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,var(--teal),#66BB6A);border-radius:3px"></div>
           </div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:14px;font-weight:900;color:var(--teal)">${d.xp}</div>
-          <div style="font-size:9px;color:var(--text-muted)">XP</div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          <div style="font-size:16px;font-weight:900;color:var(--teal)">${d.xp}</div>
+          <div style="font-size:9px;color:var(--text-muted);font-weight:700">XP</div>
         </div>
       </div>`;
     }).join('');
@@ -19678,6 +20034,47 @@ async function aggiornaLeaderboard() {
     console.warn('Leaderboard error:', e);
     if (el) el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Errore caricamento</div>';
   }
+}
+
+// ══════════════════════════════════════════════════
+// FONT PERSONALIZZABILE
+// ══════════════════════════════════════════════════
+
+const FONT_MAP = {
+  'system':       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  'inter':        '"Inter", sans-serif',
+  'poppins':      '"Poppins", sans-serif',
+  'outfit':       '"Outfit", sans-serif',
+  'dm-sans':      '"DM Sans", sans-serif',
+  'plus-jakarta': '"Plus Jakarta Sans", sans-serif',
+};
+
+function cambioFont(fontId) {
+  const fontFamily = FONT_MAP[fontId] || FONT_MAP['system'];
+  document.documentElement.style.setProperty('--font-main', fontFamily);
+  document.body.style.fontFamily = fontFamily;
+  localStorage.setItem('grest_font', fontId);
+
+  // Aggiorna UI selezione
+  document.querySelectorAll('.font-option').forEach(el => {
+    const isSelected = el.dataset.font === fontId;
+    el.style.border = isSelected ? '2px solid var(--teal)' : '2px solid var(--border)';
+    el.style.background = isSelected ? 'var(--teal-light)' : '';
+  });
+
+  showToast('Font aggiornato!', 'success');
+}
+
+function applicaFontSalvato() {
+  const saved = localStorage.getItem('grest_font') || 'system';
+  const fontFamily = FONT_MAP[saved] || FONT_MAP['system'];
+  document.body.style.fontFamily = fontFamily;
+  // Aggiorna UI se le card sono già nel DOM
+  document.querySelectorAll('.font-option').forEach(el => {
+    const isSelected = el.dataset.font === saved;
+    el.style.border = isSelected ? '2px solid var(--teal)' : '2px solid var(--border)';
+    el.style.background = isSelected ? 'var(--teal-light)' : '';
+  });
 }
 
 // ── Hook gamification nelle azioni esistenti ──
@@ -19740,6 +20137,7 @@ async function aggiornaLeaderboard() {
     const _saved = saveIscritto;
     saveIscritto = function(e){
       const wasEditing = !!APP.editingId;
+      undoPush(wasEditing ? 'modifica iscritto' : 'nuovo iscritto');
       _saved(e);
       if(!wasEditing) GAMIFY.award('iscritto_add');
     };
@@ -19753,9 +20151,42 @@ async function aggiornaLeaderboard() {
     const _saved = saveAnimatore;
     saveAnimatore = function(e){
       const wasEditing = !!APP.editingId;
+      undoPush(wasEditing ? 'modifica animatore' : 'nuovo animatore');
       _saved(e);
       if(!wasEditing) GAMIFY.award('animatore_add');
     };
+  }
+})();
+
+// Presenze
+(function(){
+  const _origT = typeof togglePresenza === 'function' ? togglePresenza : null;
+  if(_origT){
+    const _s = togglePresenza;
+    togglePresenza = function(iscId, data){ undoPush('presenza'); _s(iscId, data); };
+  }
+  const _origM = typeof segnaPresenzaMassa === 'function' ? segnaPresenzaMassa : null;
+  if(_origM){
+    const _s = segnaPresenzaMassa;
+    segnaPresenzaMassa = function(presente){ undoPush('presenze di massa'); _s(presente); };
+  }
+})();
+
+// Diario
+(function(){
+  const _origD = typeof gtSalvaDiario === 'function' ? gtSalvaDiario : null;
+  if(_origD){
+    const _s = gtSalvaDiario;
+    gtSalvaDiario = function(){ undoPush('salvataggio diario'); _s(); };
+  }
+})();
+
+// Spese
+(function(){
+  const _origSp = typeof saveSpesa === 'function' ? saveSpesa : null;
+  if(_origSp){
+    const _s = saveSpesa;
+    saveSpesa = function(e){ undoPush('spesa'); _s(e); };
   }
 })();
 
@@ -19768,12 +20199,17 @@ async function aggiornaLeaderboard() {
         setTimeout(()=> {
           GAMIFY.trackLogin();
           setTimeout(()=> sincronizzaXpCloud(), 1500);
+          // Aggiorna leaderboard ogni 2 minuti per captare sorpassi
+          setInterval(()=> { if(typeof aggiornaLeaderboard==='function') aggiornaLeaderboard(); }, 2 * 60 * 1000);
         }, 800);
       }
     });
     obs.observe(ls, { attributes: true, attributeFilter: ['class'] });
   }
 })();
+
+// Applica font salvato subito al caricamento
+(function(){ if(typeof applicaFontSalvato === 'function') applicaFontSalvato(); })();
 
 
 // ═══════════════════════════════════════════════════════════
@@ -19920,6 +20356,8 @@ function updateSfxToggleUI(on){
     _origToggleMenu(force);
     updateSfxToggleUI(SFX._enabled);
     if(typeof GAMIFY !== 'undefined') GAMIFY._updateUI();
+    if(typeof aggiornaAvatarUI !== 'undefined') aggiornaAvatarUI();
+    if(typeof applicaFontSalvato !== 'undefined') applicaFontSalvato();
   };
 })();
 
@@ -21076,10 +21514,17 @@ async function _uploadSingoloDb(nomeDb, db, retries = 3) {
     const timeoutMs = (db.iscritti||[]).length > 50 ? 30000 : 15000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     const now = new Date().toISOString();
-    // Escludi solo il file PDF grezzo (base64 pesante), mantieni i dati parsati
+    // Escludi campi pesanti base64 dall'upload cloud — restano in localStorage
     const dbPerUpload = Object.assign({}, db);
+    // PDF calendario grezzo
     if (dbPerUpload.calendarioFile) {
       dbPerUpload.calendarioFile = { nome: db.calendarioFile.nome, tipo: db.calendarioFile.tipo, dimensione: db.calendarioFile.dimensione };
+    }
+    // Loghi (possono essere 1-2MB ciascuno) — salvati in localStorage separatamente
+    if (dbPerUpload.impostazioni) {
+      dbPerUpload.impostazioni = Object.assign({}, db.impostazioni);
+      delete dbPerUpload.impostazioni.logo;
+      delete dbPerUpload.impostazioni.logoGestionale;
     }
     const payload = {
       id: dbKey,
@@ -21376,10 +21821,15 @@ async function sincronizzaOra() {
         const cloudData = JSON.stringify(record.data.db);
         const localData = JSON.stringify(APP.databases[nomeDb]);
         if (cloudData !== localData) {
-          // Preserva calendarioFile locale (non viene mai caricato sul cloud)
+          // Preserva campi pesanti locali (cloud non li include)
           const calendarioFileLocale = APP.databases[nomeDb]?.calendarioFile;
+          const _logoLoc = APP.databases[nomeDb]?.impostazioni?.logo;
+          const _logoGLoc = APP.databases[nomeDb]?.impostazioni?.logoGestionale;
           APP.databases[nomeDb] = record.data.db;
           if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
+          if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
+          if (_logoLoc) APP.databases[nomeDb].impostazioni.logo = _logoLoc;
+          if (_logoGLoc) APP.databases[nomeDb].impostazioni.logoGestionale = _logoGLoc;
           aggiornati++;
           console.log('📥 Database aggiornato dal cloud:', nomeDb);
         }
@@ -21933,10 +22383,15 @@ async function autoSyncSilenzioso() {
               showToast('📥 ' + (parti.length ? parti.join(', ') : 'Dati aggiornati') + ' dal cloud', 'info');
             }
           }
-          // Preserva calendarioFile locale (non viene mai caricato sul cloud)
+          // Preserva campi pesanti locali (cloud non li include)
           const _calFile = APP.databases[nomeDb]?.calendarioFile;
+          const _logo = APP.databases[nomeDb]?.impostazioni?.logo;
+          const _logoG = APP.databases[nomeDb]?.impostazioni?.logoGestionale;
           APP.databases[nomeDb] = record.data.db;
           if (_calFile) APP.databases[nomeDb].calendarioFile = _calFile;
+          if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
+          if (_logo) APP.databases[nomeDb].impostazioni.logo = _logo;
+          if (_logoG) APP.databases[nomeDb].impostazioni.logoGestionale = _logoG;
           delete _uploadedDataHashes[nomeDb];
           hasChanges = true;
           console.log('📥 [auto-sync] DB aggiornato dal cloud:', nomeDb);
