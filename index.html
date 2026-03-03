@@ -1290,12 +1290,12 @@ tbody tr:last-child td{border-bottom:none;}
 .presenze-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
 
 /* ── SQUADRA ── */
-.squadra-header-bar{padding:12px 16px;border-radius:10px 10px 0 0;font-weight:800;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:space-between;}
+.squadra-header-bar{padding:10px 14px;border-radius:10px 10px 0 0;font-weight:800;color:#fff;font-size:14px;display:flex;align-items:center;gap:10px;justify-content:flex-start;}
 .squadra-stats{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0;}
-.squadra-stat-pill{background:var(--teal-light);color:var(--teal-dark);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;}
+.squadra-stat-pill{background:var(--teal-light);color:var(--teal-dark);border-radius:20px;padding:3px 8px;font-size:11px;font-weight:700;}
 
 /* ── WEEK CHIPS ── */
-.week-chip{display:inline-flex;flex-direction:column;align-items:center;padding:6px 10px;border-radius:10px;border:2px solid var(--border);font-size:11px;font-weight:800;min-width:44px;cursor:default;}
+.week-chip{display:inline-flex;flex-direction:column;align-items:center;padding:4px 6px;border-radius:8px;border:2px solid var(--border);font-size:11px;font-weight:800;min-width:34px;cursor:default;}
 .week-chip.current{background:var(--teal);border-color:var(--teal);color:#fff;}
 .week-chip .wc-label{font-size:9px;margin-bottom:1px;}
 
@@ -6473,7 +6473,7 @@ img:not([loading]) { loading: lazy; }
       👁️ Visualizzazione sola lettura — solo Admin e Responsabile possono modificare le squadre.
     </div>
   </div>
-  <div id="squadre-columns" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;"></div>
+  <div id="squadre-columns" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding-bottom:12px;"></div>
   <div class="card mt-3 admin-only">
     <div class="flex gap-2" style="flex-wrap:wrap;">
       <button type="button" class="btn btn-gray" onclick="resetSquadre('MiniGrest')">RESET MINI</button>
@@ -11000,22 +11000,29 @@ function renderSquadre(){
       </div>`;
     }).join('');
     const col=document.createElement('div');
-    col.style.cssText='min-width:280px;flex-shrink:0;';
+    col.style.cssText='min-width:0;';
     col.innerHTML=`
       <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">
-        <div class="squadra-header-bar" style="background:${sq.colore}">${sq.nome}</div>
-        <div class="drop-zone" data-sq-id="${sq.id}" style="background:#fff;padding:14px;min-height:100px">
-          <div class="squadra-stats">
-            <span class="squadra-stat-pill">Totale: ${membri.length}</span>
-            <span class="squadra-stat-pill">Maschi: ${maschi}</span>
-            <span class="squadra-stat-pill">Femmine: ${femmine}</span>
+        <div class="squadra-header-bar" style="background:${sq.colore}">
+          <span style="text-transform:uppercase;letter-spacing:0.5px">${sq.nome}</span>
+        </div>
+        <div class="drop-zone" data-sq-id="${sq.id}" style="background:#fff;padding:10px;min-height:100px">
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div style="flex:1;min-width:0">
+              <div class="squadra-stats">
+                <span class="squadra-stat-pill">Totale: ${membri.length}</span>
+                <span class="squadra-stat-pill">Maschi: ${maschi}</span>
+                <span class="squadra-stat-pill">Femmine: ${femmine}</span>
+              </div>
+              <div class="squadra-stats">
+                <span class="squadra-stat-pill">Preferenze: ${prefPct}%</span>
+                <span class="squadra-stat-pill">Vivacità: ${vivMedia}</span>
+                <span class="squadra-stat-pill">Età: ${etaMedia}</span>
+              </div>
+              <div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:8px">${settBoxes.join('')}</div>
+            </div>
+            ${sq.logo?`<img src="${sq.logo}" style="width:${tipo==='MiniGrest'?'52':'110'}px;height:${tipo==='MiniGrest'?'52':'110'}px;object-fit:contain;flex-shrink:0" alt="">`:''} 
           </div>
-          <div class="squadra-stats">
-            <span class="squadra-stat-pill">Preferenze: ${prefPct}%</span>
-            <span class="squadra-stat-pill">Vivacità: ${vivMedia}</span>
-            <span class="squadra-stat-pill">Età: ${etaMedia}</span>
-          </div>
-          <div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:8px">${settBoxes.join('')}</div>
           ${dispMaglieTxt}
           ${maglieTxt?`<div style="margin-bottom:8px">${maglieTxt}</div>`:''}
           ${listaHtml}
@@ -11147,10 +11154,13 @@ function renderSquadreAnimatori(){
     col.style.cssText='min-width:260px;flex-shrink:0;';
     col.innerHTML=`
       <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">
-        <div class="squadra-header-bar" style="background:${sq.colore||'#26A69A'}">${sq.nome}</div>
+        <div class="squadra-header-bar" style="background:${sq.colore||'#26A69A'}">
+          <span style="text-transform:uppercase;letter-spacing:0.5px">${sq.nome}</span>
+        </div>
         <div class="sq-anim-drop" data-sq-id="${sq.id}" style="background:#fff;padding:14px;min-height:100px">
-          <div class="squadra-stats" style="margin-bottom:8px">
-            <span class="squadra-stat-pill">Animatori: ${membri.length}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div class="squadra-stats" style="margin:0"><span class="squadra-stat-pill">Animatori: ${membri.length}</span></div>
+            ${sq.logo?`<img src="${sq.logo}" style="width:72px;height:72px;object-fit:contain" alt="">`:''}
           </div>
           ${listaHtml}
         </div>
@@ -14847,12 +14857,25 @@ function renderImpSquadre(tipo){
   const cont=document.getElementById('sq-'+(tipo==='Grest'?'grest':'mini')+'-list');if(!cont)return;
   const sqList=db.squadre.filter(s=>s.tipo===tipo);
   cont.innerHTML=sqList.map(sq=>`
-    <div class="sq-imp-row" data-id="${sq.id}" style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-      <input type="text" class="form-control sq-nome" value="${sq.nome}" placeholder="Nome squadra" style="flex:1;min-width:0">
-      <div style="display:flex;gap:9px;align-items:center;flex-shrink:0">
-        <input type="color" class="sq-colore" value="${sq.colore}" style="width:46px;height:36px;border-radius:8px;border:2px solid var(--border);padding:2px;cursor:pointer">
-        ${tipo==='MiniGrest'?`<select class="form-control sq-fascia" style="width:130px">${FASCE_MINI.map(f=>`<option ${sq.fascia===f?'selected':''}>${f}</option>`).join('')}</select>`:''}
-        <button type="button" class="btn btn-danger btn-sm" onclick="deleteSquadraImp('${sq.id}')">🗑️</button>
+    <div class="sq-imp-row" data-id="${sq.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;padding:10px;background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:10px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="text" class="form-control sq-nome" value="${sq.nome}" placeholder="Nome squadra" style="flex:1;min-width:0">
+        <div style="display:flex;gap:9px;align-items:center;flex-shrink:0">
+          <input type="color" class="sq-colore" value="${sq.colore}" style="width:46px;height:36px;border-radius:8px;border:2px solid var(--border);padding:2px;cursor:pointer">
+          ${tipo==='MiniGrest'?`<select class="form-control sq-fascia" style="width:130px">${FASCE_MINI.map(f=>`<option ${sq.fascia===f?'selected':''}>${f}</option>`).join('')}</select>`:''}
+          <button type="button" class="btn btn-danger btn-sm" onclick="deleteSquadraImp('${sq.id}')">🗑️</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        ${sq.logo?`<img src="${sq.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;border:2px solid var(--border);background:#f5f5f5" alt="Logo">`:
+        `<div style="width:48px;height:48px;border-radius:8px;border:2px dashed var(--border);background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-size:22px">🛡️</div>`}
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="cursor:pointer;margin:0">
+            <span class="btn btn-sm" style="background:var(--teal-light);color:var(--teal);font-size:12px;padding:5px 12px;border-radius:8px">📁 Carica logo</span>
+            <input type="file" accept="image/*" style="display:none" onchange="caricaLogoSquadra(event,'${sq.id}')">
+          </label>
+          ${sq.logo?`<button type="button" class="btn btn-sm" style="background:#fce4ec;color:#c62828;font-size:12px;padding:5px 10px;border-radius:8px" onclick="rimuoviLogoSquadra('${sq.id}')">✕ Rimuovi</button>`:''}
+        </div>
       </div>
     </div>`).join('');
 }
@@ -14868,6 +14891,45 @@ function deleteSquadraImp(id){
     db.iscritti.forEach(i=>{if(i.squadraId===id)i.squadraId='';});
     saveStorage();renderImpSquadre('Grest');renderImpSquadre('MiniGrest');showToast('Squadra eliminata','warning');
   });
+}
+function caricaLogoSquadra(event,sqId){
+  const file=event.target.files[0];if(!file)return;
+  if(!file.type.startsWith('image/')){showToast('Seleziona un\'immagine valida!','error');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      // Ridimensiona a max 200x200 mantenendo proporzioni
+      const MAX=200;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.clearRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      // PNG per trasparenza, qualità ottimizzata
+      const compressed=canvas.toDataURL('image/png');
+      const db=getDb();if(!db)return;
+      const sq=db.squadre.find(s=>s.id===sqId);if(!sq)return;
+      const before=Math.round(e.target.result.length/1024);
+      const after=Math.round(compressed.length/1024);
+      sq.logo=compressed;
+      saveStorage();
+      renderImpSquadre(sq.tipo);
+      showToast(`✅ Logo caricato! (${before}KB → ${after}KB)`,'success');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function rimuoviLogoSquadra(sqId){
+  const db=getDb();if(!db)return;
+  const sq=db.squadre.find(s=>s.id===sqId);if(!sq)return;
+  delete sq.logo;
+  saveStorage();
+  renderImpSquadre(sq.tipo);
+  showToast('Logo rimosso','warning');
 }
 // ═══════════════════════════════════════════════
 // TEMI
