@@ -7859,6 +7859,13 @@ img:not([loading]) { loading: lazy; }
       <button onclick="disattivaMsgGiorno()" class="btn btn-danger" style="flex:1;min-width:120px">🔴 Disattiva</button>
     </div>
     <div id="msg-giorno-status" style="margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center"></div>
+    <!-- Storico messaggi -->
+    <div style="margin-top:16px">
+      <div style="font-size:12px;font-weight:800;color:var(--text-muted);letter-spacing:.5px;margin-bottom:8px">📋 STORICO ULTIMI MESSAGGI</div>
+      <div id="msg-giorno-storico" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px">Nessun messaggio inviato</div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -19770,6 +19777,45 @@ const GAMIFY = {
 // 💬 MESSAGGIO DEL GIORNO — personalizzato da Admin
 // ═══════════════════════════════════════════════════════════
 
+// ── Invia messaggio in broadcast a tutti i client connessi ──
+function inviaNotificaMsgGiorno(msg){
+  if(!_realtimeChannel){
+    console.warn('Realtime non connesso, impossibile inviare broadcast');
+    return;
+  }
+  try {
+    _realtimeChannel.send({
+      type:'broadcast',
+      event:'msg_giorno',
+      payload: msg
+    });
+    console.log('📣 Broadcast msg_giorno inviato');
+  } catch(e){
+    console.warn('Broadcast error:',e);
+  }
+}
+
+// ── Mostra notifica ricevuta in tempo reale ──
+function mostraNotificaMsgGiorno(m){
+  // Non mostrare se l'abbiamo inviato noi stessi (siamo admin)
+  const utente = typeof _currentUser !== 'undefined' ? _currentUser : null;
+  // Crea notifica stile toast ma più grande
+  const overlay = document.createElement('div');
+  overlay.id = 'notifica-msg-giorno';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease';
+  overlay.innerHTML = `
+    <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:400px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);animation:fadeInUp .4s ease">
+      <div style="font-size:52px;margin-bottom:10px">${m.emoji||'📢'}</div>
+      <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📣 Messaggio dagli organizzatori</div>
+      <div style="font-size:19px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:10px">${m.testo}</div>
+      ${m.firma?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${m.firma}</div>`:'<div style="margin-bottom:20px"></div>'}
+      <button onclick="document.getElementById('notifica-msg-giorno').remove()" style="width:100%;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">✅ Ho letto!</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  // Suono notifica se disponibile
+  if(typeof SFX !== 'undefined' && SFX.notifica) try { SFX.notifica(); } catch(e){}
+}
+
 function salvaMsgGiorno(){
   const db=getDb();if(!db){showToast('Nessun database!','error');return;}
   const emoji=document.getElementById('msg-giorno-emoji-input').value.trim()||'☀️';
@@ -19777,13 +19823,27 @@ function salvaMsgGiorno(){
   const firma=document.getElementById('msg-giorno-firma-input').value.trim();
   if(!testo){showToast('Scrivi un messaggio!','error');return;}
   if(!db.impostazioni)db.impostazioni={};
-  db.impostazioni.msgGiorno={emoji,testo,firma,data:new Date().toISOString().slice(0,10),attivo:true};
+  const msgObj={emoji,testo,firma,data:new Date().toISOString().slice(0,10),ora:new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),attivo:true};
+  db.impostazioni.msgGiorno=msgObj;
+  // Storico messaggi
+  if(!db.impostazioni.msgGiornoStorico)db.impostazioni.msgGiornoStorico=[];
+  db.impostazioni.msgGiornoStorico.unshift({...msgObj});
+  if(db.impostazioni.msgGiornoStorico.length>20)db.impostazioni.msgGiornoStorico=db.impostazioni.msgGiornoStorico.slice(0,20);
   saveStorage();
   const st=document.getElementById('msg-giorno-status');
-  if(st)st.innerHTML='✅ Messaggio salvato e attivo per oggi!';
-  showToast('✅ Messaggio del giorno salvato!','success');
+  if(st)st.innerHTML='✅ Inviato alle '+msgObj.ora+' — ricevuto da tutti i dispositivi connessi';
+  showToast('📣 Messaggio inviato a tutti!','success');
+  // 1. Upload su Supabase (per chi si logga dopo)
   if(typeof uploadToFirebase==='function'&&typeof _jbSyncEnabled!=='undefined'&&_jbSyncEnabled){
-    uploadToFirebase().catch(e=>console.warn('[salvaMsgGiorno]',e));
+    uploadToFirebase()
+      .then(()=>{
+        // 2. Broadcast realtime a tutti i connessi
+        inviaNotificaMsgGiorno(msgObj);
+        aggiornaStoricoMsgGiorno();
+      })
+      .catch(e=>console.warn('[salvaMsgGiorno]',e));
+  } else {
+    inviaNotificaMsgGiorno(msgObj);
   }
 }
 
@@ -19817,6 +19877,27 @@ function checkMsgGiorno(){
   setTimeout(()=>mostraMsgGiornoModal(msg.emoji,msg.testo,msg.firma),1200);
 }
 
+function aggiornaStoricoMsgGiorno(){
+  const db=getDb();
+  const cont=document.getElementById('msg-giorno-storico');
+  if(!cont)return;
+  const storico=db?.impostazioni?.msgGiornoStorico||[];
+  if(!storico.length){
+    cont.innerHTML='<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px">Nessun messaggio inviato</div>';
+    return;
+  }
+  cont.innerHTML=storico.map(m=>`
+    <div style="background:#f8f9fa;border-radius:8px;padding:8px 12px;border-left:3px solid var(--teal)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:16px">${m.emoji||'📢'}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${m.data||''} ${m.ora||''}</span>
+        ${m.attivo?'<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:4px;font-weight:700">ATTIVO</span>':'<span style="font-size:10px;background:#fce4ec;color:#c62828;padding:1px 6px;border-radius:4px;font-weight:700">DISATTIVO</span>'}
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--text)">${m.testo}</div>
+      ${m.firma?`<div style="font-size:11px;color:var(--text-muted)">${m.firma}</div>`:''}
+    </div>`).join('');
+}
+
 function disattivaMsgGiorno(){
   const db=getDb();if(!db)return;
   if(!db.impostazioni?.msgGiorno){showToast('Nessun messaggio attivo','warning');return;}
@@ -19841,7 +19922,8 @@ function caricaInputMsgGiorno(){
   if(eEl)eEl.value=msg.emoji||'';
   if(tEl)tEl.value=msg.testo||'';
   if(fEl)fEl.value=msg.firma||'';
-  if(stEl&&msg.data)stEl.innerHTML='Ultimo salvataggio: <b>'+msg.data+'</b> — '+(msg.attivo?'🟢 Attivo':'🔴 Non attivo');
+  if(stEl&&msg.data)stEl.innerHTML='Ultimo invio: <b>'+msg.data+' '+( msg.ora||'')+'</b> — '+(msg.attivo?'🟢 Attivo':'🔴 Non attivo');
+  aggiornaStoricoMsgGiorno();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -22115,6 +22197,12 @@ function _avviaRealtimeChannel() {
         console.log('🔔 Realtime: modifica rilevata su', payload.new?.id);
         // Aspetta 500ms per evitare loop se siamo noi stessi ad aver appena salvato
         setTimeout(() => autoSyncSilenzioso(), 500);
+      })
+      .on('broadcast', { event: 'msg_giorno' }, (payload) => {
+        // Ricevuto messaggio del giorno in tempo reale
+        const m = payload?.payload;
+        if (!m || !m.testo) return;
+        mostraNotificaMsgGiorno(m);
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
