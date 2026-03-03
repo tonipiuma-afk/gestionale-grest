@@ -7853,9 +7853,10 @@ img:not([loading]) { loading: lazy; }
       <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px">FIRMA</label>
       <input type="text" id="msg-giorno-firma-input" placeholder="— Don Mario" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;box-sizing:border-box">
     </div>
-    <div style="display:flex;gap:10px">
-      <button onclick="salvaMsgGiorno()" class="btn btn-teal" style="flex:1">💾 Salva e attiva</button>
-      <button onclick="anteprima MsgGiorno()" class="btn btn-outline" style="flex:1" onclick="anteprimaMsgGiorno()">👁️ Anteprima</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onclick="salvaMsgGiorno()" class="btn btn-teal" style="flex:1;min-width:120px">💾 Salva e attiva</button>
+      <button onclick="anteprimaMsgGiorno()" class="btn btn-outline" style="flex:1;min-width:120px">👁️ Anteprima</button>
+      <button onclick="disattivaMsgGiorno()" class="btn btn-danger" style="flex:1;min-width:120px">🔴 Disattiva</button>
     </div>
     <div id="msg-giorno-status" style="margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center"></div>
   </div>
@@ -15841,6 +15842,10 @@ function switchImpTab(tab){
   if(tab==='backup') {
     aggiornaBannerBackupPc();
   }
+  // Se apre il tab config, carica il messaggio del giorno salvato
+  if(tab==='config') {
+    caricaInputMsgGiorno();
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -19101,8 +19106,16 @@ async function loginSubmit(){
   // 🎉 CONFETTI quando login ok!
   launchConfetti();
   
-  // 💬 Messaggio motivazionale random
-  setTimeout(()=> mostraMessaggioMotivazionale(trovato.utente.nome), 900);
+  // 💬 Messaggio del giorno (personalizzato) o motivazionale random
+  const _msgDb=getDb();
+  const _msgCustom=_msgDb?.impostazioni?.msgGiorno;
+  const _oggi=new Date().toISOString().slice(0,10);
+  const _visto=localStorage.getItem('grest_msg_giorno_visto');
+  if(_msgCustom&&_msgCustom.attivo&&_msgCustom.testo&&_visto!==_oggi){
+    setTimeout(()=>mostraMsgGiornoModal(_msgCustom.emoji,_msgCustom.testo,_msgCustom.firma), 900);
+  } else {
+    setTimeout(()=> mostraMessaggioMotivazionale(trovato.utente.nome), 900);
+  }
   
   setTimeout(()=>{
     const ls = document.getElementById('login-screen');
@@ -19752,6 +19765,84 @@ const GAMIFY = {
     }
   }
 };
+
+// ═══════════════════════════════════════════════════════════
+// 💬 MESSAGGIO DEL GIORNO — personalizzato da Admin
+// ═══════════════════════════════════════════════════════════
+
+function salvaMsgGiorno(){
+  const db=getDb();if(!db){showToast('Nessun database!','error');return;}
+  const emoji=document.getElementById('msg-giorno-emoji-input').value.trim()||'☀️';
+  const testo=document.getElementById('msg-giorno-testo-input').value.trim();
+  const firma=document.getElementById('msg-giorno-firma-input').value.trim();
+  if(!testo){showToast('Scrivi un messaggio!','error');return;}
+  if(!db.impostazioni)db.impostazioni={};
+  db.impostazioni.msgGiorno={emoji,testo,firma,data:new Date().toISOString().slice(0,10),attivo:true};
+  saveStorage();
+  const st=document.getElementById('msg-giorno-status');
+  if(st)st.innerHTML='✅ Messaggio salvato e attivo per oggi!';
+  showToast('✅ Messaggio del giorno salvato!','success');
+  if(typeof uploadToFirebase==='function'&&typeof _jbSyncEnabled!=='undefined'&&_jbSyncEnabled){
+    uploadToFirebase().catch(e=>console.warn('[salvaMsgGiorno]',e));
+  }
+}
+
+function anteprimaMsgGiorno(){
+  const emoji=document.getElementById('msg-giorno-emoji-input').value.trim()||'☀️';
+  const testo=document.getElementById('msg-giorno-testo-input').value.trim()||'Messaggio di esempio...';
+  const firma=document.getElementById('msg-giorno-firma-input').value.trim();
+  mostraMsgGiornoModal(emoji,testo,firma);
+}
+
+function mostraMsgGiornoModal(emoji,testo,firma){
+  document.getElementById('msg-giorno-emoji').textContent=emoji||'☀️';
+  document.getElementById('msg-giorno-testo').textContent=testo;
+  document.getElementById('msg-giorno-firma').textContent=firma||'';
+  const m=document.getElementById('modal-msg-giorno');
+  m.style.display='flex';
+}
+
+function chiudiMsgGiorno(){
+  document.getElementById('modal-msg-giorno').style.display='none';
+  localStorage.setItem('grest_msg_giorno_visto', new Date().toISOString().slice(0,10));
+}
+
+function checkMsgGiorno(){
+  const db=getDb();if(!db)return;
+  const msg=db.impostazioni?.msgGiorno;
+  if(!msg||!msg.attivo||!msg.testo)return;
+  const oggi=new Date().toISOString().slice(0,10);
+  const visto=localStorage.getItem('grest_msg_giorno_visto');
+  if(visto===oggi)return;
+  setTimeout(()=>mostraMsgGiornoModal(msg.emoji,msg.testo,msg.firma),1200);
+}
+
+function disattivaMsgGiorno(){
+  const db=getDb();if(!db)return;
+  if(!db.impostazioni?.msgGiorno){showToast('Nessun messaggio attivo','warning');return;}
+  db.impostazioni.msgGiorno.attivo=false;
+  saveStorage();
+  const st=document.getElementById('msg-giorno-status');
+  if(st)st.innerHTML='🔴 Messaggio disattivato — gli animatori non lo vedranno';
+  showToast('Messaggio del giorno disattivato','warning');
+  if(typeof uploadToFirebase==='function'&&typeof _jbSyncEnabled!=='undefined'&&_jbSyncEnabled){
+    uploadToFirebase().catch(e=>console.warn(e));
+  }
+}
+
+function caricaInputMsgGiorno(){
+  const db=getDb();if(!db)return;
+  const msg=db.impostazioni?.msgGiorno;
+  if(!msg)return;
+  const eEl=document.getElementById('msg-giorno-emoji-input');
+  const tEl=document.getElementById('msg-giorno-testo-input');
+  const fEl=document.getElementById('msg-giorno-firma-input');
+  const stEl=document.getElementById('msg-giorno-status');
+  if(eEl)eEl.value=msg.emoji||'';
+  if(tEl)tEl.value=msg.testo||'';
+  if(fEl)fEl.value=msg.firma||'';
+  if(stEl&&msg.data)stEl.innerHTML='Ultimo salvataggio: <b>'+msg.data+'</b> — '+(msg.attivo?'🟢 Attivo':'🔴 Non attivo');
+}
 
 // ═══════════════════════════════════════════════════════════
 // 💬 MESSAGGI MOTIVAZIONALI — frasi random al login
