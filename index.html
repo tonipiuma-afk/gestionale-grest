@@ -3393,9 +3393,6 @@ svg {
 }
 
 /* ═══ ANIMAZIONI DASHBOARD ═══ */
-@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
-@keyframes tickerUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
-@keyframes tickerDown{from{transform:translateY(0);opacity:1;}to{transform:translateY(100%);opacity:0;}}
 @keyframes fadeInUp{
   from{opacity:0;transform:translateY(20px);}
   to{opacity:1;transform:translateY(0);}
@@ -5032,19 +5029,16 @@ img:not([loading]) { loading: lazy; }
 <!-- ═══════════ LOGIN SCREEN ═══════════ -->
 <div id="login-screen">
   <div class="login-box">
-    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;animation:logoFloat 4s ease infinite;">
-      <!-- Cerchio 1: Logo gestionale (sempre fisso) -->
-      <div class="login-logo" id="login-avatar" style="margin:0;flex-shrink:0;">
-        <img id="login-logo-gestionale-img" src="" alt="Logo GREST" style="display:none;">
-      </div>
-      <!-- Cerchio 2: Avatar utente (visibile solo se l'utente ha foto) -->
-      <div class="login-logo" id="login-avatar-utente" style="margin:0;flex-shrink:0;display:none;border:3px solid rgba(38,166,154,0.5);">
-        <img id="login-foto-utente-img" src="" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-      </div>
+    <div class="login-logo" id="login-avatar">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABABsADgAoADFhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx0fHRsdHSIeHx8iHyMjIyMjIyMlJycnJy4sLCwsLi4uLjAwMDAwNDQ0NDQ0NDQ0NDT/2wBDARUXFx0dHR0gHBwgLismKyYtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSz/wAARCAAEAAYDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=" 
+           alt="Logo GREST">
     </div>
-    <div id="login-nome-utente" style="display:none;font-size:13px;font-weight:900;letter-spacing:3px;color:#80deea;text-transform:uppercase;margin-bottom:2px;text-align:center;text-shadow:0 0 10px rgba(38,166,154,0.7);"></div>
     <div class="login-title">GESTIONALE GREST</div>
     <div class="login-sub">Accedi con le tue credenziali</div>
+    <!-- Banner accesso rapido (visibile solo se credenziali salvate) -->
+    <div class="login-autofill-hint" id="login-autofill-hint" onclick="loginAutofill()">
+      👤 <span id="login-autofill-name">—</span> — Tocca per accedere
+    </div>
     <div class="form-group">
       <label>Username</label>
       <input type="text" id="login-username" placeholder="Username" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')loginSubmit()" oninput="aggiornFotoLogin(this.value)" onfocus="avatarLookAt('username')" onblur="avatarLookAt('center')">
@@ -5069,13 +5063,13 @@ img:not([loading]) { loading: lazy; }
 </div>
 
 <!-- ═══════════ MESSAGGIO DEL GIORNO ═══════════ -->
-<div id="modal-msg-giorno" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;height:38px;background:linear-gradient(90deg,var(--teal),#2e7d32);color:#fff;overflow:hidden;box-shadow:0 -2px 12px rgba(0,0,0,0.15);animation:tickerUp .4s ease both">
-  <span onclick="chiudiMsgGiorno()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:0.6;z-index:2;cursor:pointer;background:rgba(0,0,0,0.15);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">✕</span>
-  <div id="msg-giorno-ticker" style="display:inline-block;white-space:nowrap;font-size:13px;font-weight:700;line-height:38px;padding-left:100%;animation:tickerScroll var(--ticker-dur,16s) linear infinite">
-    <span id="msg-giorno-emoji" style="margin-right:6px">☀️</span>
-    <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-right:8px">📣 Messaggio del giorno</span>
-    <span id="msg-giorno-testo">Buona giornata a tutti!</span>
-    <span id="msg-giorno-firma" style="opacity:0.7;margin-left:10px">— Admin</span>
+<div id="modal-msg-giorno" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:fadeInUp .4s ease">
+    <div style="font-size:48px;margin-bottom:12px" id="msg-giorno-emoji">☀️</div>
+    <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Messaggio del giorno</div>
+    <div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:8px" id="msg-giorno-testo">Buona giornata a tutti!</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:24px" id="msg-giorno-firma">— Admin</div>
+    <button onclick="chiudiMsgGiorno()" style="width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">🚀 Iniziamo!</button>
   </div>
 </div>
 
@@ -6222,6 +6216,12 @@ img:not([loading]) { loading: lazy; }
           <button type="button" class="filter-btn" id="ana-filter-M" onclick="setAnaFilter('M')">MINI GREST</button>
           <button type="button" class="filter-btn" id="ana-filter-NS" onclick="setAnaFilter('NS')" style="border-color:#f57c00;color:#f57c00">⚠️ SENZA SQUADRA</button>
         </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">SQUADRA</div>
+        <select class="form-control" id="ana-filter-squadra" onchange="renderAnagrafica()" style="padding:7px 12px;min-width:160px;">
+          <option value="">Tutte</option>
+        </select>
       </div>
       <div>
         <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">ORDINA PER</div>
@@ -8679,45 +8679,27 @@ function loadStorage(){
     const _t=localStorage.getItem('grest-theme');
     const _u=localStorage.getItem('grest_ultimo_db');
     const _sess=localStorage.getItem('grest_session_user');
-    const _rem=localStorage.getItem('grest_remember');
     try{localStorage.clear();}catch(e){}
     if(_t)try{localStorage.setItem('grest-theme',_t);}catch(e){}
     if(_u)try{localStorage.setItem('grest_ultimo_db',_u);}catch(e){}
     if(_sess)try{localStorage.setItem('grest_session_user',_sess);}catch(e){}
-    if(_rem)try{localStorage.setItem('grest_remember',_rem);}catch(e){}
     APP.databases=p.databases||{};
     APP.currentDb=p.currentDb||null;
     APP.utenti=p.utenti||[];
-    // Non salva il database in localStorage (troppo grande) - usa solo Supabase
+    try{localStorage.setItem('grest_v2',JSON.stringify(p));}catch(e){}
     _ultimaModificaLocale=Date.now();
     try{localStorage.setItem('grest_local_ts',_ultimaModificaLocale);}catch(e){}
     return;
   }
   try{
-    // Leggi solo metadati leggeri
-    const r=localStorage.getItem('grest_meta') || localStorage.getItem('grest_v2');
-    if(r){const d=JSON.parse(r);APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
-    // grest_ultimo_db ha sempre la precedenza
+    const r=localStorage.getItem('grest_v2');
+    if(r){const d=JSON.parse(r);APP.databases=d.databases||{};APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
+    // grest_ultimo_db ha sempre la precedenza — è l'ultimo db usato su questo dispositivo
     const ultimoDb=localStorage.getItem('grest_ultimo_db');
     if(ultimoDb){
       APP.currentDb=ultimoDb;
+      if(!APP.databases[ultimoDb]) APP.databases[ultimoDb]=defaultDb();
     }
-    // ── FALLBACK LOCALE: carica database salvati localmente ──
-    // Così l'app funziona anche senza Supabase / prima che Supabase risponda
-    const dbNames=localStorage.getItem('grest_db_names');
-    if(dbNames){
-      const nomi=JSON.parse(dbNames);
-      for(const nome of nomi){
-        try{
-          const raw=localStorage.getItem('grest_db_'+nome);
-          if(raw && !APP.databases[nome]){
-            APP.databases[nome]=JSON.parse(raw);
-            console.log('📦 [loadStorage] DB caricato da localStorage:', nome);
-          }
-        }catch(e2){console.warn('loadStorage db err:',nome,e2);}
-      }
-    }
-    if(APP.currentDb && !APP.databases[APP.currentDb]) APP.databases[APP.currentDb]=defaultDb();
   }catch(e){APP.databases={};APP.currentDb=null;APP.utenti=[];}
 }
 let _saveTimer=null;
@@ -8781,37 +8763,40 @@ function nascondiUndoButton() {
 }
 
 function saveStorage(immediate){
-  const salvaLeggero = () => {
-    try{
-      localStorage.setItem('grest_meta',JSON.stringify({currentDb:APP.currentDb,utenti:APP.utenti}));
-      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
-    }catch(e){console.warn('saveStorage meta error:',e);}
-    // Salva anche i database localmente come fallback offline
-    try{
-      const dbKeys=Object.keys(APP.databases||{});
-      for(const nome of dbKeys){
-        try{
-          const payload=JSON.stringify(APP.databases[nome]);
-          // Salva solo se < 4MB (limite sicuro localStorage)
-          if(payload.length < 4*1024*1024){
-            localStorage.setItem('grest_db_'+nome, payload);
-          }
-        }catch(e2){/* db troppo grande, salta */}
-      }
-      // Salva lista nomi db
-      localStorage.setItem('grest_db_names', JSON.stringify(dbKeys));
-    }catch(e){console.warn('saveStorage dbs error:',e);}
-  };
+  // Calcola hash leggero per evitare write inutili
+  const db=getDb();
+  const imp = db?.impostazioni||{};
+  const quickHash = db ? JSON.stringify({
+    i:db.iscritti?.length||0, sp:db.spese?.length||0, a:db.animatori?.length||0,
+    sq:db.squadre?.length||0, p:db.presenze?Object.keys(db.presenze).length:0,
+    ng:imp.nomeGrest||'', an:imp.anno||'', or:imp.oratorio||'',
+    ns:imp.numSettimane||0, p13:imp.prezzoBase13||0, p16:imp.prezzoBase16||0,
+    di:imp.dataInizio||'', df:imp.dataFine||'', qt:imp.quotaTotale||0,
+    ds:db.diarioSquadre?.length||0, sg:db.segnalazioni?.length||0, gt:db.gite?.length||0,
+    sqj:JSON.stringify(db.squadre||[]).length, pgj:JSON.stringify(db.pagamenti||{}).length,
+    pn:JSON.stringify(db.pianificatore||{}).length, mn:JSON.stringify(db.mensa||{}).length,
+    cal:JSON.stringify(db.calFonti||{}).length  // ← calendario incluso nell'hash
+  }) : 'empty';
+
   if(immediate){
     clearTimeout(_saveTimer);_saveTimer=null;
-    salvaLeggero();
+    if(quickHash===_lastSavedHash && !immediate) return; // nulla è cambiato
+    try{
+      localStorage.setItem('grest_v2',JSON.stringify({databases:APP.databases,currentDb:APP.currentDb,utenti:APP.utenti}));
+      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
+      _lastSavedHash=quickHash;
+    }catch(e){console.warn('saveStorage error:',e);}
     return;
   }
-  if(_saveTimer)return;
+  if(_saveTimer)return; // già schedulato
   _saveTimer=setTimeout(()=>{
     _saveTimer=null;
-    salvaLeggero();
-  },300);
+    try{
+      localStorage.setItem('grest_v2',JSON.stringify({databases:APP.databases,currentDb:APP.currentDb,utenti:APP.utenti}));
+      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
+      _lastSavedHash=quickHash;
+    }catch(e){console.warn('saveStorage error:',e);}
+  },300); // aumentato da 150ms a 300ms per raggruppare più modifiche
 }
 function getDb(){if(!APP.currentDb||!APP.databases[APP.currentDb])return null;return APP.databases[APP.currentDb];}
 
@@ -10400,6 +10385,8 @@ function setAnaFilter(f){
     const btn=document.getElementById('ana-filter-'+x);
     if(btn)btn.classList.toggle('active',x===f);
   });
+  const sqSelReset=document.getElementById('ana-filter-squadra');
+  if(sqSelReset) sqSelReset.value='';
   renderAnagrafica();
 }
 function renderAnagrafica(){
@@ -10408,14 +10395,23 @@ function renderAnagrafica(){
   if(APP.anaFilter==='G')isc=isc.filter(i=>i.tipo==='Grest');
   if(APP.anaFilter==='M')isc=isc.filter(i=>i.tipo==='MiniGrest');
   if(APP.anaFilter==='NS')isc=isc.filter(i=>!i.squadraId);
+  // Popola e applica filtro squadra
+  const sqSel=document.getElementById('ana-filter-squadra');
+  if(sqSel && db){
+    const tipoFiltro=APP.anaFilter==='G'?'Grest':APP.anaFilter==='M'?'MiniGrest':null;
+    const sqList=tipoFiltro?db.squadre.filter(s=>s.tipo===tipoFiltro):[...db.squadre];
+    const valCorrente=sqSel.value;
+    sqSel.innerHTML='<option value="">Tutte</option>'+
+      sqList.map(s=>`<option value="${s.id}" ${s.id===valCorrente?'selected':''}>${s.nome.toUpperCase()}</option>`).join('');
+  }
+  const sqFiltro=sqSel?.value||'';
+  if(sqFiltro) isc=isc.filter(i=>i.squadraId===sqFiltro);
   const q=(document.getElementById('ana-search')?.value||'').toLowerCase();
   if(q)isc=isc.filter(i=>(i.nome+' '+i.cognome+' '+(i.tipo||'')+' '+getSquadraNome(i.squadraId||'')).toLowerCase().includes(q));
   const sort=document.getElementById('ana-sort')?.value||'A';
   if(sort==='A')isc.sort((a,b)=>((a.cognome||'')+(a.nome||'')).localeCompare((b.cognome||'')+(b.nome||'')));
   else if(sort==='eta')isc.sort((a,b)=>(parseInt(a.eta)||0)-(parseInt(b.eta)||0));
   else if(sort==='squadra')isc.sort((a,b)=>getSquadraNome(a.squadraId||'').localeCompare(getSquadraNome(b.squadraId||'')));
-
-  // Aggiorna contatore risultati
   const contEl=document.getElementById('ana-result-count');
   if(contEl){
     const totDb=db?db.iscritti.length:0;
@@ -10454,7 +10450,7 @@ function renderAnagrafica(){
       const _mSemEmoji=_mStatoPag==='pagato'?'🟢':_mStatoPag==='acconto'?'🟡':'🔴';
       const _mSemLabel=_mStatoPag==='pagato'?'Pagato':_mStatoPag==='acconto'?'Acconto':'Non pagato';
       const mobileSemaforoHtml='<span title="'+_mSemLabel+'" style="font-size:12px">'+_mSemEmoji+' '+_mSemLabel+'</span>';
-      const tipoLabel=i.tipo==='MiniGrest'?'Mini':'Grest';
+      const tipoLabel=i.tipo==='MiniGrest'?'MINI':'GREST';
       const tipoColor=i.tipo==='MiniGrest'?'var(--orange)':'var(--teal)';
       const nSegn=contaSegnalazioni(i.id);
       const batchCb=_batchMode?`<input type="checkbox" class="batch-cb" ${_batchSelected.has(i.id)?'checked':''} onclick="event.stopPropagation();toggleBatchItem('${i.id}',this.checked)" style="margin-right:6px">`:'';
@@ -10474,14 +10470,14 @@ function renderAnagrafica(){
           ${batchCb}
           <img src="${avSrc}" class="ana-card-avatar" style="border-color:${sqCol}">
           <div class="ana-card-info">
-            <div class="ana-card-name">${highlightText(i.cognome,q)} <span style="font-weight:700">${highlightText(i.nome,q)}</span></div>
-            ${i.eta?`<div class="ana-card-meta">🎂 ${i.eta} anni</div>`:''}
+            <div class="ana-card-name">${highlightText((i.cognome||'').toUpperCase(),q)} <span style="font-weight:700">${highlightText((i.nome||'').toUpperCase(),q)}</span></div>
+            ${i.eta?`<div class="ana-card-meta">🎂 ${(i.eta+'').toUpperCase()}</div>`:''}
             ${i.orario?`<div class="ana-card-meta">🕐 ${i.orario}</div>`:''}
             ${i.taglia?`<div class="ana-card-meta">👕 ${i.taglia}</div>`:''}
           </div>
           <div class="ana-card-badges">
             <span class="badge" style="background:${tipoColor};color:#fff;font-size:10px">${tipoLabel}</span>
-            ${sqNome?`<span class="ana-card-squadra" style="background:${sqCol}">${sqNome}</span>`:''}
+            ${sqNome?`<span class="ana-card-squadra" style="background:${sqCol}">${sqNome.toUpperCase()}</span>`:''}
             ${magliaIcon}
             <span style="font-size:11px">${mobileSemaforoHtml}</span>
           </div>
@@ -10525,12 +10521,12 @@ function renderAnagrafica(){
       const tr=document.createElement('tr');
       tr.innerHTML=`${batchCb?'<td>'+batchCb+'</td>':''}<td style="font-weight:700">${idx+1}</td>
         <td>${fotoHtml}</td>
-        <td><b>${highlightText(i.cognome,q)}</b></td><td>${highlightText(i.nome,q)}</td><td>${i.eta||'–'}</td>
+        <td><b>${highlightText((i.cognome||'').toUpperCase(),q)}</b></td><td>${highlightText((i.nome||'').toUpperCase(),q)}</td><td>${i.eta?(i.eta+'').toUpperCase():'–'}</td>
         <td>${i.orario||'–'}</td>
         <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(i.preferenze||'')}">${escapeHtml(i.preferenze||'–')}</td>
         <td>${i.taglia||'–'}</td>
-        <td><span class="badge badge-teal">${i.tipo==='MiniGrest'?'Mini':'Grest'}</span></td>
-        <td>${sqNome?`<span style="background:${sqCol};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:800">${sqNome}</span>`:'–'}</td>
+        <td><span class="badge badge-teal">${i.tipo==='MiniGrest'?'MINI':'GREST'}</span></td>
+        <td>${sqNome?`<span style="background:${sqCol};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:800">${sqNome.toUpperCase()}</span>`:'–'}</td>
         <td>${maglieHtml}</td>
         <td style="text-align:center">${semaforoHtml}</td>
         <td style="white-space:nowrap">${azioniHtml}</td>`;
@@ -12466,7 +12462,7 @@ function renderMaglie(){
     const sqList=db.squadre.filter(s=>s.tipo===tipo);
     const stock=db.maglieStock.Grest||{};
     const riordino=db.maglieRiordino.Grest||{};
-    const buildHeader=()=>`<tr><th>TAGLIA</th>${sqList.map(sq=>`<th style="color:${sq.colore}">${sq.nome}</th>`).join('')}</tr>`;
+    const buildHeader=()=>`<tr><th>TAGLIA</th>${sqList.map(sq=>`<th style="color:${sq.colore}">${sq.nome.toUpperCase()}</th>`).join('')}</tr>`;
     
     // Stock iniziale
     const tStock=document.getElementById('table-stock');
@@ -12651,7 +12647,7 @@ function initConsegnaMaglie(){
   const sqSel=document.getElementById('consegna-squadra');
   const sqList=db.squadre.filter(s=>s.tipo===tipo);
   sqSel.innerHTML='<option value="">Tutte le squadre</option>'+
-    sqList.map(sq=>`<option value="${sq.id}">${sq.nome}</option>`).join('');
+    sqList.map(sq=>`<option value="${sq.id}">${sq.nome.toUpperCase()}</option>`).join('');
 }
 function renderConsegnaMaglie(){
   const db=getDb();if(!db)return;
@@ -12678,7 +12674,7 @@ function renderConsegnaMaglie(){
   const tbody=document.getElementById('table-consegna');
   tbody.innerHTML=`<thead><tr><th>N°</th><th>BAMBINO</th><th>SQUADRA</th><th>TAGLIA</th><th>MAGLIA 1</th><th>MAGLIA 2</th></tr></thead><tbody>`+
     iscritti.map((i,idx)=>{
-      const sqNome=getSquadraNome(i.squadraId)||'–';
+      const sqNome=(getSquadraNome(i.squadraId)||'–').toUpperCase();
       return `<tr>
         <td style="font-weight:700">${idx+1}</td>
         <td style="font-weight:700">${escapeHtml(i.cognome)} ${escapeHtml(i.nome)}</td>
@@ -15083,20 +15079,18 @@ function updateLogoLogin(){
   const db = getDb();
   // Prima cerca nel database (sincronizzato), poi localStorage come fallback
   const logoBase64 = db?.impostazioni?.logoGestionale || localStorage.getItem('grest_logo_gestionale');
-  // Aggiorna anche localStorage se il db ha il logo (persiste tra sessioni)
+  // Aggiorna anche localStorage se il db ha il logo (sincronizza al device corrente)
   if(db?.impostazioni?.logoGestionale){
-    try{ localStorage.setItem('grest_logo_gestionale', db.impostazioni.logoGestionale); }catch(e){}
+    localStorage.setItem('grest_logo_gestionale', db.impostazioni.logoGestionale);
   }
-  // Aggiorna cerchio logo gestionale (sempre visibile se logo presente)
-  const loginLogoImg = document.getElementById('login-logo-gestionale-img');
-  const loginLogoWrap = document.getElementById('login-avatar');
-  if(loginLogoImg && loginLogoWrap){
+  const loginLogo=document.querySelector('#login-avatar img');
+  if(loginLogo){
     if(logoBase64){
-      loginLogoImg.src = logoBase64;
-      loginLogoImg.style.display = 'block';
-      loginLogoWrap.style.display = 'flex';
+      loginLogo.src = logoBase64;
+      loginLogo.style.display = 'block';
     } else {
-      loginLogoImg.style.display = 'none';
+      loginLogo.src = '';
+      loginLogo.style.display = 'none';
     }
   }
   const splashLogo = document.getElementById('splash-logo');
@@ -15644,12 +15638,11 @@ async function eseguiBackupLocalePC(tipo='automatico'){
     const dataOra = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
     const nomeFile = `GREST_Backup_${dataOra}.json`;
     const backup = {
-      versione:'2.0',
+      versione:'1.0',
       dataExport: now.toISOString(),
       tipo: tipo,
       nomeGrest: db.impostazioni?.nomeGrest||'GREST',
       anno: db.impostazioni?.anno||now.getFullYear(),
-      utenti: APP.utenti || [],
       database: db
     };
     const json = JSON.stringify(backup, null, 2);
@@ -15692,11 +15685,10 @@ function esportaBackup(){
   if(!db){showToast('❌ Nessun dato da esportare','error');return;}
   
   const backup={
-    versione:'2.0',
+    versione:'1.0',
     dataExport:new Date().toISOString(),
     nomeGrest:db.impostazioni?.nomeGrest||'GREST',
     anno:db.impostazioni?.anno||new Date().getFullYear(),
-    utenti: APP.utenti || [],
     database:db
   };
   
@@ -15730,29 +15722,12 @@ function handleImportBackup(event){
           showToast('❌ File backup non valido','error');
           return;
         }
-        const dbName = backup.nomeGrest ? (backup.nomeGrest + ' ' + backup.anno) : (APP.currentDb || Object.keys(APP.databases)[0] || 'default');
+        const dbName = APP.currentDb || Object.keys(APP.databases)[0] || 'default';
         APP.databases[dbName] = backup.database;
         APP.currentDb = dbName;
-        // Ripristina utenti se presenti nel backup (versione 2.0+)
-        if (backup.utenti && backup.utenti.length > 0) {
-          APP.utenti = backup.utenti;
-          console.log('👥 Utenti ripristinati dal backup:', APP.utenti.length);
-        }
-        // Segna che abbiamo modifiche offline così locale vince sul cloud
-        localStorage.setItem('grest_offline_edits', 'true');
         saveStorage(true);
-        showToast('✅ Backup ripristinato! Carico su cloud...','success');
-        // Upload immediato forzato prima del reload
-        _forceNextUpload = true;
-        Promise.all([
-          _uploadSingoloDb(dbName, backup.database),
-          (backup.utenti && backup.utenti.length > 0) ? uploadUtentiCloud() : Promise.resolve()
-        ]).then(()=>{
-          showToast('☁️ Dati sincronizzati sul cloud!','success');
-          setTimeout(()=>location.reload(),1500);
-        }).catch(()=>{
-          setTimeout(()=>location.reload(),1500);
-        });
+        showToast('✅ Backup ripristinato! Ricarico pagina...','success');
+        setTimeout(()=>location.reload(),1500);
       }catch(err){
         console.error(err);
         showToast('❌ Errore lettura backup','error');
@@ -18968,21 +18943,20 @@ function caricaCredenziali(){
 function initRememberMe(){
   const saved = caricaCredenziali();
   if(!saved) return;
-  // Pre-compila i campi (NO auto-login, aspetta il click su Accedi)
+  // Mostra banner accesso rapido
+  const hint = document.getElementById('login-autofill-hint');
+  const hintName = document.getElementById('login-autofill-name');
+  if(hint && hintName){
+    hintName.textContent = saved.nome || saved.username;
+    hint.style.display = 'block';
+  }
+  // Pre-compila i campi
   const uEl = document.getElementById('login-username');
   const pEl = document.getElementById('login-password');
   const rEl = document.getElementById('login-remember');
   if(uEl) uEl.value = saved.username;
   if(pEl) pEl.value = saved.password;
   if(rEl) rEl.checked = true;
-  // Mostra nome utente sopra il titolo
-  const nomeEl = document.getElementById('login-nome-utente');
-  if(nomeEl){
-    nomeEl.textContent = (saved.nome || saved.username || '').toUpperCase();
-    nomeEl.style.display = 'block';
-  }
-  // Mostra foto avatar se disponibile
-  aggiornFotoLogin(saved.username);
 }
 function loginAutofill(){
   // Click sul banner → accede direttamente con le credenziali salvate
@@ -19140,6 +19114,12 @@ async function loginSubmit(){
     cancellaCredenziali();
   }
 
+  // ── Ripristina il db dell'utente (salvato al suo ultimo logout) ──
+  const _dbSalvatoUtente = localStorage.getItem('grest_db_utente_' + trovato.utente.username);
+  if(_dbSalvatoUtente && APP.databases[_dbSalvatoUtente]){
+    trovato.dbKey = _dbSalvatoUtente;
+  }
+
   if(trovato.dbKey && trovato.dbKey !== APP.currentDb){
     APP.currentDb = trovato.dbKey; saveStorage(true);
   }
@@ -19212,6 +19192,10 @@ function logout(){
   onlineLogout(); // rimuovi dalla lista utenti connessi
   // ── Rimuovi sessione persistente ──
   try { localStorage.removeItem('grest_session_user'); } catch(e){}
+  // ── Memorizza il db corrente per questo utente ──
+  if(AUTH.currentUser?.username && APP.currentDb){
+    try { localStorage.setItem('grest_db_utente_' + AUTH.currentUser.username, APP.currentDb); } catch(e){}
+  }
   AUTH.currentUser = null;
   _permessiApplicati = null; // reset cache permessi
   rimuoviRestrizioniAnimatore();
@@ -19551,21 +19535,11 @@ const GAMIFY = {
   ],
 
   // ── Stato utente ──
-  _getKey(){ return 'grest_xp_' + (AUTH.currentUser?.username || AUTH.currentUser?.id || 'anon'); },
-  _getOldKey(){ return 'grest_xp_' + (AUTH.currentUser?.id || 'anon'); },
+  _getKey(){ return 'grest_xp_' + (AUTH.currentUser?.id || 'anon'); },
 
   getStats(){
     try {
-      const key = this._getKey();
-      let raw = localStorage.getItem(key);
-      // Migrazione: se non trovato con username, cerca con vecchio id
-      if(!raw){
-        const oldKey = this._getOldKey();
-        if(oldKey !== key){
-          const oldRaw = localStorage.getItem(oldKey);
-          if(oldRaw){ localStorage.setItem(key, oldRaw); localStorage.removeItem(oldKey); raw = oldRaw; }
-        }
-      }
+      const raw = localStorage.getItem(this._getKey());
       return raw ? JSON.parse(raw) : { xp:0, level:1, logins:0, streak:0, lastLogin:'', presenze:0, diario:0, checklist:0, iscritti:0, animatori:0, badges:[], dailyXp:{} };
     } catch(e){ return { xp:0, level:1, logins:0, streak:0, lastLogin:'', presenze:0, diario:0, checklist:0, iscritti:0, animatori:0, badges:[], dailyXp:{} }; }
   },
@@ -19850,8 +19824,21 @@ function inviaNotificaMsgGiorno(msg){
 
 // ── Mostra notifica ricevuta in tempo reale ──
 function mostraNotificaMsgGiorno(m){
-  // Riusa lo stesso ticker del messaggio del giorno
-  mostraMsgGiornoModal(m.emoji, m.testo, m.firma);
+  // Non mostrare se l'abbiamo inviato noi stessi (siamo admin)
+  const utente = typeof _currentUser !== 'undefined' ? _currentUser : null;
+  // Crea notifica stile toast ma più grande
+  const overlay = document.createElement('div');
+  overlay.id = 'notifica-msg-giorno';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease';
+  overlay.innerHTML = `
+    <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:400px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);animation:fadeInUp .4s ease">
+      <div style="font-size:52px;margin-bottom:10px">${m.emoji||'📢'}</div>
+      <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📣 Messaggio dagli organizzatori</div>
+      <div style="font-size:19px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:10px">${m.testo}</div>
+      ${m.firma?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${m.firma}</div>`:'<div style="margin-bottom:20px"></div>'}
+      <button onclick="document.getElementById('notifica-msg-giorno').remove()" style="width:100%;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">✅ Ho letto!</button>
+    </div>`;
+  document.body.appendChild(overlay);
   // Suono notifica se disponibile
   if(typeof SFX !== 'undefined' && SFX.notifica) try { SFX.notifica(); } catch(e){}
 }
@@ -19897,28 +19884,13 @@ function anteprimaMsgGiorno(){
 function mostraMsgGiornoModal(emoji,testo,firma){
   document.getElementById('msg-giorno-emoji').textContent=emoji||'☀️';
   document.getElementById('msg-giorno-testo').textContent=testo;
-  document.getElementById('msg-giorno-firma').textContent=firma?firma:'';
+  document.getElementById('msg-giorno-firma').textContent=firma||'';
   const m=document.getElementById('modal-msg-giorno');
-  // Calcola durata scroll in base alla lunghezza testo
-  const len=(testo||'').length+(firma||'').length;
-  const dur=Math.max(12, len*0.2);
-  m.style.setProperty('--ticker-dur', dur+'s');
-  m.style.display='block';
-  m.style.animation='tickerUp .4s ease both';
-  // Duplica testo per loop continuo
-  const ticker=document.getElementById('msg-giorno-ticker');
-  const base=ticker.innerHTML;
-  // Aggiungi separatore e replica per scroll continuo
-  if(!ticker.dataset.duplicated){
-    ticker.innerHTML=base+'  &nbsp; ❄️ &nbsp;  '+base+'  &nbsp; ❄️ &nbsp;  '+base;
-    ticker.dataset.duplicated='1';
-  }
+  m.style.display='flex';
 }
 
 function chiudiMsgGiorno(){
-  const m=document.getElementById('modal-msg-giorno');
-  m.style.animation='tickerDown .4s ease forwards';
-  setTimeout(()=>{ m.style.display='none'; },400);
+  document.getElementById('modal-msg-giorno').style.display='none';
   localStorage.setItem('grest_msg_giorno_visto', new Date().toISOString().slice(0,10));
 }
 
@@ -20216,7 +20188,7 @@ async function sincronizzaXpCloud() {
     const s = GAMIFY.getStats();
     const lvl = GAMIFY.calcLevel(s.xp);
     const payload = {
-      id: 'xp-' + AUTH.currentUser.username,
+      id: 'xp-' + AUTH.currentUser.id,
       data: {
         userId: AUTH.currentUser.id,
         username: AUTH.currentUser.username,
@@ -20241,20 +20213,6 @@ async function sincronizzaXpCloud() {
   } catch(e) { console.warn('XP sync error:', e); }
 }
 
-async function aggiornaFotoXpCloud() {
-  if (!_jbSyncEnabled || !AUTH.currentUser) return;
-  try {
-    const foto = AUTH.currentUser?.foto || null;
-    const nome = AUTH.currentUser?.nome || AUTH.currentUser?.username;
-    // Patch solo i campi foto/nome sul record esistente
-    await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.xp-${AUTH.currentUser.username}`, {
-      method: 'PATCH',
-      headers: Object.assign(sbHeaders(), { 'Prefer': 'return=minimal' }),
-      body: JSON.stringify({ data: { ...((await (await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.xp-${AUTH.currentUser.username}&select=data`, {headers: sbHeaders()})).json())?.[0]?.data || {}), fotoUrl: foto, nome: nome, aggiornato: new Date().toISOString() } })
-    });
-  } catch(e) { console.warn('Foto XP sync error:', e); }
-}
-
 let _lastMyPosition = null; // posizione precedente in classifica
 
 async function aggiornaLeaderboard() {
@@ -20270,17 +20228,6 @@ async function aggiornaLeaderboard() {
       el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Nessun dato ancora</div>';
       return;
     }
-
-    // Deduplica per username: tieni solo il record con XP più alto
-    const byUsername = {};
-    rows.forEach(r => {
-      const u = r.data?.username;
-      if (!u) return;
-      if (!byUsername[u] || (r.data.xp > byUsername[u].data.xp)) {
-        byUsername[u] = r;
-      }
-    });
-    const dedupedRows = Object.values(byUsername).sort((a,b) => b.data.xp - a.data.xp);
 
     const myId = AUTH.currentUser?.id;
     const medaglie = ['🥇','🥈','🥉'];
@@ -20298,20 +20245,20 @@ async function aggiornaLeaderboard() {
     } catch(e) {}
 
     // Controlla se qualcuno ci ha superato
-    const myPos = dedupedRows.findIndex(r => r.data?.userId === myId);
+    const myPos = rows.findIndex(r => r.data?.userId === myId);
     if (_lastMyPosition !== null && myPos > _lastMyPosition && myPos > 0) {
-      const sorpassatoDa = dedupedRows[myPos - 1]?.data;
+      const sorpassatoDa = rows[myPos - 1]?.data;
       if (sorpassatoDa) {
         showToast(`😱 ${sorpassatoDa.nome || sorpassatoDa.username} ti ha superato in classifica!`, 'warning');
       }
     }
     if (myPos >= 0) _lastMyPosition = myPos;
 
-    el.innerHTML = dedupedRows.map((r, i) => {
+    el.innerHTML = rows.map((r, i) => {
       const d = r.data;
       const isMe = d.userId === myId;
       const medaglia = medaglie[i] || `<b style="color:var(--text-muted);font-size:12px">${i+1}</b>`;
-      const barPct = dedupedRows[0]?.data?.xp > 0 ? Math.round((d.xp / dedupedRows[0].data.xp) * 100) : 0;
+      const barPct = rows[0]?.data?.xp > 0 ? Math.round((d.xp / rows[0].data.xp) * 100) : 0;
       const ultimiBadge = (d.badges||[]).slice(-4).map(b => {
         const found = GAMIFY.BADGES.find(x=>x.id===b);
         return found ? found.emoji : '';
@@ -20514,7 +20461,6 @@ function applicaFontSalvato() {
         setTimeout(()=> {
           GAMIFY.trackLogin();
           setTimeout(()=> sincronizzaXpCloud(), 1500);
-          setTimeout(()=> aggiornaFotoXpCloud(), 3000); // Forza aggiornamento foto
           // Aggiorna leaderboard ogni 2 minuti per captare sorpassi
           setInterval(()=> { if(typeof aggiornaLeaderboard==='function') aggiornaLeaderboard(); }, 2 * 60 * 1000);
         }, 800);
@@ -21610,17 +21556,31 @@ function pwaInstalla(){
 // AVATAR LOGIN INTERATTIVO
 // ═══════════════════════════════════════════════
 function aggiornFotoLogin(username){
-  const u=(APP.utenti||[]).find(u=>u.username===(username||'').trim());
-  // Usa il SECONDO cerchio per l'avatar utente (il primo è riservato al logo gestionale)
-  const avatarWrap = document.getElementById('login-avatar-utente');
-  const avatarImg = document.getElementById('login-foto-utente-img');
-  if(!avatarWrap || !avatarImg) return;
+  const u=(APP.utenti||[]).find(u=>u.username===username.trim());
+  const wrap=document.getElementById('login-avatar');
+  if(!wrap) return;
+  let fotoEl=document.getElementById('login-foto-utente');
+  let nomeEl=document.getElementById('login-foto-nome');
   if(u && u.foto){
-    avatarImg.src = u.foto;
-    avatarWrap.style.display = 'flex';
+    if(!fotoEl){
+      fotoEl=document.createElement('img');
+      fotoEl.id='login-foto-utente';
+      fotoEl.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;transition:opacity .3s';
+      wrap.style.position='relative';
+      wrap.style.overflow='hidden';
+      wrap.appendChild(fotoEl);
+    }
+    fotoEl.src=u.foto; fotoEl.style.opacity='1';
+    if(!nomeEl){
+      nomeEl=document.createElement('div');
+      nomeEl.id='login-foto-nome';
+      nomeEl.style.cssText='text-align:center;margin-top:8px;font-weight:800;font-size:15px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4);transition:opacity .3s';
+      wrap.parentNode.insertBefore(nomeEl,wrap.nextSibling);
+    }
+    nomeEl.textContent=u.nome; nomeEl.style.opacity='1';
   } else {
-    avatarWrap.style.display = 'none';
-    avatarImg.src = '';
+    if(fotoEl) fotoEl.style.opacity='0';
+    if(nomeEl) nomeEl.style.opacity='0';
   }
 }
 function avatarLookAt(target){
@@ -22113,58 +22073,27 @@ async function sincronizzaOra() {
         APP.databases[nomeDb] = record.data.db;
         aggiornati++;
         console.log('📥 Nuovo database dal cloud:', nomeDb);
-      } else if (hadOfflineEdits) {
-        // Abbiamo modifiche offline → locale vince sempre, upload su cloud
+      } else if (hadOfflineEdits && nomeDb === APP.currentDb) {
+        // Abbiamo modifiche offline sul db corrente → locale vince, upload
         await _uploadSingoloDb(nomeDb, APP.databases[nomeDb]);
         caricati++;
-        console.log('📤 Modifiche offline: locale vince per:', nomeDb);
+        console.log('📤 Modifiche offline caricate per:', nomeDb);
       } else {
-        // ── LOCALE VINCE SE HA PIÙ DATI ──
-        const cloudDb = record.data.db;
-        const localDb = APP.databases[nomeDb];
-        const cloudSize = (cloudDb?.iscritti?.length || 0) + (cloudDb?.squadre?.length || 0) + (cloudDb?.animatori?.length || 0);
-        const localSize = (localDb?.iscritti?.length || 0) + (localDb?.squadre?.length || 0) + (localDb?.animatori?.length || 0);
-        const cloudTs = record.data.aggiornato ? new Date(record.data.aggiornato).getTime() : 0;
-        const localTs = localDb?._lastSaved ? new Date(localDb._lastSaved).getTime() : 0;
-
-        if (localSize > cloudSize) {
-          // Locale ha più dati → upload locale sul cloud
-          await _uploadSingoloDb(nomeDb, localDb);
-          caricati++;
-          console.log('📤 Locale ha più dati, sovrascrivo cloud per:', nomeDb, `(locale:${localSize} vs cloud:${cloudSize})`);
-        } else if (cloudSize > localSize) {
-          // Cloud ha più dati → scarica cloud
-          const calendarioFileLocale = localDb?.calendarioFile;
-          const _logoLoc = localDb?.impostazioni?.logo;
-          const _logoGLoc = localDb?.impostazioni?.logoGestionale;
-          APP.databases[nomeDb] = cloudDb;
+        // ── CLOUD VINCE SEMPRE ──
+        const cloudData = JSON.stringify(record.data.db);
+        const localData = JSON.stringify(APP.databases[nomeDb]);
+        if (cloudData !== localData) {
+          // Preserva campi pesanti locali (cloud non li include)
+          const calendarioFileLocale = APP.databases[nomeDb]?.calendarioFile;
+          const _logoLoc = APP.databases[nomeDb]?.impostazioni?.logo;
+          const _logoGLoc = APP.databases[nomeDb]?.impostazioni?.logoGestionale;
+          APP.databases[nomeDb] = record.data.db;
           if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
           if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
           if (_logoLoc) APP.databases[nomeDb].impostazioni.logo = _logoLoc;
           if (_logoGLoc) APP.databases[nomeDb].impostazioni.logoGestionale = _logoGLoc;
           aggiornati++;
-          console.log('📥 Cloud ha più dati, aggiorno locale per:', nomeDb, `(cloud:${cloudSize} vs locale:${localSize})`);
-        } else if (cloudTs > localTs) {
-          // Stessa dimensione ma cloud più recente → cloud vince
-          const calendarioFileLocale = localDb?.calendarioFile;
-          const _logoLoc = localDb?.impostazioni?.logo;
-          const _logoGLoc = localDb?.impostazioni?.logoGestionale;
-          APP.databases[nomeDb] = cloudDb;
-          if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
-          if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
-          if (_logoLoc) APP.databases[nomeDb].impostazioni.logo = _logoLoc;
-          if (_logoGLoc) APP.databases[nomeDb].impostazioni.logoGestionale = _logoGLoc;
-          aggiornati++;
-          console.log('📥 Cloud più recente, aggiorno locale per:', nomeDb);
-        } else {
-          // Locale più recente o uguale → upload locale
-          const cloudData = JSON.stringify(cloudDb);
-          const localData = JSON.stringify(localDb);
-          if (cloudData !== localData) {
-            await _uploadSingoloDb(nomeDb, localDb);
-            caricati++;
-            console.log('📤 Locale più recente, sovrascrivo cloud per:', nomeDb);
-          }
+          console.log('📥 Database aggiornato dal cloud:', nomeDb);
         }
       }
     }
@@ -22359,7 +22288,7 @@ function fermaAutoSync() {
 // SISTEMA UTENTI CONNESSI — via JSONBin (funziona tra dispositivi diversi)
 // ══════════════════════════════════════════════════
 const ONLINE_TTL = 90000;   // 90s inattività = offline
-const ONLINE_POLL = 60000;  // poll ogni 60s (era 30s)
+const ONLINE_POLL = 180000;  // poll ogni 3 minuti (riduce richieste Supabase)
 const SB_ONLINE_ID = 'online'; // riga separata solo per presenza, non tocca il database
 const SB_UTENTI_ID = 'utenti-globali'; // riga separata per gli utenti globali
 let _onlineInterval = null;
@@ -22434,7 +22363,11 @@ async function sincronizzaUtenti() {
 }
 
 // ── Auto-sync utenti silenzioso (chiamato nell'auto-sync globale) ──
+let _lastSyncUtentiTs = 0;
 async function autoSyncUtenti() {
+  // Throttle: max una volta ogni 10 minuti
+  if (Date.now() - _lastSyncUtentiTs < 10 * 60 * 1000) return;
+  _lastSyncUtentiTs = Date.now();
   try {
     const resTs = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_UTENTI_ID}&select=updated_at`, {
       headers: sbHeaders()
@@ -22865,13 +22798,9 @@ function emergencyReset() {
   showConfirm('Cancellare tutti i dati locali? I dati nel cloud restano intatti.', ()=>{
     const jbConfig = localStorage.getItem(JB_KEY);
     const _t = localStorage.getItem('grest-theme');
-    const _logo = localStorage.getItem('grest_logo_gestionale');
-    const _remember = localStorage.getItem('grest_remember');
     localStorage.clear();
     if (jbConfig) localStorage.setItem(JB_KEY, jbConfig);
     if (_t) localStorage.setItem('grest-theme', _t);
-    if (_logo) localStorage.setItem('grest_logo_gestionale', _logo);
-    if (_remember) localStorage.setItem('grest_remember', _remember);
     showToast('Reset completato! Ricarica la pagina.', 'success');
     setTimeout(() => location.reload(), 1500);
   }, 'Cancella', '🔴');
