@@ -3514,8 +3514,6 @@ svg {
   animation:logoFloat 4s ease infinite;
   border-radius:50%;
   overflow:hidden;
-  background:rgba(255,255,255,0.08);
-  border:2px solid rgba(255,255,255,0.15);
 }
 .login-logo img{
   width:90px!important;height:90px!important;
@@ -5031,34 +5029,19 @@ img:not([loading]) { loading: lazy; }
 <!-- ═══════════ LOGIN SCREEN ═══════════ -->
 <div id="login-screen">
   <div class="login-box">
-    <!-- Logo gestionale + Avatar utente separati -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin:0 auto 24px;">
-      <div class="login-logo" id="login-logo-wrap" style="margin:0;flex-shrink:0;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);">
-        <img id="login-logo-img" src="" alt="Logo" style="width:90px;height:90px;object-fit:cover;border-radius:50%;display:none;">
-        <span id="login-logo-placeholder" style="font-size:32px;opacity:0.5;">🏕️</span>
-        <script>
-          (function(){
-            try{
-              var lg=localStorage.getItem('grest_logo_gestionale');
-              if(lg){
-                var img=document.getElementById('login-logo-img');
-                var ph=document.getElementById('login-logo-placeholder');
-                img.src=lg; img.style.display='block';
-                if(ph) ph.style.display='none';
-              }
-            }catch(e){}
-          })();
-        </script>
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;animation:logoFloat 4s ease infinite;">
+      <!-- Cerchio 1: Logo gestionale (sempre fisso) -->
+      <div class="login-logo" id="login-avatar" style="margin:0;flex-shrink:0;">
+        <img id="login-logo-gestionale-img" src="" alt="Logo GREST" style="display:none;">
       </div>
-      <div class="login-logo" id="login-avatar" style="margin:0;flex-shrink:0;display:none;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);">
+      <!-- Cerchio 2: Avatar utente (visibile solo se l'utente ha foto) -->
+      <div class="login-logo" id="login-avatar-utente" style="margin:0;flex-shrink:0;display:none;border:3px solid rgba(38,166,154,0.5);">
+        <img id="login-foto-utente-img" src="" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
       </div>
     </div>
+    <div id="login-nome-utente" style="display:none;font-size:13px;font-weight:900;letter-spacing:3px;color:#80deea;text-transform:uppercase;margin-bottom:2px;text-align:center;text-shadow:0 0 10px rgba(38,166,154,0.7);"></div>
     <div class="login-title">GESTIONALE GREST</div>
     <div class="login-sub">Accedi con le tue credenziali</div>
-    <!-- Banner accesso rapido (visibile solo se credenziali salvate) -->
-    <div class="login-autofill-hint" id="login-autofill-hint" onclick="loginAutofill()">
-      👤 <span id="login-autofill-name">—</span> — Tocca per accedere
-    </div>
     <div class="form-group">
       <label>Username</label>
       <input type="text" id="login-username" placeholder="Username" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')loginSubmit()" oninput="aggiornFotoLogin(this.value)" onfocus="avatarLookAt('username')" onblur="avatarLookAt('center')">
@@ -6236,12 +6219,6 @@ img:not([loading]) { loading: lazy; }
           <button type="button" class="filter-btn" id="ana-filter-M" onclick="setAnaFilter('M')">MINI GREST</button>
           <button type="button" class="filter-btn" id="ana-filter-NS" onclick="setAnaFilter('NS')" style="border-color:#f57c00;color:#f57c00">⚠️ SENZA SQUADRA</button>
         </div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">SQUADRA</div>
-        <select class="form-control" id="ana-filter-squadra" onchange="renderAnagrafica()" style="padding:7px 12px;min-width:160px;">
-          <option value="">Tutte</option>
-        </select>
       </div>
       <div>
         <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">ORDINA PER</div>
@@ -8699,12 +8676,10 @@ function loadStorage(){
     const _t=localStorage.getItem('grest-theme');
     const _u=localStorage.getItem('grest_ultimo_db');
     const _sess=localStorage.getItem('grest_session_user');
-    const _logo=localStorage.getItem('grest_logo_gestionale');
     try{localStorage.clear();}catch(e){}
     if(_t)try{localStorage.setItem('grest-theme',_t);}catch(e){}
     if(_u)try{localStorage.setItem('grest_ultimo_db',_u);}catch(e){}
     if(_sess)try{localStorage.setItem('grest_session_user',_sess);}catch(e){}
-    if(_logo)try{localStorage.setItem('grest_logo_gestionale',_logo);}catch(e){}
     APP.databases=p.databases||{};
     APP.currentDb=p.currentDb||null;
     APP.utenti=p.utenti||[];
@@ -10407,8 +10382,6 @@ function setAnaFilter(f){
     const btn=document.getElementById('ana-filter-'+x);
     if(btn)btn.classList.toggle('active',x===f);
   });
-  const sqSelReset=document.getElementById('ana-filter-squadra');
-  if(sqSelReset) sqSelReset.value='';
   renderAnagrafica();
 }
 function renderAnagrafica(){
@@ -10417,24 +10390,14 @@ function renderAnagrafica(){
   if(APP.anaFilter==='G')isc=isc.filter(i=>i.tipo==='Grest');
   if(APP.anaFilter==='M')isc=isc.filter(i=>i.tipo==='MiniGrest');
   if(APP.anaFilter==='NS')isc=isc.filter(i=>!i.squadraId);
-  // Popola e applica filtro squadra
-  const sqSel=document.getElementById('ana-filter-squadra');
-  if(sqSel && db){
-    const tipoFiltro=APP.anaFilter==='G'?'Grest':APP.anaFilter==='M'?'MiniGrest':null;
-    const sqList=tipoFiltro?db.squadre.filter(s=>s.tipo===tipoFiltro):[...db.squadre];
-    const valCorrente=sqSel.value;
-    sqSel.innerHTML='<option value="">Tutte</option>'+
-      sqList.map(s=>`<option value="${s.id}">${s.nome.toUpperCase()}</option>`).join('');
-    sqSel.value=valCorrente; // riapplica selezione dopo rebuild
-  }
-  const sqFiltro=sqSel?.value||'';
-  if(sqFiltro) isc=isc.filter(i=>i.squadraId===sqFiltro);
   const q=(document.getElementById('ana-search')?.value||'').toLowerCase();
   if(q)isc=isc.filter(i=>(i.nome+' '+i.cognome+' '+(i.tipo||'')+' '+getSquadraNome(i.squadraId||'')).toLowerCase().includes(q));
   const sort=document.getElementById('ana-sort')?.value||'A';
   if(sort==='A')isc.sort((a,b)=>((a.cognome||'')+(a.nome||'')).localeCompare((b.cognome||'')+(b.nome||'')));
   else if(sort==='eta')isc.sort((a,b)=>(parseInt(a.eta)||0)-(parseInt(b.eta)||0));
   else if(sort==='squadra')isc.sort((a,b)=>getSquadraNome(a.squadraId||'').localeCompare(getSquadraNome(b.squadraId||'')));
+
+  // Aggiorna contatore risultati
   const contEl=document.getElementById('ana-result-count');
   if(contEl){
     const totDb=db?db.iscritti.length:0;
@@ -10473,7 +10436,7 @@ function renderAnagrafica(){
       const _mSemEmoji=_mStatoPag==='pagato'?'🟢':_mStatoPag==='acconto'?'🟡':'🔴';
       const _mSemLabel=_mStatoPag==='pagato'?'Pagato':_mStatoPag==='acconto'?'Acconto':'Non pagato';
       const mobileSemaforoHtml='<span title="'+_mSemLabel+'" style="font-size:12px">'+_mSemEmoji+' '+_mSemLabel+'</span>';
-      const tipoLabel=i.tipo==='MiniGrest'?'MINI':'GREST';
+      const tipoLabel=i.tipo==='MiniGrest'?'Mini':'Grest';
       const tipoColor=i.tipo==='MiniGrest'?'var(--orange)':'var(--teal)';
       const nSegn=contaSegnalazioni(i.id);
       const batchCb=_batchMode?`<input type="checkbox" class="batch-cb" ${_batchSelected.has(i.id)?'checked':''} onclick="event.stopPropagation();toggleBatchItem('${i.id}',this.checked)" style="margin-right:6px">`:'';
@@ -10493,14 +10456,14 @@ function renderAnagrafica(){
           ${batchCb}
           <img src="${avSrc}" class="ana-card-avatar" style="border-color:${sqCol}">
           <div class="ana-card-info">
-            <div class="ana-card-name">${highlightText((i.cognome||'').toUpperCase(),q)} <span style="font-weight:700">${highlightText((i.nome||'').toUpperCase(),q)}</span></div>
-            ${i.eta?`<div class="ana-card-meta">🎂 ${(i.eta+'').toUpperCase()}</div>`:''}
+            <div class="ana-card-name">${highlightText(i.cognome,q)} <span style="font-weight:700">${highlightText(i.nome,q)}</span></div>
+            ${i.eta?`<div class="ana-card-meta">🎂 ${i.eta} anni</div>`:''}
             ${i.orario?`<div class="ana-card-meta">🕐 ${i.orario}</div>`:''}
             ${i.taglia?`<div class="ana-card-meta">👕 ${i.taglia}</div>`:''}
           </div>
           <div class="ana-card-badges">
             <span class="badge" style="background:${tipoColor};color:#fff;font-size:10px">${tipoLabel}</span>
-            ${sqNome?`<span class="ana-card-squadra" style="background:${sqCol}">${sqNome.toUpperCase()}</span>`:''}
+            ${sqNome?`<span class="ana-card-squadra" style="background:${sqCol}">${sqNome}</span>`:''}
             ${magliaIcon}
             <span style="font-size:11px">${mobileSemaforoHtml}</span>
           </div>
@@ -10544,12 +10507,12 @@ function renderAnagrafica(){
       const tr=document.createElement('tr');
       tr.innerHTML=`${batchCb?'<td>'+batchCb+'</td>':''}<td style="font-weight:700">${idx+1}</td>
         <td>${fotoHtml}</td>
-        <td><b>${highlightText((i.cognome||'').toUpperCase(),q)}</b></td><td>${highlightText((i.nome||'').toUpperCase(),q)}</td><td>${i.eta?(i.eta+'').toUpperCase():'–'}</td>
+        <td><b>${highlightText(i.cognome,q)}</b></td><td>${highlightText(i.nome,q)}</td><td>${i.eta||'–'}</td>
         <td>${i.orario||'–'}</td>
         <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(i.preferenze||'')}">${escapeHtml(i.preferenze||'–')}</td>
         <td>${i.taglia||'–'}</td>
-        <td><span class="badge badge-teal">${i.tipo==='MiniGrest'?'MINI':'GREST'}</span></td>
-        <td>${sqNome?`<span style="background:${sqCol};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:800">${sqNome.toUpperCase()}</span>`:'–'}</td>
+        <td><span class="badge badge-teal">${i.tipo==='MiniGrest'?'Mini':'Grest'}</span></td>
+        <td>${sqNome?`<span style="background:${sqCol};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:800">${sqNome}</span>`:'–'}</td>
         <td>${maglieHtml}</td>
         <td style="text-align:center">${semaforoHtml}</td>
         <td style="white-space:nowrap">${azioniHtml}</td>`;
@@ -12485,7 +12448,7 @@ function renderMaglie(){
     const sqList=db.squadre.filter(s=>s.tipo===tipo);
     const stock=db.maglieStock.Grest||{};
     const riordino=db.maglieRiordino.Grest||{};
-    const buildHeader=()=>`<tr><th>TAGLIA</th>${sqList.map(sq=>`<th style="color:${sq.colore}">${sq.nome.toUpperCase()}</th>`).join('')}</tr>`;
+    const buildHeader=()=>`<tr><th>TAGLIA</th>${sqList.map(sq=>`<th style="color:${sq.colore}">${sq.nome}</th>`).join('')}</tr>`;
     
     // Stock iniziale
     const tStock=document.getElementById('table-stock');
@@ -12670,7 +12633,7 @@ function initConsegnaMaglie(){
   const sqSel=document.getElementById('consegna-squadra');
   const sqList=db.squadre.filter(s=>s.tipo===tipo);
   sqSel.innerHTML='<option value="">Tutte le squadre</option>'+
-    sqList.map(sq=>`<option value="${sq.id}">${sq.nome.toUpperCase()}</option>`).join('');
+    sqList.map(sq=>`<option value="${sq.id}">${sq.nome}</option>`).join('');
 }
 function renderConsegnaMaglie(){
   const db=getDb();if(!db)return;
@@ -12697,7 +12660,7 @@ function renderConsegnaMaglie(){
   const tbody=document.getElementById('table-consegna');
   tbody.innerHTML=`<thead><tr><th>N°</th><th>BAMBINO</th><th>SQUADRA</th><th>TAGLIA</th><th>MAGLIA 1</th><th>MAGLIA 2</th></tr></thead><tbody>`+
     iscritti.map((i,idx)=>{
-      const sqNome=(getSquadraNome(i.squadraId)||'–').toUpperCase();
+      const sqNome=getSquadraNome(i.squadraId)||'–';
       return `<tr>
         <td style="font-weight:700">${idx+1}</td>
         <td style="font-weight:700">${escapeHtml(i.cognome)} ${escapeHtml(i.nome)}</td>
@@ -15063,7 +15026,6 @@ function caricaLogoGestionale(event){
     updateLogoLogin();
     showToast('✅ Logo gestionale caricato! Sincronizzazione in corso...','success');
     // Sync immediato su Supabase così tutti i dispositivi lo vedono subito
-    uploadLogoGestionale(logoBase64);
     if(typeof sincronizzaOra === 'function') sincronizzaOra();
   };
   reader.readAsDataURL(file);
@@ -15101,27 +15063,32 @@ function rimuoviLogoGestionale(){
 
 function updateLogoLogin(){
   const db = getDb();
+  // Prima cerca nel database (sincronizzato), poi localStorage come fallback
+  const logoBase64 = db?.impostazioni?.logoGestionale || localStorage.getItem('grest_logo_gestionale');
+  // Aggiorna anche localStorage se il db ha il logo (persiste tra sessioni)
   if(db?.impostazioni?.logoGestionale){
-    try { localStorage.setItem('grest_logo_gestionale', db.impostazioni.logoGestionale); } catch(e) {}
+    try{ localStorage.setItem('grest_logo_gestionale', db.impostazioni.logoGestionale); }catch(e){}
   }
-  const logoBase64 = localStorage.getItem('grest_logo_gestionale');
-  const loginLogoImg = document.getElementById('login-logo-img');
-  const loginLogoPh  = document.getElementById('login-logo-placeholder');
-  if(loginLogoImg){
+  // Aggiorna cerchio logo gestionale (sempre visibile se logo presente)
+  const loginLogoImg = document.getElementById('login-logo-gestionale-img');
+  const loginLogoWrap = document.getElementById('login-avatar');
+  if(loginLogoImg && loginLogoWrap){
     if(logoBase64){
       loginLogoImg.src = logoBase64;
       loginLogoImg.style.display = 'block';
-      if(loginLogoPh) loginLogoPh.style.display='none';
+      loginLogoWrap.style.display = 'flex';
     } else {
-      loginLogoImg.src = '';
       loginLogoImg.style.display = 'none';
-      if(loginLogoPh) loginLogoPh.style.display='block';
     }
   }
   const splashLogo = document.getElementById('splash-logo');
   if(splashLogo){
-    if(logoBase64){ splashLogo.src=logoBase64; splashLogo.style.display='block'; }
-    else { splashLogo.style.display='none'; }
+    if(logoBase64){
+      splashLogo.src = logoBase64;
+      splashLogo.style.display = 'block';
+    } else {
+      splashLogo.style.display = 'none';
+    }
   }
 }
 
@@ -15743,12 +15710,21 @@ function handleImportBackup(event){
           showToast('❌ File backup non valido','error');
           return;
         }
-        const dbName = APP.currentDb || Object.keys(APP.databases)[0] || 'default';
+        const dbName = backup.nomeGrest ? (backup.nomeGrest + ' ' + backup.anno) : (APP.currentDb || Object.keys(APP.databases)[0] || 'default');
         APP.databases[dbName] = backup.database;
         APP.currentDb = dbName;
+        // Segna che abbiamo modifiche offline così locale vince sul cloud
+        localStorage.setItem('grest_offline_edits', 'true');
         saveStorage(true);
-        showToast('✅ Backup ripristinato! Ricarico pagina...','success');
-        setTimeout(()=>location.reload(),1500);
+        showToast('✅ Backup ripristinato! Carico su cloud...','success');
+        // Upload immediato forzato prima del reload
+        _forceNextUpload = true;
+        _uploadSingoloDb(dbName, backup.database).then(()=>{
+          showToast('☁️ Dati sincronizzati sul cloud!','success');
+          setTimeout(()=>location.reload(),1500);
+        }).catch(()=>{
+          setTimeout(()=>location.reload(),1500);
+        });
       }catch(err){
         console.error(err);
         showToast('❌ Errore lettura backup','error');
@@ -18964,20 +18940,21 @@ function caricaCredenziali(){
 function initRememberMe(){
   const saved = caricaCredenziali();
   if(!saved) return;
-  // Mostra banner accesso rapido
-  const hint = document.getElementById('login-autofill-hint');
-  const hintName = document.getElementById('login-autofill-name');
-  if(hint && hintName){
-    hintName.textContent = saved.nome || saved.username;
-    hint.style.display = 'block';
-  }
-  // Pre-compila i campi
+  // Pre-compila i campi (NO auto-login, aspetta il click su Accedi)
   const uEl = document.getElementById('login-username');
   const pEl = document.getElementById('login-password');
   const rEl = document.getElementById('login-remember');
   if(uEl) uEl.value = saved.username;
   if(pEl) pEl.value = saved.password;
   if(rEl) rEl.checked = true;
+  // Mostra nome utente sopra il titolo
+  const nomeEl = document.getElementById('login-nome-utente');
+  if(nomeEl){
+    nomeEl.textContent = (saved.nome || saved.username || '').toUpperCase();
+    nomeEl.style.display = 'block';
+  }
+  // Mostra foto avatar se disponibile
+  aggiornFotoLogin(saved.username);
 }
 function loginAutofill(){
   // Click sul banner → accede direttamente con le credenziali salvate
@@ -19135,12 +19112,6 @@ async function loginSubmit(){
     cancellaCredenziali();
   }
 
-  // ── Ripristina il db dell'utente (salvato al suo ultimo logout) ──
-  const _dbSalvatoUtente = localStorage.getItem('grest_db_utente_' + trovato.utente.username);
-  if(_dbSalvatoUtente && APP.databases[_dbSalvatoUtente]){
-    trovato.dbKey = _dbSalvatoUtente;
-  }
-
   if(trovato.dbKey && trovato.dbKey !== APP.currentDb){
     APP.currentDb = trovato.dbKey; saveStorage(true);
   }
@@ -19213,10 +19184,6 @@ function logout(){
   onlineLogout(); // rimuovi dalla lista utenti connessi
   // ── Rimuovi sessione persistente ──
   try { localStorage.removeItem('grest_session_user'); } catch(e){}
-  // ── Memorizza il db corrente per questo utente ──
-  if(AUTH.currentUser?.username && APP.currentDb){
-    try { localStorage.setItem('grest_db_utente_' + AUTH.currentUser.username, APP.currentDb); } catch(e){}
-  }
   AUTH.currentUser = null;
   _permessiApplicati = null; // reset cache permessi
   rimuoviRestrizioniAnimatore();
@@ -21353,8 +21320,6 @@ window.onload = function(){
   function _avviaLogin(){
     splashInit();
     updateLogoLogin();
-    // Scarica logo dal cloud se non presente in locale
-    setTimeout(downloadLogoGestionale, 2000);
     document.getElementById('header').style.display='none';
     document.getElementById('sidebar').style.display='none';
     document.getElementById('main').style.display='none';
@@ -21579,32 +21544,17 @@ function pwaInstalla(){
 // AVATAR LOGIN INTERATTIVO
 // ═══════════════════════════════════════════════
 function aggiornFotoLogin(username){
-  const u=(APP.utenti||[]).find(u=>u.username===username.trim());
-  const wrap=document.getElementById('login-avatar');
-  if(!wrap) return;
-  let fotoEl=document.getElementById('login-foto-utente');
-  let nomeEl=document.getElementById('login-foto-nome');
+  const u=(APP.utenti||[]).find(u=>u.username===(username||'').trim());
+  // Usa il SECONDO cerchio per l'avatar utente (il primo è riservato al logo gestionale)
+  const avatarWrap = document.getElementById('login-avatar-utente');
+  const avatarImg = document.getElementById('login-foto-utente-img');
+  if(!avatarWrap || !avatarImg) return;
   if(u && u.foto){
-    wrap.style.display='flex';
-    if(!fotoEl){
-      fotoEl=document.createElement('img');
-      fotoEl.id='login-foto-utente';
-      fotoEl.style.cssText='width:90px;height:90px;object-fit:cover;border-radius:50%;';
-      wrap.innerHTML='';
-      wrap.appendChild(fotoEl);
-    }
-    fotoEl.src=u.foto; fotoEl.style.opacity='1';
-    if(!nomeEl){
-      nomeEl=document.createElement('div');
-      nomeEl.id='login-foto-nome';
-      nomeEl.style.cssText='text-align:center;margin-top:8px;font-weight:800;font-size:15px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4);transition:opacity .3s';
-      wrap.parentNode.insertBefore(nomeEl,wrap.nextSibling);
-    }
-    nomeEl.textContent=u.nome; nomeEl.style.opacity='1';
+    avatarImg.src = u.foto;
+    avatarWrap.style.display = 'flex';
   } else {
-    wrap.style.display='none';
-    if(fotoEl) fotoEl.style.opacity='0';
-    if(nomeEl) nomeEl.style.opacity='0';
+    avatarWrap.style.display = 'none';
+    avatarImg.src = '';
   }
 }
 function avatarLookAt(target){
@@ -22035,8 +21985,8 @@ async function mostraBackup() {
 
 async function scaricaDaCloud() {
   try {
-    // Scarica tutti i record tranne presenza online, utenti-globali e logo gestionale (gestiti separatamente)
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=neq.${SB_ONLINE_ID}&id=neq.${SB_UTENTI_ID}&id=neq.${SB_LOGO_ID}&select=id,data,updated_at`, {
+    // Scarica tutti i record tranne presenza online e utenti-globali (gestiti separatamente)
+    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=neq.${SB_ONLINE_ID}&id=neq.${SB_UTENTI_ID}&select=id,data,updated_at`, {
       headers: sbHeaders()
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -22097,27 +22047,58 @@ async function sincronizzaOra() {
         APP.databases[nomeDb] = record.data.db;
         aggiornati++;
         console.log('📥 Nuovo database dal cloud:', nomeDb);
-      } else if (hadOfflineEdits && nomeDb === APP.currentDb) {
-        // Abbiamo modifiche offline sul db corrente → locale vince, upload
+      } else if (hadOfflineEdits) {
+        // Abbiamo modifiche offline → locale vince sempre, upload su cloud
         await _uploadSingoloDb(nomeDb, APP.databases[nomeDb]);
         caricati++;
-        console.log('📤 Modifiche offline caricate per:', nomeDb);
+        console.log('📤 Modifiche offline: locale vince per:', nomeDb);
       } else {
-        // ── CLOUD VINCE SEMPRE ──
-        const cloudData = JSON.stringify(record.data.db);
-        const localData = JSON.stringify(APP.databases[nomeDb]);
-        if (cloudData !== localData) {
-          // Preserva campi pesanti locali (cloud non li include)
-          const calendarioFileLocale = APP.databases[nomeDb]?.calendarioFile;
-          const _logoLoc = APP.databases[nomeDb]?.impostazioni?.logo;
-          const _logoGLoc = APP.databases[nomeDb]?.impostazioni?.logoGestionale;
-          APP.databases[nomeDb] = record.data.db;
+        // ── LOCALE VINCE SE HA PIÙ DATI ──
+        const cloudDb = record.data.db;
+        const localDb = APP.databases[nomeDb];
+        const cloudSize = (cloudDb?.iscritti?.length || 0) + (cloudDb?.squadre?.length || 0) + (cloudDb?.animatori?.length || 0);
+        const localSize = (localDb?.iscritti?.length || 0) + (localDb?.squadre?.length || 0) + (localDb?.animatori?.length || 0);
+        const cloudTs = record.data.aggiornato ? new Date(record.data.aggiornato).getTime() : 0;
+        const localTs = localDb?._lastSaved ? new Date(localDb._lastSaved).getTime() : 0;
+
+        if (localSize > cloudSize) {
+          // Locale ha più dati → upload locale sul cloud
+          await _uploadSingoloDb(nomeDb, localDb);
+          caricati++;
+          console.log('📤 Locale ha più dati, sovrascrivo cloud per:', nomeDb, `(locale:${localSize} vs cloud:${cloudSize})`);
+        } else if (cloudSize > localSize) {
+          // Cloud ha più dati → scarica cloud
+          const calendarioFileLocale = localDb?.calendarioFile;
+          const _logoLoc = localDb?.impostazioni?.logo;
+          const _logoGLoc = localDb?.impostazioni?.logoGestionale;
+          APP.databases[nomeDb] = cloudDb;
           if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
           if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
           if (_logoLoc) APP.databases[nomeDb].impostazioni.logo = _logoLoc;
           if (_logoGLoc) APP.databases[nomeDb].impostazioni.logoGestionale = _logoGLoc;
           aggiornati++;
-          console.log('📥 Database aggiornato dal cloud:', nomeDb);
+          console.log('📥 Cloud ha più dati, aggiorno locale per:', nomeDb, `(cloud:${cloudSize} vs locale:${localSize})`);
+        } else if (cloudTs > localTs) {
+          // Stessa dimensione ma cloud più recente → cloud vince
+          const calendarioFileLocale = localDb?.calendarioFile;
+          const _logoLoc = localDb?.impostazioni?.logo;
+          const _logoGLoc = localDb?.impostazioni?.logoGestionale;
+          APP.databases[nomeDb] = cloudDb;
+          if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
+          if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
+          if (_logoLoc) APP.databases[nomeDb].impostazioni.logo = _logoLoc;
+          if (_logoGLoc) APP.databases[nomeDb].impostazioni.logoGestionale = _logoGLoc;
+          aggiornati++;
+          console.log('📥 Cloud più recente, aggiorno locale per:', nomeDb);
+        } else {
+          // Locale più recente o uguale → upload locale
+          const cloudData = JSON.stringify(cloudDb);
+          const localData = JSON.stringify(localDb);
+          if (cloudData !== localData) {
+            await _uploadSingoloDb(nomeDb, localDb);
+            caricati++;
+            console.log('📤 Locale più recente, sovrascrivo cloud per:', nomeDb);
+          }
         }
       }
     }
@@ -22312,48 +22293,12 @@ function fermaAutoSync() {
 // SISTEMA UTENTI CONNESSI — via JSONBin (funziona tra dispositivi diversi)
 // ══════════════════════════════════════════════════
 const ONLINE_TTL = 90000;   // 90s inattività = offline
-const ONLINE_POLL = 180000;  // poll ogni 3 minuti (riduce richieste Supabase)
+const ONLINE_POLL = 60000;  // poll ogni 60s (era 30s)
 const SB_ONLINE_ID = 'online'; // riga separata solo per presenza, non tocca il database
 const SB_UTENTI_ID = 'utenti-globali'; // riga separata per gli utenti globali
-const SB_LOGO_ID   = 'logo-gestionale'; // riga separata per il logo schermata login
 let _onlineInterval = null;
 let _onlineSessionId = null;
 let _ultimoSyncUtenti = null; // timestamp ultimo sync utenti
-
-// ── Upload logo gestionale su Supabase (record dedicato) ──
-async function uploadLogoGestionale(logoBase64) {
-  if (!_jbSyncEnabled) return;
-  try {
-    const payload = { id: SB_LOGO_ID, data: { logo: logoBase64 }, updated_at: new Date().toISOString() };
-    await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
-      method: 'POST',
-      headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-      body: JSON.stringify(payload)
-    });
-    console.log('📤 Logo gestionale sincronizzato su cloud');
-  } catch(e) { console.warn('uploadLogoGestionale error:', e); }
-}
-
-// ── Scarica logo gestionale dal cloud e lo applica ──
-async function downloadLogoGestionale() {
-  if (!_jbSyncEnabled) return;
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_LOGO_ID}&select=data`, { headers: sbHeaders() });
-    if (!res.ok) return;
-    const json = await res.json();
-    if (!json || json.length === 0) return;
-    const logoBase64 = json[0]?.data?.logo;
-    if (!logoBase64) return;
-    try { localStorage.setItem('grest_logo_gestionale', logoBase64); } catch(e) {}
-    const db = getDb();
-    if (db) {
-      if (!db.impostazioni) db.impostazioni = {};
-      db.impostazioni.logoGestionale = logoBase64;
-    }
-    updateLogoLogin();
-    console.log('📥 Logo gestionale scaricato dal cloud');
-  } catch(e) { console.warn('downloadLogoGestionale error:', e); }
-}
 
 // ── Carica utenti globali dal cloud ──
 async function scaricaUtentiDaCloud() {
@@ -22423,11 +22368,7 @@ async function sincronizzaUtenti() {
 }
 
 // ── Auto-sync utenti silenzioso (chiamato nell'auto-sync globale) ──
-let _lastSyncUtentiTs = 0;
 async function autoSyncUtenti() {
-  // Throttle: max una volta ogni 10 minuti
-  if (Date.now() - _lastSyncUtentiTs < 10 * 60 * 1000) return;
-  _lastSyncUtentiTs = Date.now();
   try {
     const resTs = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_UTENTI_ID}&select=updated_at`, {
       headers: sbHeaders()
@@ -22649,7 +22590,7 @@ async function autoSyncSilenzioso() {
     autoSyncUtenti();
 
     // 2. Scarica updated_at di TUTTI i record database (escluso online e utenti-globali)
-    const resTs = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=neq.${SB_ONLINE_ID}&id=neq.${SB_UTENTI_ID}&id=neq.${SB_LOGO_ID}&select=id,updated_at`, {
+    const resTs = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=neq.${SB_ONLINE_ID}&id=neq.${SB_UTENTI_ID}&select=id,updated_at`, {
       headers: sbHeaders()
     });
     if (!resTs.ok) return;
@@ -22858,9 +22799,13 @@ function emergencyReset() {
   showConfirm('Cancellare tutti i dati locali? I dati nel cloud restano intatti.', ()=>{
     const jbConfig = localStorage.getItem(JB_KEY);
     const _t = localStorage.getItem('grest-theme');
+    const _logo = localStorage.getItem('grest_logo_gestionale');
+    const _remember = localStorage.getItem('grest_remember');
     localStorage.clear();
     if (jbConfig) localStorage.setItem(JB_KEY, jbConfig);
     if (_t) localStorage.setItem('grest-theme', _t);
+    if (_logo) localStorage.setItem('grest_logo_gestionale', _logo);
+    if (_remember) localStorage.setItem('grest_remember', _remember);
     showToast('Reset completato! Ricarica la pagina.', 'success');
     setTimeout(() => location.reload(), 1500);
   }, 'Cancella', '🔴');
