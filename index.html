@@ -15626,11 +15626,12 @@ async function eseguiBackupLocalePC(tipo='automatico'){
     const dataOra = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
     const nomeFile = `GREST_Backup_${dataOra}.json`;
     const backup = {
-      versione:'1.0',
+      versione:'2.0',
       dataExport: now.toISOString(),
       tipo: tipo,
       nomeGrest: db.impostazioni?.nomeGrest||'GREST',
       anno: db.impostazioni?.anno||now.getFullYear(),
+      utenti: APP.utenti || [],
       database: db
     };
     const json = JSON.stringify(backup, null, 2);
@@ -15673,10 +15674,11 @@ function esportaBackup(){
   if(!db){showToast('❌ Nessun dato da esportare','error');return;}
   
   const backup={
-    versione:'1.0',
+    versione:'2.0',
     dataExport:new Date().toISOString(),
     nomeGrest:db.impostazioni?.nomeGrest||'GREST',
     anno:db.impostazioni?.anno||new Date().getFullYear(),
+    utenti: APP.utenti || [],
     database:db
   };
   
@@ -15713,13 +15715,21 @@ function handleImportBackup(event){
         const dbName = backup.nomeGrest ? (backup.nomeGrest + ' ' + backup.anno) : (APP.currentDb || Object.keys(APP.databases)[0] || 'default');
         APP.databases[dbName] = backup.database;
         APP.currentDb = dbName;
+        // Ripristina utenti se presenti nel backup (versione 2.0+)
+        if (backup.utenti && backup.utenti.length > 0) {
+          APP.utenti = backup.utenti;
+          console.log('👥 Utenti ripristinati dal backup:', APP.utenti.length);
+        }
         // Segna che abbiamo modifiche offline così locale vince sul cloud
         localStorage.setItem('grest_offline_edits', 'true');
         saveStorage(true);
         showToast('✅ Backup ripristinato! Carico su cloud...','success');
         // Upload immediato forzato prima del reload
         _forceNextUpload = true;
-        _uploadSingoloDb(dbName, backup.database).then(()=>{
+        Promise.all([
+          _uploadSingoloDb(dbName, backup.database),
+          (backup.utenti && backup.utenti.length > 0) ? uploadUtentiCloud() : Promise.resolve()
+        ]).then(()=>{
           showToast('☁️ Dati sincronizzati sul cloud!','success');
           setTimeout(()=>location.reload(),1500);
         }).catch(()=>{
@@ -20217,6 +20227,17 @@ async function aggiornaLeaderboard() {
       return;
     }
 
+    // Deduplica per username: tieni solo il record con XP più alto
+    const byUsername = {};
+    rows.forEach(r => {
+      const u = r.data?.username;
+      if (!u) return;
+      if (!byUsername[u] || (r.data.xp > byUsername[u].data.xp)) {
+        byUsername[u] = r;
+      }
+    });
+    const dedupedRows = Object.values(byUsername).sort((a,b) => b.data.xp - a.data.xp);
+
     const myId = AUTH.currentUser?.id;
     const medaglie = ['🥇','🥈','🥉'];
 
@@ -20233,20 +20254,20 @@ async function aggiornaLeaderboard() {
     } catch(e) {}
 
     // Controlla se qualcuno ci ha superato
-    const myPos = rows.findIndex(r => r.data?.userId === myId);
+    const myPos = dedupedRows.findIndex(r => r.data?.userId === myId);
     if (_lastMyPosition !== null && myPos > _lastMyPosition && myPos > 0) {
-      const sorpassatoDa = rows[myPos - 1]?.data;
+      const sorpassatoDa = dedupedRows[myPos - 1]?.data;
       if (sorpassatoDa) {
         showToast(`😱 ${sorpassatoDa.nome || sorpassatoDa.username} ti ha superato in classifica!`, 'warning');
       }
     }
     if (myPos >= 0) _lastMyPosition = myPos;
 
-    el.innerHTML = rows.map((r, i) => {
+    el.innerHTML = dedupedRows.map((r, i) => {
       const d = r.data;
       const isMe = d.userId === myId;
       const medaglia = medaglie[i] || `<b style="color:var(--text-muted);font-size:12px">${i+1}</b>`;
-      const barPct = rows[0]?.data?.xp > 0 ? Math.round((d.xp / rows[0].data.xp) * 100) : 0;
+      const barPct = dedupedRows[0]?.data?.xp > 0 ? Math.round((d.xp / dedupedRows[0].data.xp) * 100) : 0;
       const ultimiBadge = (d.badges||[]).slice(-4).map(b => {
         const found = GAMIFY.BADGES.find(x=>x.id===b);
         return found ? found.emoji : '';
