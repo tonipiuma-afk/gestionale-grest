@@ -3393,6 +3393,9 @@ svg {
 }
 
 /* ═══ ANIMAZIONI DASHBOARD ═══ */
+@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
+@keyframes tickerUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes tickerDown{from{transform:translateY(0);opacity:1;}to{transform:translateY(100%);opacity:0;}}
 @keyframes fadeInUp{
   from{opacity:0;transform:translateY(20px);}
   to{opacity:1;transform:translateY(0);}
@@ -5029,16 +5032,19 @@ img:not([loading]) { loading: lazy; }
 <!-- ═══════════ LOGIN SCREEN ═══════════ -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo" id="login-avatar">
-      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABABsADgAoADFhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx0fHRsdHSIeHx8iHyMjIyMjIyMlJycnJy4sLCwsLi4uLjAwMDAwNDQ0NDQ0NDQ0NDT/2wBDARUXFx0dHR0gHBwgLismKyYtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSz/wAARCAAEAAYDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=" 
-           alt="Logo GREST">
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;animation:logoFloat 4s ease infinite;">
+      <!-- Cerchio 1: Logo gestionale (sempre fisso) -->
+      <div class="login-logo" id="login-avatar" style="margin:0;flex-shrink:0;">
+        <img id="login-logo-gestionale-img" src="" alt="Logo GREST" style="display:none;">
+      </div>
+      <!-- Cerchio 2: Avatar utente (visibile solo se l'utente ha foto) -->
+      <div class="login-logo" id="login-avatar-utente" style="margin:0;flex-shrink:0;display:none;border:3px solid rgba(38,166,154,0.5);">
+        <img id="login-foto-utente-img" src="" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+      </div>
     </div>
+    <div id="login-nome-utente" style="display:none;font-size:13px;font-weight:900;letter-spacing:3px;color:#80deea;text-transform:uppercase;margin-bottom:2px;text-align:center;text-shadow:0 0 10px rgba(38,166,154,0.7);"></div>
     <div class="login-title">GESTIONALE GREST</div>
     <div class="login-sub">Accedi con le tue credenziali</div>
-    <!-- Banner accesso rapido (visibile solo se credenziali salvate) -->
-    <div class="login-autofill-hint" id="login-autofill-hint" onclick="loginAutofill()">
-      👤 <span id="login-autofill-name">—</span> — Tocca per accedere
-    </div>
     <div class="form-group">
       <label>Username</label>
       <input type="text" id="login-username" placeholder="Username" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')loginSubmit()" oninput="aggiornFotoLogin(this.value)" onfocus="avatarLookAt('username')" onblur="avatarLookAt('center')">
@@ -5063,13 +5069,13 @@ img:not([loading]) { loading: lazy; }
 </div>
 
 <!-- ═══════════ MESSAGGIO DEL GIORNO ═══════════ -->
-<div id="modal-msg-giorno" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center">
-  <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:fadeInUp .4s ease">
-    <div style="font-size:48px;margin-bottom:12px" id="msg-giorno-emoji">☀️</div>
-    <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Messaggio del giorno</div>
-    <div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:8px" id="msg-giorno-testo">Buona giornata a tutti!</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:24px" id="msg-giorno-firma">— Admin</div>
-    <button onclick="chiudiMsgGiorno()" style="width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">🚀 Iniziamo!</button>
+<div id="modal-msg-giorno" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;height:38px;background:linear-gradient(90deg,var(--teal),#2e7d32);color:#fff;overflow:hidden;box-shadow:0 -2px 12px rgba(0,0,0,0.15);animation:tickerUp .4s ease both">
+  <span onclick="chiudiMsgGiorno()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:0.6;z-index:2;cursor:pointer;background:rgba(0,0,0,0.15);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">✕</span>
+  <div id="msg-giorno-ticker" style="display:inline-block;white-space:nowrap;font-size:13px;font-weight:700;line-height:38px;padding-left:100%;animation:tickerScroll var(--ticker-dur,16s) linear infinite">
+    <span id="msg-giorno-emoji" style="margin-right:6px">☀️</span>
+    <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-right:8px">📣 Messaggio del giorno</span>
+    <span id="msg-giorno-testo">Buona giornata a tutti!</span>
+    <span id="msg-giorno-firma" style="opacity:0.7;margin-left:10px">— Admin</span>
   </div>
 </div>
 
@@ -6216,12 +6222,6 @@ img:not([loading]) { loading: lazy; }
           <button type="button" class="filter-btn" id="ana-filter-M" onclick="setAnaFilter('M')">MINI GREST</button>
           <button type="button" class="filter-btn" id="ana-filter-NS" onclick="setAnaFilter('NS')" style="border-color:#f57c00;color:#f57c00">⚠️ SENZA SQUADRA</button>
         </div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">SQUADRA</div>
-        <select class="form-control" id="ana-filter-squadra" onchange="renderAnagrafica()" style="padding:7px 12px;min-width:160px;">
-          <option value="">Tutte</option>
-        </select>
       </div>
       <div>
         <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">ORDINA PER</div>
@@ -8019,7 +8019,7 @@ img:not([loading]) { loading: lazy; }
       <span style="font-size:22px">✅</span>
       <div>
         <div style="font-weight:800;color:#2e7d32;font-size:14px">Connesso a Supabase</div>
-        <div style="font-size:12px;color:#388e3c">uyvbzbsbsrjycfxvgatr.supabase.co</div>
+        <div style="font-size:12px;color:#388e3c">api.gestionale-grest.uk (NAS)</div>
       </div>
     </div>
   </div>
@@ -8088,10 +8088,10 @@ img:not([loading]) { loading: lazy; }
         Per il tuo uso (pochi dispositivi, sync ogni 30s, ~pochi KB per chiamata) sei ben al di sotto dei limiti free.
       </div>
 
-      <!-- Link dashboard Supabase -->
-      <a href="https://supabase.com/dashboard/project/uyvbzbsbsrjycfxvgatr/reports" target="_blank"
+      <!-- Link dashboard NAS -->
+      <a href="https://api.gestionale-grest.uk/api/health" target="_blank"
          style="display:flex;align-items:center;justify-content:center;gap:9px;margin-top:12px;padding:11px;background:var(--teal);color:#fff;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">
-        🔗 Vedi statistiche reali su Supabase Dashboard
+        🔗 Verifica stato NAS Backend
       </a>
     </div>
     <button type="button" onclick="aggiornaConsumiSupabase()" style="margin-top:10px;width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">🔄 Aggiorna</button>
@@ -8527,7 +8527,7 @@ img:not([loading]) { loading: lazy; }
 // ═══════════════════════════════════════════════
 // STATO GLOBALE
 // ═══════════════════════════════════════════════
-const APP = {
+const _APP_RAW = {
   currentDb: null,
   databases: {},
   utenti: [], // ← utenti GLOBALI, condivisi tra tutti i database
@@ -8538,6 +8538,16 @@ const APP = {
   mensaTab: 'settimanale',
   debounceTimers: {} // Per debounce ricerche
 };
+const APP = new Proxy(_APP_RAW, {
+  set(target, prop, value) {
+    if (prop === 'currentDb' && value !== target.currentDb) {
+      const stack = new Error().stack.split('\n').slice(1,5).join(' | ');
+      console.warn(`🔀 APP.currentDb: "${target.currentDb}" → "${value}" | ${stack}`);
+    }
+    target[prop] = value;
+    return true;
+  }
+});
 const TAGLIE = ['3-4 Anni','5-6 Anni','7-8 Anni','9-11 Anni','12-14 Anni','S','M','L','XL'];
 const FASCE_MINI = ['3-4 Anni','5-6 Anni','7-8 Anni'];
 const COLORI_SQ = ['#e53935','#1e88e5','#43a047','#fb8c00','#8e24aa','#00acc1','#f4511e','#5e35b1','#00897b','#6d4c41'];
@@ -8679,26 +8689,53 @@ function loadStorage(){
     const _t=localStorage.getItem('grest-theme');
     const _u=localStorage.getItem('grest_ultimo_db');
     const _sess=localStorage.getItem('grest_session_user');
+    const _rem=localStorage.getItem('grest_remember');
     try{localStorage.clear();}catch(e){}
     if(_t)try{localStorage.setItem('grest-theme',_t);}catch(e){}
     if(_u)try{localStorage.setItem('grest_ultimo_db',_u);}catch(e){}
     if(_sess)try{localStorage.setItem('grest_session_user',_sess);}catch(e){}
+    if(_rem)try{localStorage.setItem('grest_remember',_rem);}catch(e){}
     APP.databases=p.databases||{};
     APP.currentDb=p.currentDb||null;
     APP.utenti=p.utenti||[];
-    try{localStorage.setItem('grest_v2',JSON.stringify(p));}catch(e){}
+    // grest_ultimo_db ha sempre la precedenza anche su PRELOAD
+    const _ultimoDbPreload=localStorage.getItem('grest_ultimo_db');
+    if(_ultimoDbPreload && APP.databases[_ultimoDbPreload]){
+      APP.currentDb=_ultimoDbPreload;
+    }
+    // Non salva il database in localStorage (troppo grande) - usa solo Supabase
     _ultimaModificaLocale=Date.now();
     try{localStorage.setItem('grest_local_ts',_ultimaModificaLocale);}catch(e){}
     return;
   }
   try{
-    const r=localStorage.getItem('grest_v2');
-    if(r){const d=JSON.parse(r);APP.databases=d.databases||{};APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
-    // grest_ultimo_db ha sempre la precedenza — è l'ultimo db usato su questo dispositivo
+    // Leggi solo metadati leggeri
+    const r=localStorage.getItem('grest_meta') || localStorage.getItem('grest_v2');
+    if(r){const d=JSON.parse(r);APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
+    // grest_ultimo_db ha sempre la precedenza
     const ultimoDb=localStorage.getItem('grest_ultimo_db');
     if(ultimoDb){
       APP.currentDb=ultimoDb;
-      if(!APP.databases[ultimoDb]) APP.databases[ultimoDb]=defaultDb();
+    }
+    // ── FALLBACK LOCALE: carica database salvati localmente ──
+    // Così l'app funziona anche senza Supabase / prima che Supabase risponda
+    const dbNames=localStorage.getItem('grest_db_names');
+    if(dbNames){
+      const nomi=JSON.parse(dbNames);
+      for(const nome of nomi){
+        try{
+          const raw=localStorage.getItem('grest_db_'+nome);
+          if(raw && !APP.databases[nome]){
+            APP.databases[nome]=JSON.parse(raw);
+            console.log('📦 [loadStorage] DB caricato da localStorage:', nome);
+          }
+        }catch(e2){console.warn('loadStorage db err:',nome,e2);}
+      }
+    }
+    if(APP.currentDb && !APP.databases[APP.currentDb]) {
+      // Non creare un db vuoto — il sync lo caricherà dal cloud
+      // (creare un db vuoto causava sovrascrittura dei dati reali)
+      console.warn('⚠️ loadStorage: currentDb non trovato in databases, attendo sync:', APP.currentDb);
     }
   }catch(e){APP.databases={};APP.currentDb=null;APP.utenti=[];}
 }
@@ -8763,40 +8800,37 @@ function nascondiUndoButton() {
 }
 
 function saveStorage(immediate){
-  // Calcola hash leggero per evitare write inutili
-  const db=getDb();
-  const imp = db?.impostazioni||{};
-  const quickHash = db ? JSON.stringify({
-    i:db.iscritti?.length||0, sp:db.spese?.length||0, a:db.animatori?.length||0,
-    sq:db.squadre?.length||0, p:db.presenze?Object.keys(db.presenze).length:0,
-    ng:imp.nomeGrest||'', an:imp.anno||'', or:imp.oratorio||'',
-    ns:imp.numSettimane||0, p13:imp.prezzoBase13||0, p16:imp.prezzoBase16||0,
-    di:imp.dataInizio||'', df:imp.dataFine||'', qt:imp.quotaTotale||0,
-    ds:db.diarioSquadre?.length||0, sg:db.segnalazioni?.length||0, gt:db.gite?.length||0,
-    sqj:JSON.stringify(db.squadre||[]).length, pgj:JSON.stringify(db.pagamenti||{}).length,
-    pn:JSON.stringify(db.pianificatore||{}).length, mn:JSON.stringify(db.mensa||{}).length,
-    cal:JSON.stringify(db.calFonti||{}).length  // ← calendario incluso nell'hash
-  }) : 'empty';
-
+  const salvaLeggero = () => {
+    try{
+      localStorage.setItem('grest_meta',JSON.stringify({currentDb:APP.currentDb,utenti:APP.utenti}));
+      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
+    }catch(e){console.warn('saveStorage meta error:',e);}
+    // Salva anche i database localmente come fallback offline
+    try{
+      const dbKeys=Object.keys(APP.databases||{});
+      for(const nome of dbKeys){
+        try{
+          const payload=JSON.stringify(APP.databases[nome]);
+          // Salva solo se < 4MB (limite sicuro localStorage)
+          if(payload.length < 4*1024*1024){
+            localStorage.setItem('grest_db_'+nome, payload);
+          }
+        }catch(e2){/* db troppo grande, salta */}
+      }
+      // Salva lista nomi db
+      localStorage.setItem('grest_db_names', JSON.stringify(dbKeys));
+    }catch(e){console.warn('saveStorage dbs error:',e);}
+  };
   if(immediate){
     clearTimeout(_saveTimer);_saveTimer=null;
-    if(quickHash===_lastSavedHash && !immediate) return; // nulla è cambiato
-    try{
-      localStorage.setItem('grest_v2',JSON.stringify({databases:APP.databases,currentDb:APP.currentDb,utenti:APP.utenti}));
-      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
-      _lastSavedHash=quickHash;
-    }catch(e){console.warn('saveStorage error:',e);}
+    salvaLeggero();
     return;
   }
-  if(_saveTimer)return; // già schedulato
+  if(_saveTimer)return;
   _saveTimer=setTimeout(()=>{
     _saveTimer=null;
-    try{
-      localStorage.setItem('grest_v2',JSON.stringify({databases:APP.databases,currentDb:APP.currentDb,utenti:APP.utenti}));
-      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
-      _lastSavedHash=quickHash;
-    }catch(e){console.warn('saveStorage error:',e);}
-  },300); // aumentato da 150ms a 300ms per raggruppare più modifiche
+    salvaLeggero();
+  },300);
 }
 function getDb(){if(!APP.currentDb||!APP.databases[APP.currentDb])return null;return APP.databases[APP.currentDb];}
 
@@ -9041,7 +9075,7 @@ function showViewSkeleton(viewEl){
 function renderDbPage(){
   const sel=document.getElementById('db-select-existing');
   sel.innerHTML='<option value="">— Seleziona —</option>';
-  Object.keys(APP.databases).forEach(k=>{
+  Object.keys(APP.databases).filter(k=>!k.startsWith('xp-')&&!k.startsWith('XP-')).forEach(k=>{
     const o=document.createElement('option');
     o.value=k;o.textContent=k;
     if(k===APP.currentDb)o.selected=true;
@@ -9052,6 +9086,12 @@ function openExistingDb(){
   const n=document.getElementById('db-select-existing').value;
   if(!n){showToast('Seleziona un database!','error');return;}
   APP.currentDb=n;saveStorage(true);
+  // 🔒 Aggiorna sessione con il nuovo db selezionato
+  try {
+    const _s = localStorage.getItem('grest_session_user');
+    if(_s){ const _sj=JSON.parse(_s); _sj.dbKey=n; localStorage.setItem('grest_session_user',JSON.stringify(_sj)); }
+    localStorage.setItem('grest_ultimo_db', n);
+  } catch(e){}
   updateHeader();showToast('✅ Database "'+n+'" aperto','success');navigate('dashboard');
 }
 // Lista nera db eliminati — impedisce al sync di ripristinarli
@@ -9070,7 +9110,7 @@ function deleteSelectedDb(){
 
       // 1. Elimina dal cloud PRIMA
       try {
-        await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.'+dbKey, { method:'DELETE', headers:sbHeaders() });
+        await fetch(`${NAS_URL}/api/db/${encodeURIComponent(dbKey)}`, { method:'DELETE', headers:{'Content-Type':'application/json'} });
       } catch(e) { console.warn('Cloud delete error:', e); }
 
       // 2. Poi elimina in locale
@@ -10385,8 +10425,6 @@ function setAnaFilter(f){
     const btn=document.getElementById('ana-filter-'+x);
     if(btn)btn.classList.toggle('active',x===f);
   });
-  const sqSelReset=document.getElementById('ana-filter-squadra');
-  if(sqSelReset) sqSelReset.value='';
   renderAnagrafica();
 }
 function renderAnagrafica(){
@@ -10395,23 +10433,14 @@ function renderAnagrafica(){
   if(APP.anaFilter==='G')isc=isc.filter(i=>i.tipo==='Grest');
   if(APP.anaFilter==='M')isc=isc.filter(i=>i.tipo==='MiniGrest');
   if(APP.anaFilter==='NS')isc=isc.filter(i=>!i.squadraId);
-  // Popola e applica filtro squadra
-  const sqSel=document.getElementById('ana-filter-squadra');
-  if(sqSel && db){
-    const tipoFiltro=APP.anaFilter==='G'?'Grest':APP.anaFilter==='M'?'MiniGrest':null;
-    const sqList=tipoFiltro?db.squadre.filter(s=>s.tipo===tipoFiltro):[...db.squadre];
-    const valCorrente=sqSel.value;
-    sqSel.innerHTML='<option value="">Tutte</option>'+
-      sqList.map(s=>`<option value="${s.id}" ${s.id===valCorrente?'selected':''}>${s.nome.toUpperCase()}</option>`).join('');
-  }
-  const sqFiltro=sqSel?.value||'';
-  if(sqFiltro) isc=isc.filter(i=>i.squadraId===sqFiltro);
   const q=(document.getElementById('ana-search')?.value||'').toLowerCase();
   if(q)isc=isc.filter(i=>(i.nome+' '+i.cognome+' '+(i.tipo||'')+' '+getSquadraNome(i.squadraId||'')).toLowerCase().includes(q));
   const sort=document.getElementById('ana-sort')?.value||'A';
   if(sort==='A')isc.sort((a,b)=>((a.cognome||'')+(a.nome||'')).localeCompare((b.cognome||'')+(b.nome||'')));
   else if(sort==='eta')isc.sort((a,b)=>(parseInt(a.eta)||0)-(parseInt(b.eta)||0));
   else if(sort==='squadra')isc.sort((a,b)=>getSquadraNome(a.squadraId||'').localeCompare(getSquadraNome(b.squadraId||'')));
+
+  // Aggiorna contatore risultati
   const contEl=document.getElementById('ana-result-count');
   if(contEl){
     const totDb=db?db.iscritti.length:0;
@@ -10450,7 +10479,7 @@ function renderAnagrafica(){
       const _mSemEmoji=_mStatoPag==='pagato'?'🟢':_mStatoPag==='acconto'?'🟡':'🔴';
       const _mSemLabel=_mStatoPag==='pagato'?'Pagato':_mStatoPag==='acconto'?'Acconto':'Non pagato';
       const mobileSemaforoHtml='<span title="'+_mSemLabel+'" style="font-size:12px">'+_mSemEmoji+' '+_mSemLabel+'</span>';
-      const tipoLabel=i.tipo==='MiniGrest'?'MINI':'GREST';
+      const tipoLabel=i.tipo==='MiniGrest'?'Mini':'Grest';
       const tipoColor=i.tipo==='MiniGrest'?'var(--orange)':'var(--teal)';
       const nSegn=contaSegnalazioni(i.id);
       const batchCb=_batchMode?`<input type="checkbox" class="batch-cb" ${_batchSelected.has(i.id)?'checked':''} onclick="event.stopPropagation();toggleBatchItem('${i.id}',this.checked)" style="margin-right:6px">`:'';
@@ -10470,14 +10499,14 @@ function renderAnagrafica(){
           ${batchCb}
           <img src="${avSrc}" class="ana-card-avatar" style="border-color:${sqCol}">
           <div class="ana-card-info">
-            <div class="ana-card-name">${highlightText((i.cognome||'').toUpperCase(),q)} <span style="font-weight:700">${highlightText((i.nome||'').toUpperCase(),q)}</span></div>
-            ${i.eta?`<div class="ana-card-meta">🎂 ${(i.eta+'').toUpperCase()}</div>`:''}
+            <div class="ana-card-name">${highlightText(i.cognome,q)} <span style="font-weight:700">${highlightText(i.nome,q)}</span></div>
+            ${i.eta?`<div class="ana-card-meta">🎂 ${i.eta} anni</div>`:''}
             ${i.orario?`<div class="ana-card-meta">🕐 ${i.orario}</div>`:''}
             ${i.taglia?`<div class="ana-card-meta">👕 ${i.taglia}</div>`:''}
           </div>
           <div class="ana-card-badges">
             <span class="badge" style="background:${tipoColor};color:#fff;font-size:10px">${tipoLabel}</span>
-            ${sqNome?`<span class="ana-card-squadra" style="background:${sqCol}">${sqNome.toUpperCase()}</span>`:''}
+            ${sqNome?`<span class="ana-card-squadra" style="background:${sqCol}">${sqNome}</span>`:''}
             ${magliaIcon}
             <span style="font-size:11px">${mobileSemaforoHtml}</span>
           </div>
@@ -10521,12 +10550,12 @@ function renderAnagrafica(){
       const tr=document.createElement('tr');
       tr.innerHTML=`${batchCb?'<td>'+batchCb+'</td>':''}<td style="font-weight:700">${idx+1}</td>
         <td>${fotoHtml}</td>
-        <td><b>${highlightText((i.cognome||'').toUpperCase(),q)}</b></td><td>${highlightText((i.nome||'').toUpperCase(),q)}</td><td>${i.eta?(i.eta+'').toUpperCase():'–'}</td>
+        <td><b>${highlightText(i.cognome,q)}</b></td><td>${highlightText(i.nome,q)}</td><td>${i.eta||'–'}</td>
         <td>${i.orario||'–'}</td>
         <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(i.preferenze||'')}">${escapeHtml(i.preferenze||'–')}</td>
         <td>${i.taglia||'–'}</td>
-        <td><span class="badge badge-teal">${i.tipo==='MiniGrest'?'MINI':'GREST'}</span></td>
-        <td>${sqNome?`<span style="background:${sqCol};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:800">${sqNome.toUpperCase()}</span>`:'–'}</td>
+        <td><span class="badge badge-teal">${i.tipo==='MiniGrest'?'Mini':'Grest'}</span></td>
+        <td>${sqNome?`<span style="background:${sqCol};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:800">${sqNome}</span>`:'–'}</td>
         <td>${maglieHtml}</td>
         <td style="text-align:center">${semaforoHtml}</td>
         <td style="white-space:nowrap">${azioniHtml}</td>`;
@@ -12462,7 +12491,7 @@ function renderMaglie(){
     const sqList=db.squadre.filter(s=>s.tipo===tipo);
     const stock=db.maglieStock.Grest||{};
     const riordino=db.maglieRiordino.Grest||{};
-    const buildHeader=()=>`<tr><th>TAGLIA</th>${sqList.map(sq=>`<th style="color:${sq.colore}">${sq.nome.toUpperCase()}</th>`).join('')}</tr>`;
+    const buildHeader=()=>`<tr><th>TAGLIA</th>${sqList.map(sq=>`<th style="color:${sq.colore}">${sq.nome}</th>`).join('')}</tr>`;
     
     // Stock iniziale
     const tStock=document.getElementById('table-stock');
@@ -12647,7 +12676,7 @@ function initConsegnaMaglie(){
   const sqSel=document.getElementById('consegna-squadra');
   const sqList=db.squadre.filter(s=>s.tipo===tipo);
   sqSel.innerHTML='<option value="">Tutte le squadre</option>'+
-    sqList.map(sq=>`<option value="${sq.id}">${sq.nome.toUpperCase()}</option>`).join('');
+    sqList.map(sq=>`<option value="${sq.id}">${sq.nome}</option>`).join('');
 }
 function renderConsegnaMaglie(){
   const db=getDb();if(!db)return;
@@ -12674,7 +12703,7 @@ function renderConsegnaMaglie(){
   const tbody=document.getElementById('table-consegna');
   tbody.innerHTML=`<thead><tr><th>N°</th><th>BAMBINO</th><th>SQUADRA</th><th>TAGLIA</th><th>MAGLIA 1</th><th>MAGLIA 2</th></tr></thead><tbody>`+
     iscritti.map((i,idx)=>{
-      const sqNome=(getSquadraNome(i.squadraId)||'–').toUpperCase();
+      const sqNome=getSquadraNome(i.squadraId)||'–';
       return `<tr>
         <td style="font-weight:700">${idx+1}</td>
         <td style="font-weight:700">${escapeHtml(i.cognome)} ${escapeHtml(i.nome)}</td>
@@ -15079,18 +15108,20 @@ function updateLogoLogin(){
   const db = getDb();
   // Prima cerca nel database (sincronizzato), poi localStorage come fallback
   const logoBase64 = db?.impostazioni?.logoGestionale || localStorage.getItem('grest_logo_gestionale');
-  // Aggiorna anche localStorage se il db ha il logo (sincronizza al device corrente)
+  // Aggiorna anche localStorage se il db ha il logo (persiste tra sessioni)
   if(db?.impostazioni?.logoGestionale){
-    localStorage.setItem('grest_logo_gestionale', db.impostazioni.logoGestionale);
+    try{ localStorage.setItem('grest_logo_gestionale', db.impostazioni.logoGestionale); }catch(e){}
   }
-  const loginLogo=document.querySelector('#login-avatar img');
-  if(loginLogo){
+  // Aggiorna cerchio logo gestionale (sempre visibile se logo presente)
+  const loginLogoImg = document.getElementById('login-logo-gestionale-img');
+  const loginLogoWrap = document.getElementById('login-avatar');
+  if(loginLogoImg && loginLogoWrap){
     if(logoBase64){
-      loginLogo.src = logoBase64;
-      loginLogo.style.display = 'block';
+      loginLogoImg.src = logoBase64;
+      loginLogoImg.style.display = 'block';
+      loginLogoWrap.style.display = 'flex';
     } else {
-      loginLogo.src = '';
-      loginLogo.style.display = 'none';
+      loginLogoImg.style.display = 'none';
     }
   }
   const splashLogo = document.getElementById('splash-logo');
@@ -15638,11 +15669,12 @@ async function eseguiBackupLocalePC(tipo='automatico'){
     const dataOra = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
     const nomeFile = `GREST_Backup_${dataOra}.json`;
     const backup = {
-      versione:'1.0',
+      versione:'2.0',
       dataExport: now.toISOString(),
       tipo: tipo,
       nomeGrest: db.impostazioni?.nomeGrest||'GREST',
       anno: db.impostazioni?.anno||now.getFullYear(),
+      utenti: APP.utenti || [],
       database: db
     };
     const json = JSON.stringify(backup, null, 2);
@@ -15685,10 +15717,11 @@ function esportaBackup(){
   if(!db){showToast('❌ Nessun dato da esportare','error');return;}
   
   const backup={
-    versione:'1.0',
+    versione:'2.0',
     dataExport:new Date().toISOString(),
     nomeGrest:db.impostazioni?.nomeGrest||'GREST',
     anno:db.impostazioni?.anno||new Date().getFullYear(),
+    utenti: APP.utenti || [],
     database:db
   };
   
@@ -15722,12 +15755,29 @@ function handleImportBackup(event){
           showToast('❌ File backup non valido','error');
           return;
         }
-        const dbName = APP.currentDb || Object.keys(APP.databases)[0] || 'default';
+        const dbName = backup.nomeGrest ? (backup.nomeGrest + ' ' + backup.anno) : (APP.currentDb || Object.keys(APP.databases)[0] || 'default');
         APP.databases[dbName] = backup.database;
         APP.currentDb = dbName;
+        // Ripristina utenti se presenti nel backup (versione 2.0+)
+        if (backup.utenti && backup.utenti.length > 0) {
+          APP.utenti = backup.utenti;
+          console.log('👥 Utenti ripristinati dal backup:', APP.utenti.length);
+        }
+        // Segna che abbiamo modifiche offline così locale vince sul cloud
+        localStorage.setItem('grest_offline_edits', 'true');
         saveStorage(true);
-        showToast('✅ Backup ripristinato! Ricarico pagina...','success');
-        setTimeout(()=>location.reload(),1500);
+        showToast('✅ Backup ripristinato! Carico su cloud...','success');
+        // Upload immediato forzato prima del reload
+        _forceNextUpload = true;
+        Promise.all([
+          _uploadSingoloDb(dbName, backup.database),
+          (backup.utenti && backup.utenti.length > 0) ? uploadUtentiCloud() : Promise.resolve()
+        ]).then(()=>{
+          showToast('☁️ Dati sincronizzati sul cloud!','success');
+          setTimeout(()=>location.reload(),1500);
+        }).catch(()=>{
+          setTimeout(()=>location.reload(),1500);
+        });
       }catch(err){
         console.error(err);
         showToast('❌ Errore lettura backup','error');
@@ -16401,7 +16451,10 @@ function splashInit(){
   // Se c'è un solo db disponibile, selezionalo automaticamente e vai al login
   const dbKeys = Object.keys(APP.databases||{});
   if(dbKeys.length === 1){
-    APP.currentDb = dbKeys[0];
+    // 🔒 FIX: usa sempre il db con anno più alto (es. 2026 > 2025)
+    const _piuRecente = dbPiuRecente();
+    APP.currentDb = _piuRecente || dbKeys[0];
+    localStorage.setItem('grest_ultimo_db', APP.currentDb);
     saveStorage();
     splash.style.display='none';
     const ls=document.getElementById('login-screen');
@@ -16433,7 +16486,7 @@ function splashMostraLista(){
   const list=document.getElementById('splash-db-list');
   const sel=document.getElementById('splash-db-select');
   if(!list||!sel)return;
-  sel.innerHTML=Object.keys(APP.databases).map(k=>`<option value="${k}">${k}</option>`).join('');
+  sel.innerHTML=Object.keys(APP.databases).filter(k=>!k.startsWith('xp-')&&!k.startsWith('XP-')).map(k=>`<option value="${k}">${k}</option>`).join('');
   if(!sel.innerHTML){ showAlertModal('Nessun database trovato. Creane uno nuovo!','📭'); return; }
   list.style.display='block';
 }
@@ -18943,20 +18996,21 @@ function caricaCredenziali(){
 function initRememberMe(){
   const saved = caricaCredenziali();
   if(!saved) return;
-  // Mostra banner accesso rapido
-  const hint = document.getElementById('login-autofill-hint');
-  const hintName = document.getElementById('login-autofill-name');
-  if(hint && hintName){
-    hintName.textContent = saved.nome || saved.username;
-    hint.style.display = 'block';
-  }
-  // Pre-compila i campi
+  // Pre-compila i campi (NO auto-login, aspetta il click su Accedi)
   const uEl = document.getElementById('login-username');
   const pEl = document.getElementById('login-password');
   const rEl = document.getElementById('login-remember');
   if(uEl) uEl.value = saved.username;
   if(pEl) pEl.value = saved.password;
   if(rEl) rEl.checked = true;
+  // Mostra nome utente sopra il titolo
+  const nomeEl = document.getElementById('login-nome-utente');
+  if(nomeEl){
+    nomeEl.textContent = (saved.nome || saved.username || '').toUpperCase();
+    nomeEl.style.display = 'block';
+  }
+  // Mostra foto avatar se disponibile
+  aggiornFotoLogin(saved.username);
 }
 function loginAutofill(){
   // Click sul banner → accede direttamente con le credenziali salvate
@@ -19029,7 +19083,7 @@ async function loginSubmit(){
   }
 
   // 3. Se non trovato localmente → scarica dal cloud
-  if(!trovato && _jbApiKey && _jbBinId){
+  if(!trovato){
     err.textContent = '🔄 Connessione al server...';
     err.style.display = 'block';
     err.style.color = 'var(--teal)';
@@ -19047,7 +19101,7 @@ async function loginSubmit(){
       if(records && records.length > 0){
         for(const record of records){
           if(!record.data || !record.data.db) continue;
-          const nomeDb = record.data.dbName || record.id;
+          const nomeDb = record.data.dbName && !/^[a-z0-9-]+$/.test(record.data.dbName) ? record.data.dbName : (record.data.dbName || record.id);
           if(!APP.databases[nomeDb]) APP.databases[nomeDb] = record.data.db;
         }
       }
@@ -19114,12 +19168,6 @@ async function loginSubmit(){
     cancellaCredenziali();
   }
 
-  // ── Ripristina il db dell'utente (salvato al suo ultimo logout) ──
-  const _dbSalvatoUtente = localStorage.getItem('grest_db_utente_' + trovato.utente.username);
-  if(_dbSalvatoUtente && APP.databases[_dbSalvatoUtente]){
-    trovato.dbKey = _dbSalvatoUtente;
-  }
-
   if(trovato.dbKey && trovato.dbKey !== APP.currentDb){
     APP.currentDb = trovato.dbKey; saveStorage(true);
   }
@@ -19127,6 +19175,7 @@ async function loginSubmit(){
   AUTH.currentUser = trovato.utente;
   // ── Sessione persistente: salva utente corrente ──
   try { localStorage.setItem('grest_session_user', JSON.stringify({ id: trovato.utente.id, username: trovato.utente.username, dbKey: APP.currentDb })); } catch(e){}
+  try { if(APP.currentDb) localStorage.setItem('grest_ultimo_db', APP.currentDb); } catch(e){}
   registraAccesso(username, 'OK', `Login come ${trovato.utente.nome} (${trovato.utente.ruolo})`);
   onlineStart(); // avvia heartbeat presenza utente
   
@@ -19192,10 +19241,6 @@ function logout(){
   onlineLogout(); // rimuovi dalla lista utenti connessi
   // ── Rimuovi sessione persistente ──
   try { localStorage.removeItem('grest_session_user'); } catch(e){}
-  // ── Memorizza il db corrente per questo utente ──
-  if(AUTH.currentUser?.username && APP.currentDb){
-    try { localStorage.setItem('grest_db_utente_' + AUTH.currentUser.username, APP.currentDb); } catch(e){}
-  }
   AUTH.currentUser = null;
   _permessiApplicati = null; // reset cache permessi
   rimuoviRestrizioniAnimatore();
@@ -19535,11 +19580,21 @@ const GAMIFY = {
   ],
 
   // ── Stato utente ──
-  _getKey(){ return 'grest_xp_' + (AUTH.currentUser?.id || 'anon'); },
+  _getKey(){ return 'grest_xp_' + (AUTH.currentUser?.username || AUTH.currentUser?.id || 'anon'); },
+  _getOldKey(){ return 'grest_xp_' + (AUTH.currentUser?.id || 'anon'); },
 
   getStats(){
     try {
-      const raw = localStorage.getItem(this._getKey());
+      const key = this._getKey();
+      let raw = localStorage.getItem(key);
+      // Migrazione: se non trovato con username, cerca con vecchio id
+      if(!raw){
+        const oldKey = this._getOldKey();
+        if(oldKey !== key){
+          const oldRaw = localStorage.getItem(oldKey);
+          if(oldRaw){ localStorage.setItem(key, oldRaw); localStorage.removeItem(oldKey); raw = oldRaw; }
+        }
+      }
       return raw ? JSON.parse(raw) : { xp:0, level:1, logins:0, streak:0, lastLogin:'', presenze:0, diario:0, checklist:0, iscritti:0, animatori:0, badges:[], dailyXp:{} };
     } catch(e){ return { xp:0, level:1, logins:0, streak:0, lastLogin:'', presenze:0, diario:0, checklist:0, iscritti:0, animatori:0, badges:[], dailyXp:{} }; }
   },
@@ -19824,21 +19879,8 @@ function inviaNotificaMsgGiorno(msg){
 
 // ── Mostra notifica ricevuta in tempo reale ──
 function mostraNotificaMsgGiorno(m){
-  // Non mostrare se l'abbiamo inviato noi stessi (siamo admin)
-  const utente = typeof _currentUser !== 'undefined' ? _currentUser : null;
-  // Crea notifica stile toast ma più grande
-  const overlay = document.createElement('div');
-  overlay.id = 'notifica-msg-giorno';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease';
-  overlay.innerHTML = `
-    <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:400px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);animation:fadeInUp .4s ease">
-      <div style="font-size:52px;margin-bottom:10px">${m.emoji||'📢'}</div>
-      <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📣 Messaggio dagli organizzatori</div>
-      <div style="font-size:19px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:10px">${m.testo}</div>
-      ${m.firma?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${m.firma}</div>`:'<div style="margin-bottom:20px"></div>'}
-      <button onclick="document.getElementById('notifica-msg-giorno').remove()" style="width:100%;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">✅ Ho letto!</button>
-    </div>`;
-  document.body.appendChild(overlay);
+  // Riusa lo stesso ticker del messaggio del giorno
+  mostraMsgGiornoModal(m.emoji, m.testo, m.firma);
   // Suono notifica se disponibile
   if(typeof SFX !== 'undefined' && SFX.notifica) try { SFX.notifica(); } catch(e){}
 }
@@ -19884,13 +19926,28 @@ function anteprimaMsgGiorno(){
 function mostraMsgGiornoModal(emoji,testo,firma){
   document.getElementById('msg-giorno-emoji').textContent=emoji||'☀️';
   document.getElementById('msg-giorno-testo').textContent=testo;
-  document.getElementById('msg-giorno-firma').textContent=firma||'';
+  document.getElementById('msg-giorno-firma').textContent=firma?firma:'';
   const m=document.getElementById('modal-msg-giorno');
-  m.style.display='flex';
+  // Calcola durata scroll in base alla lunghezza testo
+  const len=(testo||'').length+(firma||'').length;
+  const dur=Math.max(12, len*0.2);
+  m.style.setProperty('--ticker-dur', dur+'s');
+  m.style.display='block';
+  m.style.animation='tickerUp .4s ease both';
+  // Duplica testo per loop continuo
+  const ticker=document.getElementById('msg-giorno-ticker');
+  const base=ticker.innerHTML;
+  // Aggiungi separatore e replica per scroll continuo
+  if(!ticker.dataset.duplicated){
+    ticker.innerHTML=base+'  &nbsp; ❄️ &nbsp;  '+base+'  &nbsp; ❄️ &nbsp;  '+base;
+    ticker.dataset.duplicated='1';
+  }
 }
 
 function chiudiMsgGiorno(){
-  document.getElementById('modal-msg-giorno').style.display='none';
+  const m=document.getElementById('modal-msg-giorno');
+  m.style.animation='tickerDown .4s ease forwards';
+  setTimeout(()=>{ m.style.display='none'; },400);
   localStorage.setItem('grest_msg_giorno_visto', new Date().toISOString().slice(0,10));
 }
 
@@ -20188,7 +20245,7 @@ async function sincronizzaXpCloud() {
     const s = GAMIFY.getStats();
     const lvl = GAMIFY.calcLevel(s.xp);
     const payload = {
-      id: 'xp-' + AUTH.currentUser.id,
+      id: 'xp-' + AUTH.currentUser.username,
       data: {
         userId: AUTH.currentUser.id,
         username: AUTH.currentUser.username,
@@ -20200,102 +20257,55 @@ async function sincronizzaXpCloud() {
         levelTitle: lvl.title,
         levelEmoji: lvl.emoji,
         streak: s.streak,
-        badges: s.badges || [],
+        badgeCount: (GAMIFY.getBadges?.() || []).length,
         aggiornato: new Date().toISOString()
-      },
-      updated_at: new Date().toISOString()
+      }
     };
-    await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
+    await fetch(`${NAS_URL}/api/db/${encodeURIComponent('xp-' + AUTH.currentUser.username)}`, {
       method: 'POST',
-      headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
   } catch(e) { console.warn('XP sync error:', e); }
 }
 
+async function aggiornaFotoXpCloud(foto, nome) {
+  if (!_jbSyncEnabled || !AUTH.currentUser) return;
+  try {
+    const key = 'xp-' + AUTH.currentUser.username;
+    const resGet = await fetch(`${NAS_URL}/api/db/${encodeURIComponent(key)}`, { headers: { 'Content-Type': 'application/json' } });
+    const existing = resGet.ok ? (await resGet.json())?.data || {} : {};
+    await fetch(`${NAS_URL}/api/db/${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: key, data: { ...existing, fotoUrl: foto, nome: nome, aggiornato: new Date().toISOString() } })
+    });
+  } catch(e) { console.warn('Aggiorna foto XP error:', e); }
+}
+
 let _lastMyPosition = null; // posizione precedente in classifica
 
 async function aggiornaLeaderboard() {
-  const el = document.getElementById('leaderboard-list');
-  if (!el) return;
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=like.xp-*&select=data&order=data->xp.desc`, {
-      headers: sbHeaders()
-    });
-    if (!res.ok) throw new Error('Fetch error');
-    const rows = await res.json();
-    if (!rows || rows.length === 0) {
-      el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Nessun dato ancora</div>';
-      return;
-    }
+    const res = await fetch(`${NAS_URL}/api/db`, { headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) return;
+    const records = await res.json();
+    if (!records) return;
+    const xpRecords = records.filter(r => r.id && r.id.startsWith('xp-'));
+    const leaderboard = xpRecords
+      .map(r => r.data)
+      .filter(Boolean)
+      .sort((a, b) => (b.xp || 0) - (a.xp || 0));
+    renderLeaderboard(leaderboard);
 
-    const myId = AUTH.currentUser?.id;
-    const medaglie = ['🥇','🥈','🥉'];
-
-    // Recupera utenti online per pallino verde
-    let onlineUsernames = new Set();
+    // Utenti online (dal NAS)
     try {
-      const resOnline = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ONLINE_ID}&select=data`, { headers: sbHeaders() });
-      const onlineJson = await resOnline.json();
-      const onlineUsers = onlineJson?.[0]?.data?.onlineUsers || {};
-      const now = Date.now();
-      Object.values(onlineUsers).forEach(u => {
-        if (now - u.ts < 120000) onlineUsernames.add(u.username);
-      });
+      const resOnline = await fetch(`${NAS_URL}/api/online`, { headers: { 'Content-Type': 'application/json' } });
+      const onlineData = resOnline.ok ? await resOnline.json() : {};
+      const onlineJs = Object.values(onlineData || {});
+      renderOnlineUsers(onlineJs);
     } catch(e) {}
-
-    // Controlla se qualcuno ci ha superato
-    const myPos = rows.findIndex(r => r.data?.userId === myId);
-    if (_lastMyPosition !== null && myPos > _lastMyPosition && myPos > 0) {
-      const sorpassatoDa = rows[myPos - 1]?.data;
-      if (sorpassatoDa) {
-        showToast(`😱 ${sorpassatoDa.nome || sorpassatoDa.username} ti ha superato in classifica!`, 'warning');
-      }
-    }
-    if (myPos >= 0) _lastMyPosition = myPos;
-
-    el.innerHTML = rows.map((r, i) => {
-      const d = r.data;
-      const isMe = d.userId === myId;
-      const medaglia = medaglie[i] || `<b style="color:var(--text-muted);font-size:12px">${i+1}</b>`;
-      const barPct = rows[0]?.data?.xp > 0 ? Math.round((d.xp / rows[0].data.xp) * 100) : 0;
-      const ultimiBadge = (d.badges||[]).slice(-4).map(b => {
-        const found = GAMIFY.BADGES.find(x=>x.id===b);
-        return found ? found.emoji : '';
-      }).join('');
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:6px;background:${isMe ? 'var(--teal-light)' : 'var(--bg)'};border:${isMe ? '2px solid var(--teal)' : '1px solid var(--border)'}">
-        <div style="font-size:22px;width:28px;text-align:center;flex-shrink:0">${medaglia}</div>
-        <div style="flex-shrink:0">
-          ${d.fotoUrl 
-            ? `<img src="${d.fotoUrl}" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--border);object-fit:cover">`
-            : `<div style="width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff">${(d.nome||d.username||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>`
-          }
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap">
-            ${onlineUsernames.has(d.username) ? '<span style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;flex-shrink:0;box-shadow:0 0 4px #4CAF50" title="Online ora"></span>' : '<span style="width:8px;height:8px;border-radius:50%;background:var(--border);display:inline-block;flex-shrink:0" title="Offline"></span>'}
-            <span style="font-size:13px;font-weight:800;color:var(--text)">${d.nome || d.username}</span>
-            ${isMe ? '<span style="font-size:9px;background:var(--teal);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700">TU</span>' : ''}
-            ${ultimiBadge ? `<span style="font-size:12px">${ultimiBadge}</span>` : ''}
-            <span style="font-size:9px;color:var(--text-muted);margin-left:auto">${d.levelEmoji} ${d.levelTitle} Lv.${d.level}</span>
-          </div>
-          <div style="height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,var(--teal),#66BB6A);border-radius:3px"></div>
-          </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:8px">
-          <div style="font-size:16px;font-weight:900;color:var(--teal)">${d.xp}</div>
-          <div style="font-size:9px;color:var(--text-muted);font-weight:700">XP</div>
-        </div>
-      </div>`;
-    }).join('');
-
-    // Aggiorna anche i miei XP nella leaderboard
-    sincronizzaXpCloud();
-  } catch(e) {
-    console.warn('Leaderboard error:', e);
-    if (el) el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Errore caricamento</div>';
-  }
+  } catch(e) { console.warn('Leaderboard error:', e); }
 }
 
 // ══════════════════════════════════════════════════
@@ -20461,6 +20471,7 @@ function applicaFontSalvato() {
         setTimeout(()=> {
           GAMIFY.trackLogin();
           setTimeout(()=> sincronizzaXpCloud(), 1500);
+          setTimeout(()=> aggiornaFotoXpCloud(), 3000); // Forza aggiornamento foto
           // Aggiorna leaderboard ogni 2 minuti per captare sorpassi
           setInterval(()=> { if(typeof aggiornaLeaderboard==='function') aggiornaLeaderboard(); }, 2 * 60 * 1000);
         }, 800);
@@ -21305,7 +21316,22 @@ window.onload = function(){
 
   // ── Ripristino sessione persistente ──
   function _avviaApp(utente, dbKey){
-    if(dbKey && APP.databases && APP.databases[dbKey]) APP.currentDb = dbKey;
+    // Ripristina ultimo db usato: priorità → grest_ultimo_db → dbKey sessione → primo disponibile
+    // 🔒 PRIORITÀ ASSOLUTA: usa sempre il db con l'anno più alto
+    // (evita che sess.dbKey vecchio sovrascriva il db più recente)
+    const _piuRecenteAvvia = dbPiuRecente();
+    const _ultimoDb = localStorage.getItem('grest_ultimo_db');
+    if (_piuRecenteAvvia) {
+      APP.currentDb = _piuRecenteAvvia;
+      localStorage.setItem('grest_ultimo_db', _piuRecenteAvvia);
+    } else if(_ultimoDb && APP.databases && APP.databases[_ultimoDb]){
+      APP.currentDb = _ultimoDb;
+    } else if(dbKey && APP.databases && APP.databases[dbKey]){
+      APP.currentDb = dbKey;
+    } else if(APP.databases){
+      const trovato = Object.keys(APP.databases).find(k => getDbKey(k) === getDbKey(dbKey||''));
+      if(trovato) APP.currentDb = trovato;
+    }
     AUTH.currentUser = utente;
     // Nascondi splash e login
     const splash = document.getElementById('splash-screen');
@@ -21354,7 +21380,7 @@ window.onload = function(){
     console.log('🔍 SESSION DEBUG: sess=', JSON.stringify(sess), '| utente trovato=', !!utente);
 
     // 2. Se non trovato localmente (utenti solo su cloud), prova a scaricarli
-    if(!utente && _jbApiKey && _jbBinId){
+    if(!utente){
       try {
         console.log('🔄 Sessione: utenti non in locale, provo cloud...');
         const recordUtenti = await scaricaUtentiDaCloud();
@@ -21370,7 +21396,7 @@ window.onload = function(){
           if(records && records.length > 0){
             for(const record of records){
               if(!record.data || !record.data.db) continue;
-              const nomeDb = record.data.dbName || record.id;
+              const nomeDb = record.data.dbName && !/^[a-z0-9-]+$/.test(record.data.dbName) ? record.data.dbName : (record.data.dbName || record.id);
               if(!APP.databases[nomeDb]) APP.databases[nomeDb] = record.data.db;
             }
             saveStorage();
@@ -21556,31 +21582,17 @@ function pwaInstalla(){
 // AVATAR LOGIN INTERATTIVO
 // ═══════════════════════════════════════════════
 function aggiornFotoLogin(username){
-  const u=(APP.utenti||[]).find(u=>u.username===username.trim());
-  const wrap=document.getElementById('login-avatar');
-  if(!wrap) return;
-  let fotoEl=document.getElementById('login-foto-utente');
-  let nomeEl=document.getElementById('login-foto-nome');
+  const u=(APP.utenti||[]).find(u=>u.username===(username||'').trim());
+  // Usa il SECONDO cerchio per l'avatar utente (il primo è riservato al logo gestionale)
+  const avatarWrap = document.getElementById('login-avatar-utente');
+  const avatarImg = document.getElementById('login-foto-utente-img');
+  if(!avatarWrap || !avatarImg) return;
   if(u && u.foto){
-    if(!fotoEl){
-      fotoEl=document.createElement('img');
-      fotoEl.id='login-foto-utente';
-      fotoEl.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;transition:opacity .3s';
-      wrap.style.position='relative';
-      wrap.style.overflow='hidden';
-      wrap.appendChild(fotoEl);
-    }
-    fotoEl.src=u.foto; fotoEl.style.opacity='1';
-    if(!nomeEl){
-      nomeEl=document.createElement('div');
-      nomeEl.id='login-foto-nome';
-      nomeEl.style.cssText='text-align:center;margin-top:8px;font-weight:800;font-size:15px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4);transition:opacity .3s';
-      wrap.parentNode.insertBefore(nomeEl,wrap.nextSibling);
-    }
-    nomeEl.textContent=u.nome; nomeEl.style.opacity='1';
+    avatarImg.src = u.foto;
+    avatarWrap.style.display = 'flex';
   } else {
-    if(fotoEl) fotoEl.style.opacity='0';
-    if(nomeEl) nomeEl.style.opacity='0';
+    avatarWrap.style.display = 'none';
+    avatarImg.src = '';
   }
 }
 function avatarLookAt(target){
@@ -21696,128 +21708,208 @@ pwaInit();
      SUPABASE SYNC - Sincronizzazione cloud
 ════════════════════════════════════════════ -->
 <script>
+
 // ══════════════════════════════════════════════════
-// SUPABASE SYNC — Gestionale GREST
-// Backend Supabase — tabella grest_sync (id='main', data JSONB)
+// NAS SYNC — Gestionale GREST (v1 — NAS Backend)
+// Backend: api.gestionale-grest.uk
 // ══════════════════════════════════════════════════
 
-let _forceNextUpload = false; // Flag: prossimo upload DEVE avvenire, bypassa hash
-let _lastUploadTimestamp = null; // Timestamp esatto usato nell'ultimo upload
-const _uploadedDataHashes = {}; // Hash dei dati caricati per ogni db → evita ri-download
-
-const JB_KEY = 'grest_jsonbin'; // mantenuto per compatibilità localStorage
-
-// ── Credenziali Supabase ──
-const SB_URL     = 'https://uyvbzbsbsrjycfxvgatr.supabase.co';
-const SB_KEY     = 'sb_publishable_UkpwczO-ZCFKx8RBjuRTsQ_x-G1AwrE';
-const SB_TABLE   = 'grest_sync';
+// ── Backend NAS ──
+const NAS_URL = 'https://api.gestionale-grest.uk';
+const SB_URL     = NAS_URL;
+const SB_KEY     = '';
+const SB_TABLE   = 'nas';
 const SB_ROW_ID  = 'main';
+const JB_KEY     = 'grest_jsonbin'; // compatibilità localStorage
 
-// Variabili di stato (manteniamo stessa interfaccia per compatibilità)
-let _jbApiKey      = SB_KEY;
-let _jbBinId       = SB_ROW_ID;
-let _jbSyncEnabled = true;
-let _jbSyncTimer   = null;
+// ── Stato sync ──
+let _jbSyncEnabled   = true;
+let _jbSyncTimer     = null;
+let _forceNextUpload = false;
+let _lastUploadTimestamp = null;
+const _uploadedDataHashes = {};    // hash reali dei dati caricati per db
+let _syncInCorso = false;          // mutex: evita sync concorrenti
+let _uploadInCorso = false;        // mutex: evita upload concorrenti
 
-function caricaConfigJB() {
-  return { apiKey: SB_KEY, binId: SB_ROW_ID };
-}
-function salvaConfigJB(cfg) {
-  localStorage.setItem(JB_KEY, JSON.stringify(cfg));
-}
+function caricaConfigJB() { return { apiKey: SB_KEY, binId: SB_ROW_ID }; }
+function salvaConfigJB(cfg) { localStorage.setItem(JB_KEY, JSON.stringify(cfg)); }
 
-// ── Headers comuni Supabase ──
-function sbHeaders(extra) {
-  return Object.assign({
-    'Content-Type': 'application/json',
-    'apikey': SB_KEY,
-    'Authorization': 'Bearer ' + SB_KEY,
-    'Prefer': 'return=minimal'
-  }, extra || {});
-}
+// ── Headers comuni ──
+function sbHeaders(extra) { return Object.assign({ 'Content-Type': 'application/json' }, extra || {}); }
 
 // ── Genera db_key univoca dal nome del database ──
 function getDbKey(dbName) {
-  // Converte il nome in una chiave sicura per Supabase (max 50 chars, solo alfanumerici e -)
   return (dbName || 'main').toLowerCase()
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9\-]/g, '')
     .substring(0, 50) || 'main';
 }
 
-// ── Upload dati su Supabase (UPSERT) — un record per database ──
-// ── Carica UN singolo database su Supabase (uso interno) ──
+// ── Restituisce il db con anno più alto (es. 2026 > 2025) ──
+function dbPiuRecente(databases) {
+  const dbs = databases || APP.databases || {};
+  const keys = Object.keys(dbs);
+  if (!keys.length) return null;
+  keys.sort((a, b) => {
+    const annoA = parseInt((a.match(/\d{4}/) || ['0'])[0]);
+    const annoB = parseInt((b.match(/\d{4}/) || ['0'])[0]);
+    return annoB - annoA; // decrescente: 2026 prima di 2025
+  });
+  return keys[0];
+}
+
+// ── Migrazione one-shot: elimina duplicati con trattini ──
+// Es: "ICE GREST 2026" e "ICE-GREST-2026" → tieni solo quello con spazi
+async function _migraDuplicatiTrattini() {
+  if (localStorage.getItem('grest_migrazione_trattini_v2') === '1') return;
+  const db = APP.databases || {};
+  const keys = Object.keys(db);
+  const toDelete = new Set();
+  const toDeleteNas = new Set();
+
+  for (const k of keys) {
+    // Se la chiave ha trattini ed esiste anche la versione con spazi → è un duplicato
+    if (/^[a-z0-9-]+$/.test(k)) {
+      // Cerca versione con spazi (case-insensitive) tra le chiavi
+      const originale = keys.find(o => o !== k && getDbKey(o) === k);
+      if (originale) {
+        console.log('🧹 Migrazione: elimino duplicato trattini', k, '→ tengo', originale);
+        // Unisci dati se il duplicato ha più iscritti
+        const sizeDup = (db[k]?.iscritti?.length||0) + (db[k]?.animatori?.length||0);
+        const sizeOrig = (db[originale]?.iscritti?.length||0) + (db[originale]?.animatori?.length||0);
+        if (sizeDup > sizeOrig) {
+          APP.databases[originale] = db[k];
+          console.log('  ↳ Dati duplicato più recenti, copiati su originale');
+        }
+        toDelete.add(k);
+        toDeleteNas.add(k);
+      }
+    }
+  }
+
+  if (toDelete.size === 0) {
+    localStorage.setItem('grest_migrazione_trattini_v2', '1');
+    return;
+  }
+
+  // Elimina in locale
+  for (const k of toDelete) delete APP.databases[k];
+  saveStorage(true);
+
+  // Elimina dal NAS in background
+  for (const k of toDeleteNas) {
+    try {
+      await fetch(`${NAS_URL}/api/db/${encodeURIComponent(k)}`, { method: 'DELETE', headers: {'Content-Type':'application/json'} });
+      console.log('🗑️ NAS: eliminato duplicato', k);
+    } catch(e) { console.warn('NAS delete duplicato error:', k, e); }
+  }
+
+  localStorage.setItem('grest_migrazione_trattini_v2', '1');
+}
+
+// ── Hash profondo: calcola un hash reale del contenuto ──
+function _hashDb(db) {
+  if (!db) return 'empty';
+  try {
+    // Crea copia senza campi pesanti (loghi, calendario)
+    const copia = Object.assign({}, db);
+    if (copia.impostazioni) {
+      copia.impostazioni = Object.assign({}, db.impostazioni);
+      delete copia.impostazioni.logo;
+      delete copia.impostazioni.logoGestionale;
+    }
+    if (copia.calendarioFile) {
+      copia.calendarioFile = { nome: db.calendarioFile?.nome };
+    }
+    const str = JSON.stringify(copia);
+    // Simple hash (djb2)
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0xFFFFFFFF;
+    }
+    return hash.toString(36) + '_' + str.length;
+  } catch(e) { return 'err_' + Date.now(); }
+}
+
+// ── Prepara database per upload (rimuovi campi pesanti) ──
+function _prepareDbPerUpload(db) {
+  const copia = Object.assign({}, db);
+  if (copia.calendarioFile) {
+    copia.calendarioFile = {
+      nome: db.calendarioFile.nome,
+      tipo: db.calendarioFile.tipo,
+      dimensione: db.calendarioFile.dimensione
+    };
+  }
+  if (copia.impostazioni) {
+    copia.impostazioni = Object.assign({}, db.impostazioni);
+    delete copia.impostazioni.logo;
+    delete copia.impostazioni.logoGestionale;
+  }
+  return copia;
+}
+
+// ── Preserva campi locali pesanti quando si riceve dal cloud ──
+function _mergeLocalHeavyFields(cloudDb, localDb) {
+  if (!cloudDb || !localDb) return cloudDb;
+  // Calendario PDF
+  if (localDb.calendarioFile && (!cloudDb.calendarioFile || !cloudDb.calendarioFile.data)) {
+    cloudDb.calendarioFile = localDb.calendarioFile;
+  }
+  // Loghi
+  if (!cloudDb.impostazioni) cloudDb.impostazioni = {};
+  if (localDb.impostazioni?.logo) cloudDb.impostazioni.logo = localDb.impostazioni.logo;
+  if (localDb.impostazioni?.logoGestionale) cloudDb.impostazioni.logoGestionale = localDb.impostazioni.logoGestionale;
+  return cloudDb;
+}
+
+// ══════════════════════════════════════════════════
+// UPLOAD — Carica un singolo database su Supabase
+// ══════════════════════════════════════════════════
 async function _uploadSingoloDb(nomeDb, db, retries = 3) {
   const dbKey = getDbKey(nomeDb);
-  const hashKey = 'hash_' + dbKey;
-  // Hash completo: include TUTTI i campi che possono cambiare
-  const imp = db.impostazioni||{};
-  const currentHash = JSON.stringify({
-    i:db.iscritti?.length||0, sq:db.squadre?.length||0, a:db.animatori?.length||0,
-    sp:db.spese?.length||0, p:db.presenze?Object.keys(db.presenze).length:0,
-    lg:imp.logoGestionale?imp.logoGestionale.length:0, lo:imp.logo?imp.logo.length:0,
-    ng:imp.nomeGrest||'', an:imp.anno||'', or:imp.oratorio||'',
-    ns:imp.numSettimane||0, p13:imp.prezzoBase13||0, p16:imp.prezzoBase16||0,
-    di:imp.dataInizio||'', df:imp.dataFine||'', qt:imp.quotaTotale||0,
-    ds:db.diarioSquadre?.length||0, sg:db.segnalazioni?.length||0, gt:db.gite?.length||0,
-    pn:JSON.stringify(db.pianificatore||{}).length, mn:JSON.stringify(db.mensa||{}).length,
-    sqj:JSON.stringify(db.squadre||[]).length, pgj:JSON.stringify(db.pagamenti||{}).length
-  });
-  // Salta upload solo se hash identico E non c'è un force upload pendente
-  if (!_forceNextUpload && (_uploadSingoloDb._hashes||{})[hashKey] === currentHash) {
+  const currentHash = _hashDb(db);
+
+  if (!_forceNextUpload && _uploadedDataHashes[nomeDb] === currentHash) {
     console.log('⏭️ Upload skippato (hash invariato) per:', nomeDb);
     return true;
   }
-  console.log('📤 Upload avviato per:', nomeDb, _forceNextUpload ? '(FORZATO)' : '(hash cambiato)');
-  _forceNextUpload = false; // Consumato
+  console.log('📤 Upload avviato per:', nomeDb, _forceNextUpload ? '(FORZATO)' : '');
+  _forceNextUpload = false;
 
   try {
     const controller = new AbortController();
     const timeoutMs = (db.iscritti||[]).length > 50 ? 30000 : 15000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     const now = new Date().toISOString();
-    // Escludi campi pesanti base64 dall'upload cloud — restano in localStorage
-    const dbPerUpload = Object.assign({}, db);
-    // PDF calendario grezzo
-    if (dbPerUpload.calendarioFile) {
-      dbPerUpload.calendarioFile = { nome: db.calendarioFile.nome, tipo: db.calendarioFile.tipo, dimensione: db.calendarioFile.dimensione };
-    }
-    // Loghi (possono essere 1-2MB ciascuno) — salvati in localStorage separatamente
-    if (dbPerUpload.impostazioni) {
-      dbPerUpload.impostazioni = Object.assign({}, db.impostazioni);
-      delete dbPerUpload.impostazioni.logo;
-      delete dbPerUpload.impostazioni.logoGestionale;
-    }
-    const payload = {
-      id: dbKey,
-      db_key: dbKey,
-      data: { db: dbPerUpload, dbName: nomeDb, aggiornato: now },
-      updated_at: now
-    };
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
+
+    const dbData = _prepareDbPerUpload(db);
+    const payload = { db: dbData, dbName: nomeDb, aggiornato: now };
+
+    const res = await fetch(`${NAS_URL}/api/db/${encodeURIComponent(dbKey)}`, {
       method: 'POST',
-      headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal: controller.signal
     });
     clearTimeout(timeoutId);
+
     if (!res.ok) {
       const errText = await res.text();
-      console.error('Supabase upload error [' + nomeDb + ']:', errText);
+      console.error('❌ NAS upload error [' + nomeDb + ']:', errText);
       if (retries > 0) {
         await new Promise(r => setTimeout(r, (4 - retries) * 2000));
         return _uploadSingoloDb(nomeDb, db, retries - 1);
       }
       throw new Error('HTTP ' + res.status);
     }
-    if (!_uploadSingoloDb._hashes) _uploadSingoloDb._hashes = {};
-    _uploadSingoloDb._hashes[hashKey] = currentHash;
-    // Salva hash dei dati appena caricati per questo db → auto-sync li confronterà
-    _uploadedDataHashes[nomeDb] = JSON.stringify(db);
+
+    _uploadedDataHashes[nomeDb] = currentHash;
     _sbContaChiamata(new Blob([JSON.stringify(payload)]).size);
+    console.log('✅ Upload NAS completato per:', nomeDb);
     return true;
   } catch(e) {
-    console.error('Supabase upload error [' + nomeDb + ']:', e);
+    console.error('❌ NAS Upload error [' + nomeDb + ']:', e.message);
     if (retries > 0 && e.name !== 'AbortError') {
       await new Promise(r => setTimeout(r, (4 - retries) * 1500));
       return _uploadSingoloDb(nomeDb, db, retries - 1);
@@ -21826,173 +21918,312 @@ async function _uploadSingoloDb(nomeDb, db, retries = 3) {
   }
 }
 
-// ── Upload di TUTTI i database su Supabase — ognuno col suo record indipendente ──
+// ── Upload di TUTTI i database ──
 async function uploadToFirebase(retries = 3) {
   if (!_jbSyncEnabled) return false;
-  const dbNames = Object.keys(APP.databases||{});
-  if (dbNames.length === 0) return false;
+  if (_uploadInCorso) { console.log('⏳ Upload già in corso, skip'); return false; }
+  _uploadInCorso = true;
 
-  let tuttiOk = true;
-  for (const nomeDb of dbNames) {
-    const db = APP.databases[nomeDb];
-    if (!db) continue;
-    const ok = await _uploadSingoloDb(nomeDb, db, retries);
-    if (!ok) tuttiOk = false;
-  }
+  try {
+    const dbNames = Object.keys(APP.databases||{});
+    if (dbNames.length === 0) { _uploadInCorso = false; return false; }
 
-  if (tuttiOk) {
-    _lastUploadTimestamp = Date.now();
-    _ultimoAggiornamentoCloud = new Date().toISOString();
-    _ultimaModificaLocale = Date.now();
-    localStorage.setItem(LOCAL_TS_KEY, _ultimaModificaLocale);
-    localStorage.removeItem('grest_offline_edits'); // Modifiche sincronizzate
-    const el = document.getElementById('fb-last-sync');
-    if (el) el.textContent = new Date().toLocaleTimeString('it-IT');
-    aggiornaStatoFB('connected');
-  } else {
+    let tuttiOk = true;
+    for (const nomeDb of dbNames) {
+      const db = APP.databases[nomeDb];
+      if (!db) continue;
+      const ok = await _uploadSingoloDb(nomeDb, db, retries);
+      if (!ok) tuttiOk = false;
+    }
+
+    if (tuttiOk) {
+      _lastUploadTimestamp = Date.now();
+      _ultimoAggiornamentoCloud = new Date().toISOString();
+      localStorage.removeItem('grest_offline_edits');
+      const el = document.getElementById('fb-last-sync');
+      if (el) el.textContent = new Date().toLocaleTimeString('it-IT');
+      aggiornaStatoFB('connected');
+    } else {
+      aggiornaStatoFB('error');
+    }
+    return tuttiOk;
+  } catch(e) {
+    console.error('uploadToFirebase error:', e);
     aggiornaStatoFB('error');
+    return false;
+  } finally {
+    _uploadInCorso = false;
   }
-  return tuttiOk;
 }
 
-// ── Download di TUTTI i database da Supabase — esclude la riga 'online' ──
+// ══════════════════════════════════════════════════
+// DOWNLOAD — Scarica database da Supabase
+// ══════════════════════════════════════════════════
+const SB_ONLINE_ID = 'online';
+const SB_UTENTI_ID = 'utenti-globali';
+
+async function scaricaDaCloud() {
+  try {
+    const res = await fetch(`${NAS_URL}/api/db`, { headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    _sbContaChiamata(new Blob([JSON.stringify(json)]).size);
+    if (!json || typeof json !== 'object') return null;
+    // Converti formato NAS {dbName: dbData, _timestamps:{}} → [{id, data:{db, dbName}, updated_at}]
+    const timestamps = json._timestamps || {};
+    const result = Object.entries(json)
+      .filter(([k]) => k !== '_timestamps' && !k.startsWith('xp-') && !k.startsWith('XP-'))
+      .map(([k, v]) => ({
+        id: k,
+        data: { db: v, dbName: k, aggiornato: timestamps[k] || null },
+        updated_at: timestamps[k] || null
+      }));
+    if (result.length === 0) return null;
+    return result;
+  } catch(e) {
+    console.error('NAS download error:', e);
+    return null;
+  }
+}
+
+async function scaricaSoloDatabaseCorrente() {
+  try {
+    const dbKey = getDbKey(APP.currentDb);
+    const res = await fetch(`${NAS_URL}/api/db/${encodeURIComponent(dbKey)}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    _sbContaChiamata(new Blob([JSON.stringify(json)]).size);
+    if (!json) return null;
+    // NAS ritorna {db, dbName, aggiornato} — converti nel formato atteso
+    return json.db ? { db: json.db, dbName: json.dbName, aggiornato: json.aggiornato } : json;
+  } catch(e) {
+    console.error('NAS scarica db corrente error:', e);
+    return null;
+  }
+}
+
+// ══════════════════════════════════════════════════
+// SINCRONIZZAZIONE PRINCIPALE
+// Regola: cloud è fonte di verità, MA non sovrascrivere
+// locale con dati vuoti/inferiori
+// ══════════════════════════════════════════════════
+async function sincronizzaOra() {
+  if (_syncInCorso) { console.log('⏳ Sync già in corso'); return; }
+  _syncInCorso = true;
+
+  try {
+    showToast('Sincronizzazione in corso...', 'info');
+    await sincronizzaUtenti();
+
+    const records = await scaricaDaCloud();
+
+    if (!records || records.length === 0) {
+      // Niente sul cloud → carico tutto dal locale
+      console.log('☁️ Cloud vuoto — carico dati locali');
+      await uploadToFirebase();
+      aggiornaStatoFB('connected');
+      avviaAutoSync();
+      return;
+    }
+
+    let aggiornati = 0, caricati = 0;
+    const hadOfflineEdits = localStorage.getItem('grest_offline_edits') === 'true';
+
+    for (const record of records) {
+      if (!record.data || !record.data.db) continue;
+      const nomeDb = record.data.dbName && !/^[a-z0-9-]+$/.test(record.data.dbName) ? record.data.dbName : (record.data.dbName || record.id);
+      const cloudDb = record.data.db;
+
+      if (!APP.databases[nomeDb]) {
+        // Database nuovo dal cloud → accetta
+        APP.databases[nomeDb] = cloudDb;
+        aggiornati++;
+        console.log('📥 Nuovo DB dal cloud:', nomeDb);
+      } else {
+        const localDb = APP.databases[nomeDb];
+        const cloudSize = (cloudDb?.iscritti?.length||0) + (cloudDb?.animatori?.length||0);
+        const localSize = (localDb?.iscritti?.length||0) + (localDb?.animatori?.length||0);
+
+        if (hadOfflineEdits) {
+          // Modifiche offline → locale vince, ma SOLO se ha dati
+          if (localSize > 0) {
+            await _uploadSingoloDb(nomeDb, localDb);
+            caricati++;
+            console.log('📤 Offline edits: locale vince per:', nomeDb);
+          }
+        } else if (cloudSize === 0 && localSize > 0) {
+          // ⚠️ PROTEZIONE: cloud vuoto ma locale ha dati → locale vince SEMPRE
+          await _uploadSingoloDb(nomeDb, localDb);
+          caricati++;
+          console.log('🛡️ Cloud vuoto, locale ha dati → upload locale per:', nomeDb);
+        } else if (cloudSize > 0) {
+          // Cloud ha dati → cloud vince (è la fonte di verità)
+          // Ma preserva campi pesanti locali
+          APP.databases[nomeDb] = _mergeLocalHeavyFields(cloudDb, localDb);
+          // Aggiorna hash per evitare re-upload immediato
+          _uploadedDataHashes[nomeDb] = _hashDb(APP.databases[nomeDb]);
+          aggiornati++;
+          console.log('📥 Cloud → locale per:', nomeDb, `(cloud:${cloudSize}, locale:${localSize})`);
+        }
+      }
+    }
+
+    // Upload db locali non presenti sul cloud
+    const cloudKeys = new Set(records.map(r => r.data?.dbName || r.id));
+    for (const nomeDb of Object.keys(APP.databases||{})) {
+      if (!cloudKeys.has(nomeDb) && APP.databases[nomeDb]) {
+        const localSize = (APP.databases[nomeDb]?.iscritti?.length||0);
+        if (localSize > 0) {
+          await _uploadSingoloDb(nomeDb, APP.databases[nomeDb]);
+          caricati++;
+          console.log('📤 DB solo locale → cloud:', nomeDb);
+        }
+      }
+    }
+
+    // Migrazione one-shot: elimina duplicati con trattini
+    await _migraDuplicatiTrattini();
+
+    // Pulisci
+    localStorage.removeItem('grest_offline_edits');
+    _ultimoAggiornamentoCloud = new Date().toISOString();
+    _saveStorageOriginal();
+    updateHeader();
+    updateLogoLogin();
+
+    // 🔒 PROTEZIONE post-sync: usa sempre il db con anno più alto
+    {
+      const _ultimoSalvato = localStorage.getItem('grest_ultimo_db');
+      const _recente = dbPiuRecente(); // es. "ICE GREST 2026"
+      // Priorità: ultimo usato (se esiste ancora) → più recente per anno
+      if (_ultimoSalvato && APP.databases[_ultimoSalvato]) {
+        APP.currentDb = _ultimoSalvato;
+      } else if (_ultimoSalvato) {
+        const _trovato = Object.keys(APP.databases).find(k => getDbKey(k) === getDbKey(_ultimoSalvato));
+        if (_trovato) { APP.currentDb = _trovato; localStorage.setItem('grest_ultimo_db', _trovato); }
+        else if (_recente) { APP.currentDb = _recente; localStorage.setItem('grest_ultimo_db', _recente); }
+      } else if (_recente) {
+        APP.currentDb = _recente;
+        localStorage.setItem('grest_ultimo_db', _recente);
+      }
+    }
+
+    // Ricarica vista
+    const av = document.querySelector('.view.active');
+    if (av) navigate(av.id.replace('view-', ''));
+    const el = document.getElementById('fb-last-sync');
+    if (el) el.textContent = new Date().toLocaleTimeString('it-IT');
+
+    if (aggiornati > 0 || caricati > 0) {
+      const parti = [];
+      if (aggiornati > 0) parti.push(`${aggiornati} DB aggiornati dal cloud`);
+      showToast('✅ ' + parti.join(' · '), 'success');
+    }
+    aggiornaStatoFB('connected');
+    avviaAutoSync();
+  } catch(e) {
+    console.error('sincronizzaOra error:', e);
+    showToast('Errore sincronizzazione', 'error');
+    aggiornaStatoFB('error');
+  } finally {
+    _syncInCorso = false;
+  }
+}
+
+// ── Forza upload ──
+async function forzaUpload() {
+  try {
+    const db = getDb();
+    if (!db) { showToast('Nessun database locale', 'warning'); return; }
+    showToast('Caricamento in corso...', 'info');
+    _forceNextUpload = true;
+    Object.keys(_uploadedDataHashes).forEach(k => delete _uploadedDataHashes[k]);
+    const vecchio = _jbSyncEnabled;
+    _jbSyncEnabled = true;
+    await uploadToFirebase();
+    _jbSyncEnabled = vecchio;
+    showToast('☁️ Caricati ' + (db.iscritti||[]).length + ' iscritti sul cloud!', 'success');
+  } catch(e) {
+    console.error('forzaUpload error:', e);
+    showToast('Errore upload', 'error');
+  }
+}
+
+// ── Forza download ──
+async function forzaDownload() {
+  try {
+    showToast('Download in corso...', 'info');
+    const record = await scaricaSoloDatabaseCorrente();
+    if (!record || !record.db) { showToast('Nessun dato nel cloud', 'warning'); return; }
+    const n = (record.db.iscritti||[]).length;
+    showConfirm(`Nel cloud ci sono <b>${n}</b> iscritti. Sostituire i dati locali con quelli del cloud?`, ()=>{
+      const localDb = APP.databases[APP.currentDb];
+      APP.databases[APP.currentDb] = _mergeLocalHeavyFields(record.db, localDb);
+      _uploadedDataHashes[APP.currentDb] = _hashDb(APP.databases[APP.currentDb]);
+      saveStorage();
+      const av = document.querySelector('.view.active');
+      if (av) navigate(av.id.replace('view-', ''));
+      showToast('☁️ Scaricati ' + n + ' iscritti!', 'success');
+    }, 'Sostituisci', '☁️');
+  } catch(e) {
+    console.error('forzaDownload error:', e);
+    showToast('Errore download', 'error');
+  }
+}
+
 // ══════════════════════════════════════════════════
 // BACKUP AUTOMATICO — Salva snapshot periodici su Supabase
 // Tabella: grest_backups (id, db_name, data JSONB, created_at, tipo)
 // ══════════════════════════════════════════════════
 const SB_BACKUP_TABLE = 'grest_backups';
-const BACKUP_MAX_PER_DB = 14; // Mantieni ultimi 14 backup per db
-const BACKUP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 ore
+const BACKUP_MAX_PER_DB = 14;
+const BACKUP_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const BACKUP_LS_KEY = 'grest_last_backup';
 
-async function creaBackupAutomatico() {
-  if (!_jbSyncEnabled) return;
-  // Controlla se è passato abbastanza tempo dall'ultimo backup
-  const lastBackup = parseInt(localStorage.getItem(BACKUP_LS_KEY) || '0');
-  if (Date.now() - lastBackup < BACKUP_INTERVAL_MS) return;
-
+async function creaBackupAutomatico(nomeDb, db, tipo = 'auto') {
   try {
-    // Backup di ogni database
-    for (const nomeDb of Object.keys(APP.databases || {})) {
-      const db = APP.databases[nomeDb];
-      if (!db) continue;
-      await fetch(`${SB_URL}/rest/v1/${SB_BACKUP_TABLE}`, {
-        method: 'POST',
-        headers: Object.assign(sbHeaders(), { 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({
-          db_name: nomeDb,
-          data: { db: db, dbName: nomeDb },
-          tipo: 'automatico'
-        })
-      });
-    }
-    // Backup utenti
-    if (APP.utenti && APP.utenti.length > 0) {
-      await fetch(`${SB_URL}/rest/v1/${SB_BACKUP_TABLE}`, {
-        method: 'POST',
-        headers: Object.assign(sbHeaders(), { 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({
-          db_name: 'utenti-globali',
-          data: { utenti: APP.utenti },
-          tipo: 'automatico'
-        })
-      });
-    }
-    localStorage.setItem(BACKUP_LS_KEY, Date.now().toString());
-    console.log('💾 Backup automatico completato');
-
-    // Pulizia vecchi backup (mantieni solo gli ultimi N per db)
-    await pulisciVecchiBackup();
-  } catch(e) {
-    console.error('Backup automatico error:', e);
-  }
+    await fetch(`${NAS_URL}/api/backup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ db_name: nomeDb, tipo, data: { db } })
+    });
+    localStorage.setItem(BACKUP_LS_KEY + '_' + nomeDb, Date.now().toString());
+  } catch(e) { console.warn('Backup NAS error:', e); }
 }
 
-async function pulisciVecchiBackup() {
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_BACKUP_TABLE}?select=id,db_name,created_at&order=created_at.desc`, {
-      headers: sbHeaders()
-    });
-    if (!res.ok) return;
-    const tutti = await res.json();
-    // Raggruppa per db_name
-    const perDb = {};
-    tutti.forEach(b => {
-      if (!perDb[b.db_name]) perDb[b.db_name] = [];
-      perDb[b.db_name].push(b);
-    });
-    // Elimina i vecchi (oltre BACKUP_MAX_PER_DB)
-    for (const [dbName, backups] of Object.entries(perDb)) {
-      if (backups.length > BACKUP_MAX_PER_DB) {
-        const daEliminare = backups.slice(BACKUP_MAX_PER_DB);
-        for (const b of daEliminare) {
-          await fetch(`${SB_URL}/rest/v1/${SB_BACKUP_TABLE}?id=eq.${b.id}`, {
-            method: 'DELETE', headers: sbHeaders()
-          });
-        }
-        console.log(`🗑️ Puliti ${daEliminare.length} vecchi backup per ${dbName}`);
-      }
-    }
-  } catch(e) {
-    console.error('Pulizia backup error:', e);
-  }
+async function pulisciVecchiBackup(nomeDb) {
+  // Il NAS gestisce automaticamente la pulizia dei backup vecchi
 }
 
-async function caricaListaBackup() {
+async function caricaListaBackup(nomeDb) {
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_BACKUP_TABLE}?select=id,db_name,created_at,tipo&order=created_at.desc&limit=50`, {
-      headers: sbHeaders()
-    });
+    const url = nomeDb 
+      ? `${NAS_URL}/api/backups?db=${encodeURIComponent(nomeDb)}`
+      : `${NAS_URL}/api/backups`;
+    const res = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) return [];
     return await res.json();
-  } catch(e) {
-    console.error('Lista backup error:', e);
-    return [];
-  }
+  } catch(e) { return []; }
 }
 
 async function ripristinaBackup(backupId) {
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_BACKUP_TABLE}?id=eq.${backupId}&select=*`, {
-      headers: sbHeaders()
+    const res = await fetch(`${NAS_URL}/api/backups/${backupId}`, {
+      headers: { 'Content-Type': 'application/json' }
     });
-    if (!res.ok) throw new Error('Backup non trovato');
-    const arr = await res.json();
-    if (!arr || arr.length === 0) throw new Error('Backup vuoto');
-    const backup = arr[0];
-
-    if (backup.db_name === 'utenti-globali') {
-      if (backup.data && backup.data.utenti) {
-        APP.utenti = backup.data.utenti;
-        await uploadUtentiCloud();
-        saveStorage();
-        showToast('✅ Utenti ripristinati (' + APP.utenti.length + ')', 'success');
-        const av = document.querySelector('.view.active');
-        if (av && av.id === 'view-impostazioni-utenti') renderUtenti();
-      }
-    } else {
-      if (backup.data && backup.data.db) {
-        const nomeDb = backup.db_name;
-        APP.databases[nomeDb] = backup.data.db;
-        await _uploadSingoloDb(nomeDb, backup.data.db);
-        saveStorage();
-        showToast('✅ Database "' + nomeDb + '" ripristinato', 'success');
-        const av = document.querySelector('.view.active');
-        if (av) navigate(av.id.replace('view-', ''));
-      }
-    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
   } catch(e) {
     console.error('Ripristina backup error:', e);
-    showToast('❌ Errore ripristino: ' + e.message, 'error');
+    return null;
   }
 }
 
 async function mostraBackup() {
   const backups = await caricaListaBackup();
-  if (backups.length === 0) {
-    showToast('Nessun backup disponibile', 'warning');
-    return;
-  }
+  if (backups.length === 0) { showToast('Nessun backup disponibile', 'warning'); return; }
   let html = '<div style="max-height:400px;overflow-y:auto">';
   html += '<table style="width:100%;font-size:13px;border-collapse:collapse">';
   html += '<tr style="background:var(--teal);color:white"><th style="padding:8px">Database</th><th style="padding:8px">Data</th><th style="padding:8px">Tipo</th><th style="padding:8px">Azione</th></tr>';
@@ -22009,176 +22240,8 @@ async function mostraBackup() {
   showConfirm(html, ()=>{}, 'Chiudi', '💾', 'Backup disponibili');
 }
 
-async function scaricaDaCloud() {
-  try {
-    // Scarica tutti i record tranne presenza online e utenti-globali (gestiti separatamente)
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=neq.${SB_ONLINE_ID}&id=neq.${SB_UTENTI_ID}&select=id,data,updated_at`, {
-      headers: sbHeaders()
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    _sbContaChiamata(new Blob([JSON.stringify(json)]).size);
-    if (!json || json.length === 0) return null;
-    // Ritorna array di { id, data, updated_at }
-    return json;
-  } catch(e) {
-    console.error('Supabase download error:', e);
-    return null;
-  }
-}
-
-// ── Download del solo database corrente (usato da forzaDownload) ──
-async function scaricaSoloDatabaseCorrente() {
-  try {
-    const dbKey = getDbKey(APP.currentDb);
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${dbKey}&select=data`, {
-      headers: sbHeaders()
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    _sbContaChiamata(new Blob([JSON.stringify(json)]).size);
-    if (!json || json.length === 0) return null;
-    return json[0].data || null;
-  } catch(e) {
-    console.error('Supabase download error:', e);
-    return null;
-  }
-}
-
-// ── Sincronizza ora — tutti i database, ognuno indipendente ──
-async function sincronizzaOra() {
-  try {
-  showToast('Sincronizzazione in corso...', 'info');
-
-  // Sincronizza prima gli utenti globali (record separato)
-  await sincronizzaUtenti();
-
-  // Scarica tutti i record dal cloud (escluso online e utenti-globali)
-  const records = await scaricaDaCloud();
-
-  if (records && records.length > 0) {
-    let aggiornati = 0;
-    let caricati = 0;
-
-    // ── CLOUD-FIRST: il cloud è la fonte di verità ──
-    // Prima: controlla se ci sono modifiche locali non ancora sincronizzate (offline edits)
-    const hadOfflineEdits = localStorage.getItem('grest_offline_edits') === 'true';
-
-    for (const record of records) {
-      if (!record.data || !record.data.db) continue;
-      const nomeDb = record.data.dbName || record.id;
-
-      if (!APP.databases[nomeDb]) {
-        // Database nuovo sul cloud → aggiungo
-        APP.databases[nomeDb] = record.data.db;
-        aggiornati++;
-        console.log('📥 Nuovo database dal cloud:', nomeDb);
-      } else if (hadOfflineEdits && nomeDb === APP.currentDb) {
-        // Abbiamo modifiche offline sul db corrente → locale vince, upload
-        await _uploadSingoloDb(nomeDb, APP.databases[nomeDb]);
-        caricati++;
-        console.log('📤 Modifiche offline caricate per:', nomeDb);
-      } else {
-        // ── CLOUD VINCE SEMPRE ──
-        const cloudData = JSON.stringify(record.data.db);
-        const localData = JSON.stringify(APP.databases[nomeDb]);
-        if (cloudData !== localData) {
-          // Preserva campi pesanti locali (cloud non li include)
-          const calendarioFileLocale = APP.databases[nomeDb]?.calendarioFile;
-          const _logoLoc = APP.databases[nomeDb]?.impostazioni?.logo;
-          const _logoGLoc = APP.databases[nomeDb]?.impostazioni?.logoGestionale;
-          APP.databases[nomeDb] = record.data.db;
-          if (calendarioFileLocale) APP.databases[nomeDb].calendarioFile = calendarioFileLocale;
-          if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
-          if (_logoLoc) APP.databases[nomeDb].impostazioni.logo = _logoLoc;
-          if (_logoGLoc) APP.databases[nomeDb].impostazioni.logoGestionale = _logoGLoc;
-          aggiornati++;
-          console.log('📥 Database aggiornato dal cloud:', nomeDb);
-        }
-      }
-    }
-
-    // Upload dei database locali che NON esistono ancora sul cloud
-    const dbKeysCloud = new Set(records.map(r => r.data?.dbName || r.id));
-    for (const nomeDb of Object.keys(APP.databases)) {
-      if (!dbKeysCloud.has(nomeDb) && APP.databases[nomeDb]) {
-        await _uploadSingoloDb(nomeDb, APP.databases[nomeDb]);
-        caricati++;
-        console.log('📤 Database solo locale, caricato sul cloud:', nomeDb);
-      }
-    }
-
-    // Pulisci flag offline
-    localStorage.removeItem('grest_offline_edits');
-
-    _ultimoAggiornamentoCloud = new Date().toISOString();
-    if (caricati > 0) _lastUploadTimestamp = Date.now();
-    _ultimaModificaLocale = null;
-    localStorage.removeItem(LOCAL_TS_KEY);
-    _saveStorageOriginal();
-    updateHeader();
-    updateLogoLogin();
-    const av = document.querySelector('.view.active');
-    if (av) navigate(av.id.replace('view-', ''));
-    const el = document.getElementById('fb-last-sync');
-    if (el) el.textContent = new Date().toLocaleTimeString('it-IT');
-    const elDb = document.getElementById('fb-current-db-label');
-    if (elDb && APP.currentDb) elDb.textContent = APP.currentDb;
-
-    if (aggiornati > 0 || caricati > 0) {
-      const parti = [];
-      if (aggiornati > 0) parti.push(`${aggiornati} DB aggiornati dal cloud`);
-      if (caricati > 0) parti.push(`${caricati} DB caricati sul cloud`);
-      showToast('✅ ' + parti.join(' · '), 'success');
-    } else {
-      showToast('✅ Già aggiornato!', 'success');
-    }
-    aggiornaStatoFB('connected');
-    avviaAutoSync();
-  } else {
-    // Nessun dato nel cloud → carico tutti i db locali
-    await uploadToFirebase();
-    avviaAutoSync();
-  }
-  } catch(e) { console.error('sincronizzaOra error:', e); showToast('Errore sincronizzazione', 'error'); }
-}
-
-// ── Forza upload ──
-async function forzaUpload() {
-  try {
-  const db = getDb();
-  if (!db) { showToast('Nessun database locale', 'warning'); return; }
-  showToast('Caricamento in corso...', 'info');
-  const vecchio = _jbSyncEnabled;
-  _jbSyncEnabled = true;
-  await uploadToFirebase();
-  _jbSyncEnabled = vecchio;
-  const n = (db.iscritti||[]).length;
-  showToast('Caricati ' + n + ' iscritti sul cloud!', 'success');
-  } catch(e) { console.error('forzaUpload error:', e); showToast('Errore upload', 'error'); }
-}
-
-// ── Forza download ──
-async function forzaDownload() {
-  try {
-  showToast('Download in corso...', 'info');
-  const record = await scaricaSoloDatabaseCorrente();
-  if (!record || !record.db) { showToast('Nessun dato nel cloud', 'warning'); return; }
-  const n = (record.db.iscritti||[]).length;
-  showConfirm(`Nel cloud ci sono <b>${n}</b> iscritti. Sostituire i dati locali con quelli del cloud?`, ()=>{
-    const nomeDb = record.dbName || 'GREST';
-    if (!APP.currentDb) APP.currentDb = nomeDb;
-    APP.databases[APP.currentDb] = record.db;
-    saveStorage();
-    const av = document.querySelector('.view.active');
-    if (av) navigate(av.id.replace('view-', ''));
-    showToast('Scaricati ' + n + ' iscritti!', 'success');
-  }, 'Sostituisci', '☁️');
-  } catch(e) { console.error('forzaDownload error:', e); showToast('Errore download', 'error'); }
-}
-
 // ══════════════════════════════════════════════════
-// AUTO-SYNC IN BACKGROUND
+// AUTO-SYNC IN BACKGROUND (v3 — stabile)
 // ══════════════════════════════════════════════════
 
 let _autoSyncInterval = null;
@@ -22187,127 +22250,218 @@ let _operazioneCriticaInCorso = false;
 let _realtimeChannel = null;
 let _realtimeConnesso = false;
 
-// ── Supabase Realtime — subscription alla tabella grest_sync ──
-function avviaRealtime() {
-  if (!_jbSyncEnabled) return;
-  if (_realtimeChannel) return; // già attivo
-
-  // Carica la libreria Supabase JS se non già presente
-  if (!window._supabaseRealtimeLib) {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-    script.onload = () => {
-      window._supabaseRealtimeLib = true;
-      _avviaRealtimeChannel();
-    };
-    script.onerror = () => {
-      console.warn('⚠️ Supabase JS non caricato — uso solo polling fallback');
-    };
-    document.head.appendChild(script);
-  } else {
-    _avviaRealtimeChannel();
-  }
-}
-
-function _avviaRealtimeChannel() {
-  try {
-    const client = window.supabase.createClient(SB_URL, SB_KEY);
-    _realtimeChannel = client
-      .channel('grest-sync-changes')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: SB_TABLE
-      }, (payload) => {
-        // Ignora notifiche dalla riga online (heartbeat) e utenti
-        if (payload.new?.id === SB_ONLINE_ID || payload.new?.id === SB_UTENTI_ID) return;
-        console.log('🔔 Realtime: modifica rilevata su', payload.new?.id);
-        // Aspetta 500ms per evitare loop se siamo noi stessi ad aver appena salvato
-        setTimeout(() => autoSyncSilenzioso(), 500);
-      })
-      .on('broadcast', { event: 'msg_giorno' }, (payload) => {
-        // Ricevuto messaggio del giorno in tempo reale
-        const m = payload?.payload;
-        if (!m || !m.testo) return;
-        mostraNotificaMsgGiorno(m);
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          _realtimeConnesso = true;
-          console.log('✅ Realtime connesso — sync istantaneo attivo');
-          aggiornaStatoFB('connected');
-        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          _realtimeConnesso = false;
-          console.warn('⚠️ Realtime disconnesso — uso polling fallback');
-        }
-      });
-  } catch(e) {
-    console.warn('Realtime error:', e);
-    _realtimeConnesso = false;
-  }
-}
-
+// ── Realtime disabilitato — NAS usa polling ──
+function avviaRealtime() { /* NAS non supporta websocket realtime */ }
+function _avviaRealtimeChannel() {}
 function fermaRealtime() {
-  if (_realtimeChannel) {
-    try { _realtimeChannel.unsubscribe(); } catch(e) {}
-    _realtimeChannel = null;
-    _realtimeConnesso = false;
-  }
+  _realtimeChannel = null;
+  _realtimeConnesso = false;
 }
 
-// Avvia sync: realtime + polling fallback ogni 5 minuti
+// ── Avvia auto-sync: polling ogni 3 minuti ──
 function avviaAutoSync() {
   if (_autoSyncInterval) clearInterval(_autoSyncInterval);
-
-  // Sync immediato al primo avvio
-  autoSyncSilenzioso();
-
-  // Avvia realtime
-  avviaRealtime();
-
-  // Polling fallback ogni 5 minuti (copre disconnessioni websocket)
   _autoSyncInterval = setInterval(() => {
-    if (!_realtimeConnesso) {
-      console.log('🔄 Polling fallback (realtime non attivo)');
+    if (!_syncInCorso && !_uploadInCorso) {
+      console.log('🔄 Polling NAS');
       autoSyncSilenzioso();
     }
-  }, 5 * 60 * 1000);
+  }, 3 * 60 * 1000);
 }
 
-// Ferma auto-sync (chiamato al logout)
 function fermaAutoSync() {
-  if (_autoSyncInterval) {
-    clearInterval(_autoSyncInterval);
-    _autoSyncInterval = null;
-  }
+  if (_autoSyncInterval) { clearInterval(_autoSyncInterval); _autoSyncInterval = null; }
   fermaRealtime();
   console.log('🛑 Auto-sync fermato');
 }
 
+// ── Auto-sync silenzioso (cuore del sistema) ──
+async function autoSyncSilenzioso() {
+  if (_operazioneCriticaInCorso || _syncInCorso || _uploadInCorso) return;
+  if (_lastUploadTimestamp && (Date.now() - _lastUploadTimestamp) < 10000) return;
+
+  _syncInCorso = true;
+  try {
+    autoSyncUtenti();
+
+    // Scarica timestamps dal NAS
+    const resTs = await fetch(`${NAS_URL}/api/db`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!resTs.ok) { _syncInCorso = false; return; }
+    const records = await resTs.json();
+    if (!records || records.length === 0) {
+      // Nessun dato sul NAS, carica
+      if (APP.currentDb && Object.keys(APP.databases).length > 0) {
+        await uploadToFirebase();
+      }
+      _syncInCorso = false;
+      return;
+    }
+    // Confronta timestamps e scarica/carica se necessario
+    let modificheLocali = false;
+    for (const record of records) {
+      const nomeDb = record.data?.dbName && !/^[a-z0-9-]+$/.test(record.data.dbName) ? record.data.dbName : (record.data?.dbName || record.id);
+      const cloudTs = record.updated_at ? new Date(record.updated_at).getTime() : 0;
+      const localDb = APP.databases[nomeDb];
+      if (!localDb) {
+        // DB sul NAS non presente localmente - scarica
+        if (record.data?.db) {
+          APP.databases[nomeDb] = record.data.db;
+          modificheLocali = true;
+        }
+      }
+    }
+    if (modificheLocali) {
+      saveStorage();
+      console.log('🔄 [auto-sync] Aggiornamenti dal NAS applicati');
+    }
+    // Carica eventuali modifiche locali
+    await uploadToFirebase();
+  } catch(e) {
+    console.warn('Auto-sync error:', e);
+  } finally {
+    _syncInCorso = false;
+  }
+}
+
+// ── Confronta dati per notifiche ──
+function confrontaDati(vecchio, nuovo) {
+  const nIscritti  = (nuovo.iscritti||[]).length  - (vecchio.iscritti||[]).length;
+  const nSquadre   = (nuovo.squadre||[]).length   - (vecchio.squadre||[]).length;
+  const nAnimatori = (nuovo.animatori||[]).length - (vecchio.animatori||[]).length;
+  const nSpese     = (nuovo.spese||[]).length     - (vecchio.spese||[]).length;
+  return {
+    importante: Math.abs(nIscritti) > 0 || Math.abs(nSquadre) > 0 || Math.abs(nAnimatori) > 0 || Math.abs(nSpese) > 0,
+    deltaIscritti: nIscritti, deltaSquadre: nSquadre, deltaAnimatori: nAnimatori, deltaUtenti: 0
+  };
+}
+
 // ══════════════════════════════════════════════════
-// SISTEMA UTENTI CONNESSI — via JSONBin (funziona tra dispositivi diversi)
+// SAVE STORAGE WRAPPER — intercetta salvtaggi e triggera upload
 // ══════════════════════════════════════════════════
+const LOCAL_TS_KEY = 'grest_local_ts';
+let _ultimaModificaLocale = null;
+localStorage.removeItem(LOCAL_TS_KEY); // Pulisci residui
+
+const _saveStorageOriginal = (typeof saveStorage !== 'undefined') ? saveStorage : function(){};
+if (typeof saveStorage !== 'undefined') {
+  window.saveStorage = function(immediate) {
+    _saveStorageOriginal(immediate);
+    if(APP.currentDb) try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e){}
+    _ultimaModificaLocale = Date.now();
+    localStorage.setItem(LOCAL_TS_KEY, _ultimaModificaLocale);
+    // Forza prossimo upload
+    _forceNextUpload = true;
+    delete _uploadedDataHashes[APP.currentDb];
+    // Segna modifiche offline
+    localStorage.setItem('grest_offline_edits', 'true');
+    console.log('💾 saveStorage → upload schedulato in 3s');
+    if (_jbSyncEnabled) {
+      clearTimeout(_jbSyncTimer);
+      _jbSyncTimer = setTimeout(() => {
+        if (!_syncInCorso) uploadToFirebase();
+      }, 3000);
+    }
+  };
+}
+
+// ── UI stato connessione ──
+function aggiornaStatoFB(stato) {
+  const dot  = document.getElementById('fb-status-dot');
+  const text = document.getElementById('fb-status-text');
+  const card = document.getElementById('fb-status-card');
+  if (!dot || !text) return;
+  const stati = {
+    connected:    { dot:'#4CAF50', text:'Connesso — sincronizzazione attiva', bg:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
+    connecting:   { dot:'#FFC107', text:'Connessione in corso...', bg:'linear-gradient(135deg,#e65100,#bf360c)' },
+    error:        { dot:'#f44336', text:'Errore di connessione', bg:'linear-gradient(135deg,#b71c1c,#c62828)' },
+    disconnected: { dot:'rgba(255,255,255,0.3)', text:'Non connesso', bg:'linear-gradient(135deg,#1a73e8,#0d47a1)' },
+  };
+  const s = stati[stato] || stati.disconnected;
+  dot.style.background = s.dot;
+  text.textContent = s.text;
+  if (card) card.style.background = s.bg;
+  const cs = document.getElementById('fb-conn-status');
+  if (cs) cs.textContent = stato==='connected' ? 'Online' : stato==='error' ? 'Errore' : 'In attesa';
+  const headerDot = document.getElementById('sync-status-dot');
+  const headerText = document.getElementById('sync-status-text');
+  if (headerDot) headerDot.style.background = s.dot;
+  if (headerText) {
+    if (stato === 'connected') headerText.textContent = 'Online';
+    else if (stato === 'error') headerText.textContent = 'Offline';
+    else if (stato === 'connecting') headerText.textContent = 'Sync...';
+    else headerText.textContent = '';
+  }
+}
+
+// ── Init ──
+async function autoInitFirebase() {
+  _jbSyncEnabled = true;
+  aggiornaStatoFB('connecting');
+  await sincronizzaOra();
+  setTimeout(creaBackupAutomatico, 5000);
+}
+
+// ── Contatori consumi ──
+let _sbCallCount = 0;
+let _sbBandaBytes = 0;
+function _sbContaChiamata(bytes) { _sbCallCount++; _sbBandaBytes += (bytes || 0); }
+
+async function aggiornaConsumiSupabase() {
+  try {
+    const db = getDb();
+    const dataSize = db ? new Blob([JSON.stringify(db)]).size : 0;
+    const dataSizeMB = (dataSize / 1024 / 1024).toFixed(2);
+    const dbPct = Math.min((dataSize / (500 * 1024 * 1024)) * 100, 100).toFixed(2);
+    const apiPct = Math.min((_sbCallCount / 500000) * 100, 100).toFixed(3);
+    const bandaKB = (_sbBandaBytes / 1024).toFixed(1);
+    const bandaMB = (_sbBandaBytes / 1024 / 1024).toFixed(3);
+    const bwPct = Math.min((_sbBandaBytes / (2 * 1024 * 1024 * 1024)) * 100, 100).toFixed(4);
+    function colore(pct) {
+      if (pct < 50) return 'linear-gradient(90deg,#66BB6A,#81C784)';
+      if (pct < 80) return 'linear-gradient(90deg,#FFA726,#FFB74D)';
+      return 'linear-gradient(90deg,#EF5350,#E57373)';
+    }
+    const dbBar = document.getElementById('sb-db-bar');
+    const dbLbl = document.getElementById('sb-db-label');
+    if (dbBar) { dbBar.style.width = dbPct + '%'; dbBar.style.background = colore(parseFloat(dbPct)); }
+    if (dbLbl) dbLbl.textContent = `${dataSizeMB} MB / 500 MB (${dbPct}%)`;
+    const apiBar = document.getElementById('sb-api-bar');
+    const apiLbl = document.getElementById('sb-api-label');
+    if (apiBar) { apiBar.style.width = Math.min(_sbCallCount / 100, 100) + '%'; apiBar.style.background = colore(parseFloat(apiPct)); }
+    if (apiLbl) apiLbl.textContent = `${_sbCallCount} chiamate questa sessione`;
+    const bwBar = document.getElementById('sb-bw-bar');
+    const bwLbl = document.getElementById('sb-bw-label');
+    if (bwBar) { bwBar.style.width = Math.min(parseFloat(bwPct) * 1000, 100) + '%'; bwBar.style.background = colore(parseFloat(bwPct)); }
+    if (bwLbl) bwLbl.textContent = _sbBandaBytes < 1024*1024 ? `${bandaKB} KB` : `${bandaMB} MB`;
+  } catch(e) { console.error('Errore calcolo consumi:', e); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tabSync = document.querySelector('[onclick*="sincronizzazione"]');
+  if (tabSync) tabSync.addEventListener('click', () => setTimeout(aggiornaConsumiSupabase, 300));
+});
+window.addEventListener('load', () => setTimeout(aggiornaConsumiSupabase, 2000));
+window.addEventListener('load', () => { setTimeout(autoInitFirebase, 1500); });
+
 const ONLINE_TTL = 90000;   // 90s inattività = offline
-const ONLINE_POLL = 180000;  // poll ogni 3 minuti (riduce richieste Supabase)
-const SB_ONLINE_ID = 'online'; // riga separata solo per presenza, non tocca il database
-const SB_UTENTI_ID = 'utenti-globali'; // riga separata per gli utenti globali
+const ONLINE_POLL = 60000;  // poll ogni 60s
 let _onlineInterval = null;
 let _onlineSessionId = null;
-let _ultimoSyncUtenti = null; // timestamp ultimo sync utenti
+let _ultimoSyncUtenti = null;
 
-// ── Carica utenti globali dal cloud ──
+
 async function scaricaUtentiDaCloud() {
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_UTENTI_ID}&select=data,updated_at`, {
-      headers: sbHeaders()
-    });
+    const res = await fetch(`${NAS_URL}/api/utenti`, { headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) return null;
-    const json = await res.json();
-    _sbContaChiamata(json ? new Blob([JSON.stringify(json)]).size : 100);
-    if (!json || json.length === 0) return null;
-    return json[0];
+    const utenti = await res.json();
+    _sbContaChiamata(new Blob([JSON.stringify(utenti)]).size);
+    if (!utenti || utenti.length === 0) return null;
+    return { data: { utenti }, updated_at: new Date().toISOString() };
   } catch(e) {
-    console.error('Scarica utenti error:', e);
+    console.error('NAS scarica utenti error:', e);
     return null;
   }
 }
@@ -22317,22 +22471,16 @@ async function uploadUtentiCloud() {
   if (!_jbSyncEnabled) return false;
   try {
     const now = new Date().toISOString();
-    const payload = {
-      id: SB_UTENTI_ID,
-      data: { utenti: APP.utenti, aggiornato: now },
-      updated_at: now
-    };
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
+    const res = await fetch(`${NAS_URL}/api/utenti`, {
       method: 'POST',
-      headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-      body: JSON.stringify(payload)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ utenti: APP.utenti, aggiornato: now })
     });
-    if (!res.ok) { console.error('Upload utenti error:', res.status); return false; }
-    _sbContaChiamata(new Blob([JSON.stringify(payload)]).size);
+    if (!res.ok) { console.error('NAS upload utenti error:', res.status); return false; }
     _ultimoSyncUtenti = now;
     return true;
   } catch(e) {
-    console.error('Upload utenti error:', e);
+    console.error('NAS upload utenti error:', e);
     return false;
   }
 }
@@ -22363,108 +22511,55 @@ async function sincronizzaUtenti() {
 }
 
 // ── Auto-sync utenti silenzioso (chiamato nell'auto-sync globale) ──
-let _lastSyncUtentiTs = 0;
 async function autoSyncUtenti() {
-  // Throttle: max una volta ogni 10 minuti
-  if (Date.now() - _lastSyncUtentiTs < 10 * 60 * 1000) return;
-  _lastSyncUtentiTs = Date.now();
   try {
-    const resTs = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_UTENTI_ID}&select=updated_at`, {
-      headers: sbHeaders()
-    });
-    if (!resTs.ok) return;
-    const tsJson = await resTs.json();
-    if (!tsJson || tsJson.length === 0) {
-      // Nessun record sul cloud → carico gli utenti locali SOLO se ne ho di reali (non solo admin default)
+    // Controlla se gli utenti NAS sono più recenti
+    const remoto = await scaricaUtentiDaCloud();
+    if (!remoto || !remoto.data || !remoto.data.utenti) {
       if (APP.utenti && APP.utenti.length > 1) {
         await uploadUtentiCloud();
-        console.log('📤 [auto-sync] Utenti caricati sul cloud (nessun record esistente):', APP.utenti.length);
       }
       return;
     }
-    const cloudTs = tsJson[0].updated_at;
-    if (cloudTs === _ultimoSyncUtenti) return; // già aggiornato
-    const record = await scaricaUtentiDaCloud();
-    if (!record || !record.data || !record.data.utenti) return;
-    const cloudUtenti = record.data.utenti;
-    const cloudTime = cloudTs ? new Date(cloudTs).getTime() : 0;
-    const localTime = _ultimoSyncUtenti ? new Date(_ultimoSyncUtenti).getTime() : 0;
-    const cloudData = JSON.stringify(cloudUtenti);
-    const localData = JSON.stringify(APP.utenti);
-    if (cloudData === localData) {
-      _ultimoSyncUtenti = cloudTs; // Allinea timestamp senza toccare i dati
-      return;
-    }
-    // Protezione: non sovrascrivere MAI utenti locali con meno utenti dal cloud
-    // a meno che il cloud non sia esplicitamente più recente
-    if (cloudTime > localTime) {
-      // Cloud più recente: accetta SOLO se cloud ha almeno tanti utenti quanti il locale
-      // oppure se il locale ha solo l'admin default
-      const localeSoloDefault = APP.utenti.length <= 1 && APP.utenti[0]?.username === 'admin';
-      if (cloudUtenti.length >= APP.utenti.length || localeSoloDefault) {
-        APP.utenti = cloudUtenti;
-        _ultimoSyncUtenti = cloudTs;
-        _saveStorageOriginal();
-        console.log('📥 [auto-sync] Utenti aggiornati dal cloud:', APP.utenti.length);
-        const av = document.querySelector('.view.active');
-        if (av && av.id === 'view-impostazioni-utenti') renderUtenti();
-      } else {
-        // Cloud ha MENO utenti → locale vince, ricarica sul cloud
-        console.log('⚠️ [auto-sync] Cloud ha meno utenti (' + cloudUtenti.length + ') del locale (' + APP.utenti.length + ') → upload locale');
-        await uploadUtentiCloud();
-      }
+    const tsRemoto = remoto.updated_at ? new Date(remoto.updated_at).getTime() : 0;
+    const tsLocale = _ultimoSyncUtenti ? new Date(_ultimoSyncUtenti).getTime() : 0;
+    if (tsRemoto > tsLocale) {
+      APP.utenti = remoto.data.utenti;
+      _ultimoSyncUtenti = remoto.updated_at;
+      saveStorage();
+    } else if (tsLocale > tsRemoto) {
+      await uploadUtentiCloud();
     }
   } catch(e) {
-    console.error('autoSyncUtenti error:', e);
+    console.warn('Auto-sync utenti error:', e);
   }
 }
 
-// Legge SOLO la riga online (leggera, senza database) e aggiorna la presenza
+
 async function onlineHeartbeat() {
   if (!AUTH.currentUser || !_onlineSessionId) return;
-
   try {
-    // 1. Scarica SOLO la riga online (non il database) — select=data è ~poche centinaia di byte
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ONLINE_ID}&select=data`, {
-      headers: sbHeaders()
-    });
-    if (!res.ok) return;
-    const json = await res.json();
-    const record = (json && json[0]) ? (json[0].data || {}) : {};
-
-    // 2. Aggiorna la mia sessione
-    const online = record.onlineUsers || {};
-    const now = Date.now();
-
-    // Rimuovi sessioni scadute
-    Object.keys(online).forEach(k => { if (now - online[k].ts > ONLINE_TTL) delete online[k]; });
-
-    // Scrivi la mia presenza
     const _dev = rilevaTipoDispositivo();
-    online[_onlineSessionId] = {
-      nome: AUTH.currentUser.nome,
-      ruolo: AUTH.currentUser.ruolo,
-      username: AUTH.currentUser.username,
-      db: APP.currentDb || '–',
-      ts: now,
-      dispositivo: _dev.label,
-      dispositivoEmoji: _dev.emoji
-    };
-
-    // 3. Salva SOLO la riga online — payload minimo (~poche centinaia di byte)
-    const onlinePayload = { id: SB_ONLINE_ID, data: { onlineUsers: online }, updated_at: new Date().toISOString() };
-    await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
+    await fetch(`${NAS_URL}/api/online`, {
       method: 'POST',
-      headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-      body: JSON.stringify(onlinePayload)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: _onlineSessionId,
+        nome: AUTH.currentUser.nome,
+        ruolo: AUTH.currentUser.ruolo,
+        username: AUTH.currentUser.username,
+        db: APP.currentDb || '–',
+        ts: Date.now(),
+        dispositivo: _dev.label,
+        dispositivoEmoji: _dev.emoji
+      })
     });
-
-    // 4. Aggiorna pillola UI
-    onlineAggiornaPillola(online);
-
-  } catch(e) {
-    console.warn('Online heartbeat error:', e);
-  }
+    const res = await fetch(`${NAS_URL}/api/online`, { headers: { 'Content-Type': 'application/json' } });
+    if (res.ok) {
+      const online = await res.json();
+      onlineAggiornaPillola(online);
+    }
+  } catch(e) { console.warn('Online heartbeat error:', e); }
 }
 
 async function onlineLogout() {
@@ -22473,20 +22568,10 @@ async function onlineLogout() {
     return;
   }
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ONLINE_ID}&select=data`, {
-      headers: sbHeaders()
+    await fetch(`${NAS_URL}/api/online/${_onlineSessionId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
     });
-    if (res.ok) {
-      const json = await res.json();
-      const record = (json && json[0]) ? (json[0].data || {}) : {};
-      const online = record.onlineUsers || {};
-      delete online[_onlineSessionId];
-      await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
-        method: 'POST',
-        headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-        body: JSON.stringify({ id: SB_ONLINE_ID, data: { onlineUsers: online }, updated_at: new Date().toISOString() })
-      });
-    }
   } catch(e) {}
   _onlineSessionId = null;
   if (_onlineInterval) { clearInterval(_onlineInterval); _onlineInterval = null; }
@@ -22578,317 +22663,17 @@ document.addEventListener('click', e => {
 
 // Sync silenzioso in background — controlla TUTTI i database
 // ── CLOUD-FIRST: il cloud è la fonte di verità ──
-async function autoSyncSilenzioso() {
-  if (_operazioneCriticaInCorso) return;
-  // Blocca auto-sync per 15s dopo qualsiasi modifica locale o upload recente
-  if (_ultimaModificaLocale && (Date.now() - _ultimaModificaLocale) < 15000) return;
-  if (_lastUploadTimestamp && (Date.now() - _lastUploadTimestamp) < 15000) return;
-
-  try {
-    // 1. Sync utenti globali in parallelo (record separato, indipendente)
-    autoSyncUtenti();
-
-    // 2. Scarica updated_at di TUTTI i record database (escluso online e utenti-globali)
-    const resTs = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=neq.${SB_ONLINE_ID}&id=neq.${SB_UTENTI_ID}&select=id,updated_at`, {
-      headers: sbHeaders()
-    });
-    if (!resTs.ok) return;
-    const tsJson = await resTs.json();
-    _sbContaChiamata(tsJson ? new Blob([JSON.stringify(tsJson)]).size : 200);
-    if (!tsJson || tsJson.length === 0) {
-      // Niente sul cloud — carico tutto
-      await uploadToFirebase();
-      aggiornaStatoFB('connected');
-      return;
-    }
-
-    // 2. Verifica se qualcuno dei record cloud è cambiato dall'ultimo sync
-    const cloudTsMap = {};
-    tsJson.forEach(r => { cloudTsMap[r.id] = r.updated_at; });
-
-    const localKeys = Object.keys(APP.databases||{}).map(n => getDbKey(n));
-    const nuoviCloud = tsJson.filter(r => !localKeys.includes(r.id));
-
-    const dbKeyCorrente = APP.currentDb ? getDbKey(APP.currentDb) : null;
-    const tsCorrente = dbKeyCorrente ? cloudTsMap[dbKeyCorrente] : null;
-    const dbCorrenteAggiornato = tsCorrente && tsCorrente !== _ultimoAggiornamentoCloud;
-
-    if (nuoviCloud.length === 0 && !dbCorrenteAggiornato) {
-      aggiornaStatoFB('connected');
-      return;
-    }
-
-    // 3. Scarica tutti i record aggiornati / nuovi
-    const records = await scaricaDaCloud();
-    if (!records) return;
-
-    let hasChanges = false;
-    for (const record of records) {
-      if (!record.data || !record.data.db) continue;
-      const nomeDb = record.data.dbName || record.id;
-
-      if (!APP.databases[nomeDb]) {
-        if (window._dbEliminati && (window._dbEliminati.has(nomeDb) || window._dbEliminati.has(record.id))) {
-          try { await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.'+record.id, { method:'DELETE', headers:sbHeaders() }); } catch(e){}
-          continue;
-        }
-        APP.databases[nomeDb] = record.data.db;
-        hasChanges = true;
-        console.log('📥 [auto-sync] Nuovo DB dal cloud:', nomeDb);
-      } else {
-        const cloudData = JSON.stringify(record.data.db);
-        const localData = JSON.stringify(APP.databases[nomeDb]);
-        // Skip se i dati cloud sono identici a quelli che abbiamo appena caricato
-        if (_uploadedDataHashes[nomeDb] && cloudData === _uploadedDataHashes[nomeDb]) {
-          continue;
-        }
-        if (cloudData !== localData) {
-          // ── CLOUD VINCE SEMPRE ──
-          const èDbCorrente = nomeDb === APP.currentDb;
-          if (èDbCorrente) {
-            const diff = confrontaDati(JSON.parse(localData), record.data.db);
-            if (diff.importante) {
-              const parti = [];
-              if (diff.deltaIscritti  !== 0) parti.push(`${diff.deltaIscritti > 0 ? '+' : ''}${diff.deltaIscritti} iscritti`);
-              if (diff.deltaSquadre   !== 0) parti.push(`${diff.deltaSquadre > 0 ? '+' : ''}${diff.deltaSquadre} squadre`);
-              if (diff.deltaAnimatori !== 0) parti.push(`${diff.deltaAnimatori > 0 ? '+' : ''}${diff.deltaAnimatori} animatori`);
-              showToast('📥 ' + (parti.length ? parti.join(', ') : 'Dati aggiornati') + ' dal cloud', 'info');
-            }
-          }
-          // Preserva campi pesanti locali (cloud non li include)
-          const _calFile = APP.databases[nomeDb]?.calendarioFile;
-          const _logo = APP.databases[nomeDb]?.impostazioni?.logo;
-          const _logoG = APP.databases[nomeDb]?.impostazioni?.logoGestionale;
-          APP.databases[nomeDb] = record.data.db;
-          if (_calFile) APP.databases[nomeDb].calendarioFile = _calFile;
-          if (!APP.databases[nomeDb].impostazioni) APP.databases[nomeDb].impostazioni = {};
-          if (_logo) APP.databases[nomeDb].impostazioni.logo = _logo;
-          if (_logoG) APP.databases[nomeDb].impostazioni.logoGestionale = _logoG;
-          delete _uploadedDataHashes[nomeDb];
-          hasChanges = true;
-          console.log('📥 [auto-sync] DB aggiornato dal cloud:', nomeDb);
-        }
-      }
-    }
-
-    // 4. Upload dei db locali non presenti sul cloud
-    const cloudKeys = new Set(records.map(r => r.data?.dbName || r.id));
-    for (const nomeDb of Object.keys(APP.databases||{})) {
-      if (window._dbEliminati && (window._dbEliminati.has(nomeDb) || window._dbEliminati.has(getDbKey(nomeDb)))) continue;
-      if (!cloudKeys.has(nomeDb) && APP.databases[nomeDb]) {
-        await _uploadSingoloDb(nomeDb, APP.databases[nomeDb]);
-        console.log('📤 [auto-sync] DB locale caricato sul cloud:', nomeDb);
-      }
-    }
-
-    if (hasChanges) {
-      _ultimaModificaLocale = null;
-      localStorage.removeItem(LOCAL_TS_KEY);
-      _saveStorageOriginal();
-      updateHeader();
-      updateLogoLogin();
-      const av = document.querySelector('.view.active');
-      if (av) navigate(av.id.replace('view-', ''));
-      const el = document.getElementById('fb-last-sync');
-      if (el) el.textContent = new Date().toLocaleTimeString('it-IT');
-    }
-
-    _ultimoAggiornamentoCloud = dbKeyCorrente ? (cloudTsMap[dbKeyCorrente] || _ultimoAggiornamentoCloud) : _ultimoAggiornamentoCloud;
-    aggiornaStatoFB('connected');
-  } catch (e) {
-    console.error('Auto-sync error:', e);
-  }
-}
-
-// Confronta dati per vedere se ci sono modifiche importanti
-function confrontaDati(vecchio, nuovo) {
-  const nIscritti  = (nuovo.iscritti  || []).length - (vecchio.iscritti  || []).length;
-  const nSquadre   = (nuovo.squadre   || []).length - (vecchio.squadre   || []).length;
-  const nAnimatori = (nuovo.animatori || []).length - (vecchio.animatori || []).length;
-  const nSpese     = (nuovo.spese     || []).length - (vecchio.spese     || []).length;
-
-  return {
-    importante: Math.abs(nIscritti) > 0
-              || Math.abs(nSquadre) > 0 || Math.abs(nAnimatori) > 0
-              || Math.abs(nSpese) > 0,
-    deltaIscritti:  nIscritti,
-    deltaSquadre:   nSquadre,
-    deltaAnimatori: nAnimatori,
-    deltaUtenti:    0
-  };
-}
-
-// ── Salva sync con intercetta saveStorage ──
-const LOCAL_TS_KEY = 'grest_local_ts'; // chiave localStorage per il timestamp locale
-// Leggi il timestamp dall'ultima sessione (sopravvive alla chiusura del browser)
-let _ultimaModificaLocale = null; // Azzerato ad ogni avvio — il cloud è sempre la fonte di verità alla prima apertura
-localStorage.removeItem(LOCAL_TS_KEY); // Pulisce residui di sessioni precedenti
-
-const _saveStorageOriginal = (typeof saveStorage !== 'undefined') ? saveStorage : function(){};
-if (typeof saveStorage !== 'undefined') {
-  window.saveStorage = function(immediate) {
-    _saveStorageOriginal(immediate);
-    // Salva sempre l'ultimo db usato come chiave separata (pochi byte, non fallisce mai)
-    if(APP.currentDb) try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e){}
-    _ultimaModificaLocale = Date.now();
-    localStorage.setItem(LOCAL_TS_KEY, _ultimaModificaLocale);
-    // Forza prossimo upload — resetta TUTTI i meccanismi di cache
-    uploadToFirebase._lastHash = null;
-    _forceNextUpload = true;
-    if (_uploadSingoloDb._hashes) _uploadSingoloDb._hashes = {};
-    // Invalida hash dati caricati (i dati locali sono cambiati)
-    if (APP.currentDb) delete _uploadedDataHashes[APP.currentDb];
-    // Segna che ci sono modifiche locali (utile se offline)
-    localStorage.setItem('grest_offline_edits', 'true');
-    console.log('💾 saveStorage chiamato — upload Supabase schedulato in 3s');
-    if (_jbSyncEnabled) {
-      clearTimeout(_jbSyncTimer);
-      _jbSyncTimer = setTimeout(uploadToFirebase, 3000);
-    }
-  };
-}
-
-// ── UI stato ──
-function aggiornaStatoFB(stato) {
-  const dot  = document.getElementById('fb-status-dot');
-  const text = document.getElementById('fb-status-text');
-  const card = document.getElementById('fb-status-card');
-  if (!dot || !text) return;
-  const stati = {
-    connected:    { dot:'#4CAF50', text:'Connesso — sincronizzazione attiva', bg:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-    connecting:   { dot:'#FFC107', text:'Connessione in corso...', bg:'linear-gradient(135deg,#e65100,#bf360c)' },
-    error:        { dot:'#f44336', text:'Errore di connessione', bg:'linear-gradient(135deg,#b71c1c,#c62828)' },
-    disconnected: { dot:'rgba(255,255,255,0.3)', text:'Non connesso — configura JSONBin nelle impostazioni', bg:'linear-gradient(135deg,#1a73e8,#0d47a1)' },
-  };
-  const s = stati[stato] || stati.disconnected;
-  dot.style.background = s.dot;
-  text.textContent = s.text;
-  if (card) card.style.background = s.bg;
-  const cs = document.getElementById('fb-conn-status');
-  if (cs) cs.textContent = stato==='connected' ? 'Online' : stato==='error' ? 'Errore' : 'In attesa';
-  
-  // Aggiorna badge header
-  const headerDot = document.getElementById('sync-status-dot');
-  const headerText = document.getElementById('sync-status-text');
-  if (headerDot) {
-    headerDot.style.background = s.dot;
-  }
-  if (headerText) {
-    if (stato === 'connected') headerText.textContent = 'Online';
-    else if (stato === 'error') headerText.textContent = 'Offline';
-    else if (stato === 'connecting') headerText.textContent = 'Sync...';
-    else headerText.textContent = '';
-  }
-}
-
-// ── Reset emergenza (5 tap su nome oratorio) ──
-let _emergencyTaps = 0;
-let _emergencyTimer2 = null;
-function emergencyTap() {
-  _emergencyTaps++;
-  clearTimeout(_emergencyTimer2);
-  _emergencyTimer2 = setTimeout(() => { _emergencyTaps = 0; }, 2000);
-  if (_emergencyTaps >= 5) {
-    _emergencyTaps = 0;
-    const bar = document.getElementById('emergency-reset-bar');
-    if (bar) bar.style.display = 'block';
-  }
-}
-function emergencyReset() {
-  showConfirm('Cancellare tutti i dati locali? I dati nel cloud restano intatti.', ()=>{
-    const jbConfig = localStorage.getItem(JB_KEY);
-    const _t = localStorage.getItem('grest-theme');
-    localStorage.clear();
-    if (jbConfig) localStorage.setItem(JB_KEY, jbConfig);
-    if (_t) localStorage.setItem('grest-theme', _t);
-    showToast('Reset completato! Ricarica la pagina.', 'success');
-    setTimeout(() => location.reload(), 1500);
-  }, 'Cancella', '🔴');
-}
-
-// ── Configura (stub compatibilità — Supabase è sempre configurato) ──
-async function salvaConfigJsonBin() {
-  showToast('Supabase è già configurato automaticamente!', 'success');
-}
-
-function aggiornaUIFirebase() {} // Stub compatibilità (legacy Firebase)
-function toggleSync(v) { _jbSyncEnabled = v; }
-function disconnettiFirebase() {
-  showToast('Supabase è il backend permanente, non può essere disconnesso.', 'warning');
-}
-
-// ── Auto-init all'avvio: sempre connesso con Supabase ──
-async function autoInitFirebase() {
-  _jbSyncEnabled = true;
-  aggiornaStatoFB('connecting');
-  // Scarica sempre dal cloud all'avvio — sia con db locale che senza
-  await sincronizzaOra();
-  // Backup automatico (se sono passate 6+ ore dall'ultimo)
-  setTimeout(creaBackupAutomatico, 5000);
-}
-
-// ── Aggiorna consumi Supabase ──
-// Contatori reali sessione
-let _sbCallCount = 0;
-let _sbBandaBytes = 0;
-
-function _sbContaChiamata(bytes) {
-  _sbCallCount++;
-  _sbBandaBytes += (bytes || 0);
-}
-
-async function aggiornaConsumiSupabase() {
-  try {
-    // 1. Dimensione dati — REALE
-    const db = getDb();
-    const dataSize = db ? new Blob([JSON.stringify(db)]).size : 0;
-    const dataSizeMB = (dataSize / 1024 / 1024).toFixed(2);
-    const dbPct = Math.min((dataSize / (500 * 1024 * 1024)) * 100, 100).toFixed(2);
-
-    // 2. Chiamate sessione — REALI (contate da _sbContaChiamata)
-    const apiPct = Math.min((_sbCallCount / 500000) * 100, 100).toFixed(3);
-
-    // 3. Banda sessione — REALE (bytes effettivi dei payload)
-    const bandaKB = (_sbBandaBytes / 1024).toFixed(1);
-    const bandaMB = (_sbBandaBytes / 1024 / 1024).toFixed(3);
-    const bwPct = Math.min((_sbBandaBytes / (2 * 1024 * 1024 * 1024)) * 100, 100).toFixed(4);
-
-    function colore(pct) {
-      if (pct < 50) return 'linear-gradient(90deg,#66BB6A,#81C784)';
-      if (pct < 80) return 'linear-gradient(90deg,#FFA726,#FFB74D)';
-      return 'linear-gradient(90deg,#EF5350,#E57373)';
-    }
-
-    const dbBar = document.getElementById('sb-db-bar');
-    const dbLbl = document.getElementById('sb-db-label');
-    if (dbBar) { dbBar.style.width = dbPct + '%'; dbBar.style.background = colore(parseFloat(dbPct)); }
-    if (dbLbl) dbLbl.textContent = `${dataSizeMB} MB / 500 MB (${dbPct}%)`;
-
-    const apiBar = document.getElementById('sb-api-bar');
-    const apiLbl = document.getElementById('sb-api-label');
-    if (apiBar) { apiBar.style.width = Math.min(_sbCallCount / 100, 100) + '%'; apiBar.style.background = colore(parseFloat(apiPct)); }
-    if (apiLbl) apiLbl.textContent = `${_sbCallCount} chiamate questa sessione`;
-
-    const bwBar = document.getElementById('sb-bw-bar');
-    const bwLbl = document.getElementById('sb-bw-label');
-    if (bwBar) { bwBar.style.width = Math.min(parseFloat(bwPct) * 1000, 100) + '%'; bwBar.style.background = colore(parseFloat(bwPct)); }
-    if (bwLbl) bwLbl.textContent = _sbBandaBytes < 1024*1024 ? `${bandaKB} KB` : `${bandaMB} MB`;
-
-  } catch(e) {
-    console.error('Errore calcolo consumi:', e);
-  }
-}
-
-// Aggiorna consumi quando si apre la tab sincronizzazione
-document.addEventListener('DOMContentLoaded', () => {
-  const tabSync = document.querySelector('[onclick*="sincronizzazione"]');
-  if (tabSync) tabSync.addEventListener('click', () => setTimeout(aggiornaConsumiSupabase, 300));
-});
-window.addEventListener('load', () => setTimeout(aggiornaConsumiSupabase, 2000));
-
-window.addEventListener('load', () => { setTimeout(autoInitFirebase, 1500); });
-
 // ── Rilevamento connessione online/offline ──
+// 🔒 FIX chiusura browser: salva sempre grest_ultimo_db quando si chiude o nasconde la tab
+window.addEventListener('beforeunload', () => {
+  try { if(APP.currentDb) localStorage.setItem('grest_ultimo_db', APP.currentDb); } catch(e){}
+});
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden'){
+    try { if(APP.currentDb) localStorage.setItem('grest_ultimo_db', APP.currentDb); } catch(e){}
+  }
+});
+
 window.addEventListener('online', () => {
   showToast('🟢 Connessione ripristinata — sincronizzazione in corso...', 'success');
   aggiornaStatoFB('connecting');
