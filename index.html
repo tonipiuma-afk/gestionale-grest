@@ -3393,6 +3393,9 @@ svg {
 }
 
 /* ═══ ANIMAZIONI DASHBOARD ═══ */
+@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
+@keyframes tickerUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes tickerDown{from{transform:translateY(0);opacity:1;}to{transform:translateY(100%);opacity:0;}}
 @keyframes fadeInUp{
   from{opacity:0;transform:translateY(20px);}
   to{opacity:1;transform:translateY(0);}
@@ -5066,13 +5069,13 @@ img:not([loading]) { loading: lazy; }
 </div>
 
 <!-- ═══════════ MESSAGGIO DEL GIORNO ═══════════ -->
-<div id="modal-msg-giorno" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center">
-  <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:fadeInUp .4s ease">
-    <div style="font-size:48px;margin-bottom:12px" id="msg-giorno-emoji">☀️</div>
-    <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Messaggio del giorno</div>
-    <div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:8px" id="msg-giorno-testo">Buona giornata a tutti!</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:24px" id="msg-giorno-firma">— Admin</div>
-    <button onclick="chiudiMsgGiorno()" style="width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">🚀 Iniziamo!</button>
+<div id="modal-msg-giorno" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;height:38px;background:linear-gradient(90deg,var(--teal),#2e7d32);color:#fff;overflow:hidden;box-shadow:0 -2px 12px rgba(0,0,0,0.15);animation:tickerUp .4s ease both">
+  <span onclick="chiudiMsgGiorno()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:0.6;z-index:2;cursor:pointer;background:rgba(0,0,0,0.15);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">✕</span>
+  <div id="msg-giorno-ticker" style="display:inline-block;white-space:nowrap;font-size:13px;font-weight:700;line-height:38px;padding-left:100%;animation:tickerScroll var(--ticker-dur,16s) linear infinite">
+    <span id="msg-giorno-emoji" style="margin-right:6px">☀️</span>
+    <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-right:8px">📣 Messaggio del giorno</span>
+    <span id="msg-giorno-testo">Buona giornata a tutti!</span>
+    <span id="msg-giorno-firma" style="opacity:0.7;margin-left:10px">— Admin</span>
   </div>
 </div>
 
@@ -8676,27 +8679,45 @@ function loadStorage(){
     const _t=localStorage.getItem('grest-theme');
     const _u=localStorage.getItem('grest_ultimo_db');
     const _sess=localStorage.getItem('grest_session_user');
+    const _rem=localStorage.getItem('grest_remember');
     try{localStorage.clear();}catch(e){}
     if(_t)try{localStorage.setItem('grest-theme',_t);}catch(e){}
     if(_u)try{localStorage.setItem('grest_ultimo_db',_u);}catch(e){}
     if(_sess)try{localStorage.setItem('grest_session_user',_sess);}catch(e){}
+    if(_rem)try{localStorage.setItem('grest_remember',_rem);}catch(e){}
     APP.databases=p.databases||{};
     APP.currentDb=p.currentDb||null;
     APP.utenti=p.utenti||[];
-    try{localStorage.setItem('grest_v2',JSON.stringify(p));}catch(e){}
+    // Non salva il database in localStorage (troppo grande) - usa solo Supabase
     _ultimaModificaLocale=Date.now();
     try{localStorage.setItem('grest_local_ts',_ultimaModificaLocale);}catch(e){}
     return;
   }
   try{
-    const r=localStorage.getItem('grest_v2');
-    if(r){const d=JSON.parse(r);APP.databases=d.databases||{};APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
-    // grest_ultimo_db ha sempre la precedenza — è l'ultimo db usato su questo dispositivo
+    // Leggi solo metadati leggeri
+    const r=localStorage.getItem('grest_meta') || localStorage.getItem('grest_v2');
+    if(r){const d=JSON.parse(r);APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
+    // grest_ultimo_db ha sempre la precedenza
     const ultimoDb=localStorage.getItem('grest_ultimo_db');
     if(ultimoDb){
       APP.currentDb=ultimoDb;
-      if(!APP.databases[ultimoDb]) APP.databases[ultimoDb]=defaultDb();
     }
+    // ── FALLBACK LOCALE: carica database salvati localmente ──
+    // Così l'app funziona anche senza Supabase / prima che Supabase risponda
+    const dbNames=localStorage.getItem('grest_db_names');
+    if(dbNames){
+      const nomi=JSON.parse(dbNames);
+      for(const nome of nomi){
+        try{
+          const raw=localStorage.getItem('grest_db_'+nome);
+          if(raw && !APP.databases[nome]){
+            APP.databases[nome]=JSON.parse(raw);
+            console.log('📦 [loadStorage] DB caricato da localStorage:', nome);
+          }
+        }catch(e2){console.warn('loadStorage db err:',nome,e2);}
+      }
+    }
+    if(APP.currentDb && !APP.databases[APP.currentDb]) APP.databases[APP.currentDb]=defaultDb();
   }catch(e){APP.databases={};APP.currentDb=null;APP.utenti=[];}
 }
 let _saveTimer=null;
@@ -8760,40 +8781,37 @@ function nascondiUndoButton() {
 }
 
 function saveStorage(immediate){
-  // Calcola hash leggero per evitare write inutili
-  const db=getDb();
-  const imp = db?.impostazioni||{};
-  const quickHash = db ? JSON.stringify({
-    i:db.iscritti?.length||0, sp:db.spese?.length||0, a:db.animatori?.length||0,
-    sq:db.squadre?.length||0, p:db.presenze?Object.keys(db.presenze).length:0,
-    ng:imp.nomeGrest||'', an:imp.anno||'', or:imp.oratorio||'',
-    ns:imp.numSettimane||0, p13:imp.prezzoBase13||0, p16:imp.prezzoBase16||0,
-    di:imp.dataInizio||'', df:imp.dataFine||'', qt:imp.quotaTotale||0,
-    ds:db.diarioSquadre?.length||0, sg:db.segnalazioni?.length||0, gt:db.gite?.length||0,
-    sqj:JSON.stringify(db.squadre||[]).length, pgj:JSON.stringify(db.pagamenti||{}).length,
-    pn:JSON.stringify(db.pianificatore||{}).length, mn:JSON.stringify(db.mensa||{}).length,
-    cal:JSON.stringify(db.calFonti||{}).length  // ← calendario incluso nell'hash
-  }) : 'empty';
-
+  const salvaLeggero = () => {
+    try{
+      localStorage.setItem('grest_meta',JSON.stringify({currentDb:APP.currentDb,utenti:APP.utenti}));
+      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
+    }catch(e){console.warn('saveStorage meta error:',e);}
+    // Salva anche i database localmente come fallback offline
+    try{
+      const dbKeys=Object.keys(APP.databases||{});
+      for(const nome of dbKeys){
+        try{
+          const payload=JSON.stringify(APP.databases[nome]);
+          // Salva solo se < 4MB (limite sicuro localStorage)
+          if(payload.length < 4*1024*1024){
+            localStorage.setItem('grest_db_'+nome, payload);
+          }
+        }catch(e2){/* db troppo grande, salta */}
+      }
+      // Salva lista nomi db
+      localStorage.setItem('grest_db_names', JSON.stringify(dbKeys));
+    }catch(e){console.warn('saveStorage dbs error:',e);}
+  };
   if(immediate){
     clearTimeout(_saveTimer);_saveTimer=null;
-    if(quickHash===_lastSavedHash && !immediate) return; // nulla è cambiato
-    try{
-      localStorage.setItem('grest_v2',JSON.stringify({databases:APP.databases,currentDb:APP.currentDb,utenti:APP.utenti}));
-      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
-      _lastSavedHash=quickHash;
-    }catch(e){console.warn('saveStorage error:',e);}
+    salvaLeggero();
     return;
   }
-  if(_saveTimer)return; // già schedulato
+  if(_saveTimer)return;
   _saveTimer=setTimeout(()=>{
     _saveTimer=null;
-    try{
-      localStorage.setItem('grest_v2',JSON.stringify({databases:APP.databases,currentDb:APP.currentDb,utenti:APP.utenti}));
-      if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
-      _lastSavedHash=quickHash;
-    }catch(e){console.warn('saveStorage error:',e);}
-  },300); // aumentato da 150ms a 300ms per raggruppare più modifiche
+    salvaLeggero();
+  },300);
 }
 function getDb(){if(!APP.currentDb||!APP.databases[APP.currentDb])return null;return APP.databases[APP.currentDb];}
 
@@ -19533,11 +19551,21 @@ const GAMIFY = {
   ],
 
   // ── Stato utente ──
-  _getKey(){ return 'grest_xp_' + (AUTH.currentUser?.id || 'anon'); },
+  _getKey(){ return 'grest_xp_' + (AUTH.currentUser?.username || AUTH.currentUser?.id || 'anon'); },
+  _getOldKey(){ return 'grest_xp_' + (AUTH.currentUser?.id || 'anon'); },
 
   getStats(){
     try {
-      const raw = localStorage.getItem(this._getKey());
+      const key = this._getKey();
+      let raw = localStorage.getItem(key);
+      // Migrazione: se non trovato con username, cerca con vecchio id
+      if(!raw){
+        const oldKey = this._getOldKey();
+        if(oldKey !== key){
+          const oldRaw = localStorage.getItem(oldKey);
+          if(oldRaw){ localStorage.setItem(key, oldRaw); localStorage.removeItem(oldKey); raw = oldRaw; }
+        }
+      }
       return raw ? JSON.parse(raw) : { xp:0, level:1, logins:0, streak:0, lastLogin:'', presenze:0, diario:0, checklist:0, iscritti:0, animatori:0, badges:[], dailyXp:{} };
     } catch(e){ return { xp:0, level:1, logins:0, streak:0, lastLogin:'', presenze:0, diario:0, checklist:0, iscritti:0, animatori:0, badges:[], dailyXp:{} }; }
   },
@@ -19822,21 +19850,8 @@ function inviaNotificaMsgGiorno(msg){
 
 // ── Mostra notifica ricevuta in tempo reale ──
 function mostraNotificaMsgGiorno(m){
-  // Non mostrare se l'abbiamo inviato noi stessi (siamo admin)
-  const utente = typeof _currentUser !== 'undefined' ? _currentUser : null;
-  // Crea notifica stile toast ma più grande
-  const overlay = document.createElement('div');
-  overlay.id = 'notifica-msg-giorno';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease';
-  overlay.innerHTML = `
-    <div style="background:var(--card);border-radius:24px;padding:32px 28px;max-width:400px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);animation:fadeInUp .4s ease">
-      <div style="font-size:52px;margin-bottom:10px">${m.emoji||'📢'}</div>
-      <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📣 Messaggio dagli organizzatori</div>
-      <div style="font-size:19px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:10px">${m.testo}</div>
-      ${m.firma?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${m.firma}</div>`:'<div style="margin-bottom:20px"></div>'}
-      <button onclick="document.getElementById('notifica-msg-giorno').remove()" style="width:100%;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">✅ Ho letto!</button>
-    </div>`;
-  document.body.appendChild(overlay);
+  // Riusa lo stesso ticker del messaggio del giorno
+  mostraMsgGiornoModal(m.emoji, m.testo, m.firma);
   // Suono notifica se disponibile
   if(typeof SFX !== 'undefined' && SFX.notifica) try { SFX.notifica(); } catch(e){}
 }
@@ -19882,13 +19897,28 @@ function anteprimaMsgGiorno(){
 function mostraMsgGiornoModal(emoji,testo,firma){
   document.getElementById('msg-giorno-emoji').textContent=emoji||'☀️';
   document.getElementById('msg-giorno-testo').textContent=testo;
-  document.getElementById('msg-giorno-firma').textContent=firma||'';
+  document.getElementById('msg-giorno-firma').textContent=firma?firma:'';
   const m=document.getElementById('modal-msg-giorno');
-  m.style.display='flex';
+  // Calcola durata scroll in base alla lunghezza testo
+  const len=(testo||'').length+(firma||'').length;
+  const dur=Math.max(12, len*0.2);
+  m.style.setProperty('--ticker-dur', dur+'s');
+  m.style.display='block';
+  m.style.animation='tickerUp .4s ease both';
+  // Duplica testo per loop continuo
+  const ticker=document.getElementById('msg-giorno-ticker');
+  const base=ticker.innerHTML;
+  // Aggiungi separatore e replica per scroll continuo
+  if(!ticker.dataset.duplicated){
+    ticker.innerHTML=base+'  &nbsp; ❄️ &nbsp;  '+base+'  &nbsp; ❄️ &nbsp;  '+base;
+    ticker.dataset.duplicated='1';
+  }
 }
 
 function chiudiMsgGiorno(){
-  document.getElementById('modal-msg-giorno').style.display='none';
+  const m=document.getElementById('modal-msg-giorno');
+  m.style.animation='tickerDown .4s ease forwards';
+  setTimeout(()=>{ m.style.display='none'; },400);
   localStorage.setItem('grest_msg_giorno_visto', new Date().toISOString().slice(0,10));
 }
 
@@ -20186,7 +20216,7 @@ async function sincronizzaXpCloud() {
     const s = GAMIFY.getStats();
     const lvl = GAMIFY.calcLevel(s.xp);
     const payload = {
-      id: 'xp-' + AUTH.currentUser.id,
+      id: 'xp-' + AUTH.currentUser.username,
       data: {
         userId: AUTH.currentUser.id,
         username: AUTH.currentUser.username,
@@ -20209,6 +20239,20 @@ async function sincronizzaXpCloud() {
       body: JSON.stringify(payload)
     });
   } catch(e) { console.warn('XP sync error:', e); }
+}
+
+async function aggiornaFotoXpCloud() {
+  if (!_jbSyncEnabled || !AUTH.currentUser) return;
+  try {
+    const foto = AUTH.currentUser?.foto || null;
+    const nome = AUTH.currentUser?.nome || AUTH.currentUser?.username;
+    // Patch solo i campi foto/nome sul record esistente
+    await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.xp-${AUTH.currentUser.username}`, {
+      method: 'PATCH',
+      headers: Object.assign(sbHeaders(), { 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ data: { ...((await (await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.xp-${AUTH.currentUser.username}&select=data`, {headers: sbHeaders()})).json())?.[0]?.data || {}), fotoUrl: foto, nome: nome, aggiornato: new Date().toISOString() } })
+    });
+  } catch(e) { console.warn('Foto XP sync error:', e); }
 }
 
 let _lastMyPosition = null; // posizione precedente in classifica
@@ -20470,6 +20514,7 @@ function applicaFontSalvato() {
         setTimeout(()=> {
           GAMIFY.trackLogin();
           setTimeout(()=> sincronizzaXpCloud(), 1500);
+          setTimeout(()=> aggiornaFotoXpCloud(), 3000); // Forza aggiornamento foto
           // Aggiorna leaderboard ogni 2 minuti per captare sorpassi
           setInterval(()=> { if(typeof aggiornaLeaderboard==='function') aggiornaLeaderboard(); }, 2 * 60 * 1000);
         }, 800);
