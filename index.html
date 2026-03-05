@@ -8708,6 +8708,13 @@ function loadStorage(){
     return;
   }
   try{
+    // ── Pulizia residui: rimuovi eventuali grest_db_* da sessioni precedenti ──
+    try{
+      const _oldNames=localStorage.getItem('grest_db_names');
+      if(_oldNames){ JSON.parse(_oldNames).forEach(n=>{ try{localStorage.removeItem('grest_db_'+n);}catch(e){} }); }
+      localStorage.removeItem('grest_db_names');
+      Object.keys(localStorage).filter(k=>k.startsWith('grest_db_')).forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
     // Leggi solo metadati leggeri
     const r=localStorage.getItem('grest_meta') || localStorage.getItem('grest_v2');
     if(r){const d=JSON.parse(r);APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
@@ -8716,21 +8723,8 @@ function loadStorage(){
     if(ultimoDb){
       APP.currentDb=ultimoDb;
     }
-    // ── FALLBACK LOCALE: carica database salvati localmente ──
-    // Così l'app funziona anche senza NAS / prima che il NAS risponda
-    const dbNames=localStorage.getItem('grest_db_names');
-    if(dbNames){
-      const nomi=JSON.parse(dbNames);
-      for(const nome of nomi){
-        try{
-          const raw=localStorage.getItem('grest_db_'+nome);
-          if(raw && !APP.databases[nome]){
-            APP.databases[nome]=JSON.parse(raw);
-            console.log('📦 [loadStorage] DB caricato da localStorage:', nome);
-          }
-        }catch(e2){console.warn('loadStorage db err:',nome,e2);}
-      }
-    }
+    // ── NO fallback locale: i database sono gestiti esclusivamente dal NAS ──
+    // Il sync NAS caricherà i database dopo la connessione
     if(APP.currentDb && !APP.databases[APP.currentDb]) {
       // Non creare un db vuoto — il sync lo caricherà dal cloud
       // (creare un db vuoto causava sovrascrittura dei dati reali)
@@ -8801,24 +8795,11 @@ function nascondiUndoButton() {
 function saveStorage(immediate){
   const salvaLeggero = () => {
     try{
+      // Solo metadati leggeri — i database sono gestiti esclusivamente dal NAS
       localStorage.setItem('grest_meta',JSON.stringify({currentDb:APP.currentDb,utenti:APP.utenti}));
       if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
     }catch(e){console.warn('saveStorage meta error:',e);}
-    // Salva anche i database localmente come fallback offline
-    try{
-      const dbKeys=Object.keys(APP.databases||{});
-      for(const nome of dbKeys){
-        try{
-          const payload=JSON.stringify(APP.databases[nome]);
-          // Salva solo se < 4MB (limite sicuro localStorage)
-          if(payload.length < 4*1024*1024){
-            localStorage.setItem('grest_db_'+nome, payload);
-          }
-        }catch(e2){/* db troppo grande, salta */}
-      }
-      // Salva lista nomi db
-      localStorage.setItem('grest_db_names', JSON.stringify(dbKeys));
-    }catch(e){console.warn('saveStorage dbs error:',e);}
+    // ── NO localStorage per i database: unica fonte di verità = NAS ──
   };
   if(immediate){
     clearTimeout(_saveTimer);_saveTimer=null;
