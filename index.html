@@ -10859,6 +10859,7 @@ function saveIscritto(e){
   const id=document.getElementById('f-id').value||'isc_'+Date.now();
   const dati={
     id,
+    _ts: new Date().toISOString(), // timestamp per merge multi-dispositivo
     foto:window.CURRENT_FOTO||null,
     nome:_nome,
     cognome:_cognome,
@@ -10884,6 +10885,7 @@ function saveIscritto(e){
   // Salva pagamenti
   if(!db.pagamenti)db.pagamenti={};
   db.pagamenti[id]={
+    _ts: new Date().toISOString(),
     costoTotale:parseFloat(document.getElementById('f-costo-totale').value)||0,
     a1:parseFloat(document.getElementById('f-acc1-imp').value)||0,d1:document.getElementById('f-acc1-data').value,
     a2:parseFloat(document.getElementById('f-acc2-imp').value)||0,d2:document.getElementById('f-acc2-data').value,
@@ -10925,7 +10927,7 @@ function deleteIscritto(id){
     // Restituisci maglia allo stock
     if(isc&&isc.taglia)aggiornaStockMaglia(isc.tipo,isc.squadraId,isc.taglia,+1);
     // Soft-delete: marca come eliminato invece di rimuovere
-    if(isc) { isc._eliminato = true; isc._eliminatoIl = new Date().toISOString(); isc._eliminatoDa = AUTH.currentUser?.nome || 'sconosciuto'; }
+    if(isc) { isc._eliminato = true; isc._eliminatoIl = new Date().toISOString(); isc._eliminatoDa = AUTH.currentUser?.nome || 'sconosciuto'; isc._ts = new Date().toISOString(); }
     delete db.pagamenti[id];
     auditLog('ELIMINAZIONE', `Eliminato iscritto: ${isc?.nome||''} ${isc?.cognome||''}`);
     saveStorage();showToast('Iscritto spostato nel cestino','warning');renderAnagrafica();
@@ -11694,12 +11696,13 @@ function togglePresenza(iscId,data){
   const db=getDb();if(!db)return;
   if(!db.presenze[data])db.presenze[data]={};
   db.presenze[data][iscId]=!db.presenze[data][iscId];
-  
+  db.presenze[data]['_ts_'+iscId]=new Date().toISOString(); // timestamp per merge
+
   // Haptic feedback mobile
   if(navigator.vibrate){
     navigator.vibrate(db.presenze[data][iscId]?30:15); // Vibra più lungo se presente
   }
-  
+
   saveStorage();
   loadPresenzeGiornaliere();
 }
@@ -11713,7 +11716,8 @@ function segnaPresenzaMassa(presente){
   if(sqId)isc=isc.filter(i=>i.squadraId===sqId);
   if(!isc.length){showToast('Nessun iscritto da segnare','warning');return;}
   if(!db.presenze[data])db.presenze[data]={};
-  isc.forEach(i=>{ db.presenze[data][i.id]=presente; });
+  const tsOra = new Date().toISOString();
+  isc.forEach(i=>{ db.presenze[data][i.id]=presente; db.presenze[data]['_ts_'+i.id]=tsOra; });
   saveStorage();
   loadPresenzeGiornaliere();
   showToast(presente?`✅ ${isc.length} iscritti segnati presenti`:`❌ ${isc.length} iscritti segnati assenti`, presente?'success':'warning');
@@ -13915,6 +13919,7 @@ function saveAnimatore(e){
   e.preventDefault();const db=getDb();if(!db)return;
   const dati={
     id:document.getElementById('a-id').value||'an_'+Date.now(),
+    _ts: new Date().toISOString(), // timestamp per merge multi-dispositivo
     nome:document.getElementById('a-nome').value.trim().toUpperCase(),
     cognome:document.getElementById('a-cognome').value.trim().toUpperCase(),
     ruolo:document.getElementById('a-ruolo').value,
@@ -14078,7 +14083,7 @@ function editAnimatore(id){
   }
   navigate('animatore-nuovo');
 }
-function deleteAnimatore(id){showConfirm('Eliminare questo animatore?',()=>{const db=getDb();const a=db.animatori.find(a=>a.id===id);if(a){a._eliminato=true;a._eliminatoIl=new Date().toISOString();a._eliminatoDa=AUTH.currentUser?.nome||'sconosciuto';}saveStorage();renderAnimatori();showToast('Animatore spostato nel cestino','warning');});}
+function deleteAnimatore(id){showConfirm('Eliminare questo animatore?',()=>{const db=getDb();const a=db.animatori.find(a=>a.id===id);if(a){a._eliminato=true;a._eliminatoIl=new Date().toISOString();a._eliminatoDa=AUTH.currentUser?.nome||'sconosciuto';a._ts=new Date().toISOString();}saveStorage();renderAnimatori();showToast('Animatore spostato nel cestino','warning');});}
 
 // ═══════════════════════════════════════════════
 // GITE
@@ -14935,7 +14940,7 @@ function renderImpSquadre(tipo){
 function addSquadraImp(tipo){
   const db=getDb();if(!db)return;
   const sqList=db.squadre.filter(s=>s.tipo===tipo);
-  db.squadre.push({id:'sq_'+Date.now(),tipo,nome:(tipo==='Grest'?'Squadra ':'Mini ')+(sqList.length+1),colore:COLORI_SQ[sqList.length%COLORI_SQ.length],fascia:tipo==='MiniGrest'?'3-4 Anni':''});
+  db.squadre.push({id:'sq_'+Date.now(),_ts:new Date().toISOString(),tipo,nome:(tipo==='Grest'?'Squadra ':'Mini ')+(sqList.length+1),colore:COLORI_SQ[sqList.length%COLORI_SQ.length],fascia:tipo==='MiniGrest'?'3-4 Anni':''});
   saveStorage();renderImpSquadre(tipo);
 }
 function deleteSquadraImp(id){
@@ -14990,6 +14995,7 @@ function rimuoviLogoSquadra(sqId){
 function saveImp(){
   const db=getDb();if(!db){showToast('Nessun database!','error');return;}
   if(!db.impostazioni)db.impostazioni={};
+  db.impostazioni._ts=new Date().toISOString(); // timestamp per merge multi-dispositivo
   db.impostazioni.nomeGrest=document.getElementById('s-nome-grest').value;
   db.impostazioni.anno=parseInt(document.getElementById('s-anno').value)||new Date().getFullYear();
   db.impostazioni.oratorio=document.getElementById('s-oratorio').value;
@@ -15005,6 +15011,7 @@ function saveImp(){
       sq.nome=row.querySelector('.sq-nome').value;
       sq.colore=row.querySelector('.sq-colore').value;
       const fasciaEl=row.querySelector('.sq-fascia');if(fasciaEl)sq.fascia=fasciaEl.value;
+      sq._ts=new Date().toISOString();
     }
   });
   saveStorage(true);updateHeader();renderImpSquadre('Grest');renderImpSquadre('MiniGrest');
@@ -21875,18 +21882,156 @@ function _prepareDbPerUpload(db) {
   return copia;
 }
 
-// ── Preserva campi locali pesanti quando si riceve dal cloud ──
+// ── Merge intelligente: unisce cloud e locale per record (last-write-wins per ID) ──
 function _mergeLocalHeavyFields(cloudDb, localDb) {
-  if (!cloudDb || !localDb) return cloudDb;
-  // Calendario PDF
-  if (localDb.calendarioFile && (!cloudDb.calendarioFile || !cloudDb.calendarioFile.data)) {
-    cloudDb.calendarioFile = localDb.calendarioFile;
+  if (!cloudDb || !localDb) return cloudDb || localDb;
+
+  // ── Helper: merge array per ID — vince il _ts più recente ──
+  function mergeById(cloudArr, localArr) {
+    const cloud = Array.isArray(cloudArr) ? cloudArr : [];
+    const local = Array.isArray(localArr) ? localArr : [];
+    const map = {};
+    // Prima carica tutti i record cloud
+    for (const item of cloud) {
+      if (item && item.id) map[item.id] = item;
+    }
+    // Poi confronta con i record locali: vince il più recente
+    for (const item of local) {
+      if (!item || !item.id) continue;
+      const existing = map[item.id];
+      if (!existing) {
+        // Record solo in locale → includi sempre
+        map[item.id] = item;
+      } else {
+        const tsCloud = existing._ts ? new Date(existing._ts).getTime() : 0;
+        const tsLocal = item._ts ? new Date(item._ts).getTime() : 0;
+        if (tsLocal > tsCloud) {
+          map[item.id] = item; // locale più recente → vince
+        }
+        // altrimenti rimane il cloud
+      }
+    }
+    return Object.values(map);
   }
-  // Loghi
-  if (!cloudDb.impostazioni) cloudDb.impostazioni = {};
-  if (localDb.impostazioni?.logo) cloudDb.impostazioni.logo = localDb.impostazioni.logo;
-  if (localDb.impostazioni?.logoGestionale) cloudDb.impostazioni.logoGestionale = localDb.impostazioni.logoGestionale;
-  return cloudDb;
+
+  // ── Merge presenze: { data: { iscId: bool } } — unione chiave per chiave ──
+  function mergePresenze(cloudPres, localPres) {
+    const cloud = cloudPres && typeof cloudPres === 'object' ? cloudPres : {};
+    const local = localPres && typeof localPres === 'object' ? localPres : {};
+    const merged = Object.assign({}, cloud);
+    for (const data of Object.keys(local)) {
+      if (!merged[data]) {
+        merged[data] = local[data];
+      } else {
+        // Unisci i singoli iscritti per quella data
+        merged[data] = Object.assign({}, local[data], merged[data]);
+        // Per ogni iscId: se cloud ha un valore esplicito lo usa, altrimenti usa locale
+        // Ma se il locale ha _tsP (timestamp presenza) più recente, vince lui
+        for (const iscId of Object.keys(local[data])) {
+          const tsCloud = merged[data]['_ts_' + iscId] ? new Date(merged[data]['_ts_' + iscId]).getTime() : 0;
+          const tsLocal = local[data]['_ts_' + iscId] ? new Date(local[data]['_ts_' + iscId]).getTime() : 0;
+          if (tsLocal >= tsCloud) {
+            merged[data][iscId] = local[data][iscId];
+            if (local[data]['_ts_' + iscId]) merged[data]['_ts_' + iscId] = local[data]['_ts_' + iscId];
+          }
+        }
+      }
+    }
+    return merged;
+  }
+
+  // ── Merge pagamenti: { iscId: { costoTotale, a1, ... } } ──
+  function mergePagamenti(cloudPag, localPag) {
+    const cloud = cloudPag && typeof cloudPag === 'object' ? cloudPag : {};
+    const local = localPag && typeof localPag === 'object' ? localPag : {};
+    const merged = Object.assign({}, cloud);
+    for (const iscId of Object.keys(local)) {
+      if (!merged[iscId]) {
+        merged[iscId] = local[iscId];
+      } else {
+        const tsCloud = merged[iscId]._ts ? new Date(merged[iscId]._ts).getTime() : 0;
+        const tsLocal = local[iscId]._ts ? new Date(local[iscId]._ts).getTime() : 0;
+        if (tsLocal > tsCloud) merged[iscId] = local[iscId];
+      }
+    }
+    return merged;
+  }
+
+  const result = Object.assign({}, cloudDb);
+
+  // Merge array principali per ID
+  result.iscritti   = mergeById(cloudDb.iscritti,   localDb.iscritti);
+  result.animatori  = mergeById(cloudDb.animatori,  localDb.animatori);
+  result.squadre    = mergeById(cloudDb.squadre,    localDb.squadre);
+  result.spese      = mergeById(cloudDb.spese,      localDb.spese);
+  result.gite       = mergeById(cloudDb.gite,       localDb.gite);
+  result.checklist  = mergeById(cloudDb.checklist,  localDb.checklist);
+  result.sondaggi   = mergeById(cloudDb.sondaggi,   localDb.sondaggi);
+  result.campionati = mergeById(cloudDb.campionati, localDb.campionati);
+  result.diarioSquadre = mergeById(cloudDb.diarioSquadre, localDb.diarioSquadre);
+
+  // Merge strutture speciali
+  result.presenze  = mergePresenze(cloudDb.presenze,  localDb.presenze);
+  result.pagamenti = mergePagamenti(cloudDb.pagamenti, localDb.pagamenti);
+
+  // Merge mensa (stessa struttura delle presenze: { data: { iscId: valore } })
+  result.mensa = mergePresenze(cloudDb.mensa, localDb.mensa);
+
+  // ── Impostazioni: merge campo per campo (cloud vince, ma locale fallback) ──
+  // Le impostazioni hanno un _ts globale — chi ha salvato per ultimo vince tutto il blocco
+  if (!result.impostazioni) result.impostazioni = {};
+  const tsImpCloud = result.impostazioni._ts ? new Date(result.impostazioni._ts).getTime() : 0;
+  const tsImpLocal = localDb.impostazioni?._ts ? new Date(localDb.impostazioni._ts).getTime() : 0;
+  if (tsImpLocal > tsImpCloud && localDb.impostazioni) {
+    // Locale più recente → usa locale ma preserva logo/logoGestionale dal cloud se presenti
+    const logoCloud = result.impostazioni.logo;
+    const logoGCloud = result.impostazioni.logoGestionale;
+    result.impostazioni = Object.assign({}, localDb.impostazioni);
+    if (logoCloud) result.impostazioni.logo = logoCloud;
+    if (logoGCloud) result.impostazioni.logoGestionale = logoGCloud;
+  }
+  // Preserva sempre loghi locali se il cloud non li ha
+  if (localDb.impostazioni?.logo && !result.impostazioni.logo)
+    result.impostazioni.logo = localDb.impostazioni.logo;
+  if (localDb.impostazioni?.logoGestionale && !result.impostazioni.logoGestionale)
+    result.impostazioni.logoGestionale = localDb.impostazioni.logoGestionale;
+  if (localDb.calendarioFile && (!result.calendarioFile || !result.calendarioFile.data))
+    result.calendarioFile = localDb.calendarioFile;
+
+  // ── Campi oggetto: usa locale se cloud non li ha, altrimenti cloud vince ──
+  // (non hanno ID per record, quindi non possiamo fare merge granulare)
+  const campiOggetto = ['maglieStock','maglieRiordino','pianificatore','gitePresenze','pullman','mare','campionati'];
+  for (const campo of campiOggetto) {
+    if (!result[campo] && localDb[campo]) {
+      result[campo] = localDb[campo]; // cloud non ha il campo → usa locale
+    }
+  }
+
+  // ── Array senza ID univoco: unione semplice, rimuovi duplicati per contenuto ──
+  // pranziGiorn: array di {data, bambino, tipo} — merge per data+bambino
+  if (Array.isArray(localDb.pranziGiorn) || Array.isArray(result.pranziGiorn)) {
+    const cloudPr = Array.isArray(result.pranziGiorn) ? result.pranziGiorn : [];
+    const localPr = Array.isArray(localDb.pranziGiorn) ? localDb.pranziGiorn : [];
+    const mapPr = {};
+    for (const p of cloudPr) { if(p) mapPr[`${p.data}_${p.bambino}`] = p; }
+    for (const p of localPr) {
+      if(!p) continue;
+      const key = `${p.data}_${p.bambino}`;
+      if (!mapPr[key]) mapPr[key] = p; // aggiunge solo se non presente nel cloud
+      else {
+        const tsC = mapPr[key]._ts ? new Date(mapPr[key]._ts).getTime() : 0;
+        const tsL = p._ts ? new Date(p._ts).getTime() : 0;
+        if (tsL > tsC) mapPr[key] = p;
+      }
+    }
+    result.pranziGiorn = Object.values(mapPr);
+  }
+
+  // gruppi e segnalazioni: merge per ID se presente, altrimenti cloud vince
+  result.gruppi      = mergeById(result.gruppi,      localDb.gruppi);
+  result.segnalazioni = mergeById(result.segnalazioni, localDb.segnalazioni);
+
+  return result;
 }
 
 // ══════════════════════════════════════════════════
@@ -22298,7 +22443,7 @@ function avviaAutoSync() {
     if (!_syncInCorso && !_uploadInCorso) {
       autoSyncSilenzioso();
     }
-  }, 5000);
+  }, 3000);
 }
 
 function fermaAutoSync() {
@@ -22314,7 +22459,8 @@ const _localDbTimestamps = {};
 async function autoSyncSilenzioso() {
   if (_operazioneCriticaInCorso || _syncInCorso || _uploadInCorso) return;
   // Salta se abbiamo appena fatto un upload (entro 4s) — lascia "respirare"
-  if (_lastUploadTimestamp && (Date.now() - _lastUploadTimestamp) < 4000) return;
+  // Pausa minima post-upload: solo 1s per evitare di ri-scaricare l'identico payload appena caricato
+  if (_lastUploadTimestamp && (Date.now() - _lastUploadTimestamp) < 1000) return;
 
   _syncInCorso = true;
   try {
