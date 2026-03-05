@@ -22355,14 +22355,14 @@ async function autoSyncSilenzioso() {
           _sbContaChiamata(new Blob([JSON.stringify(payload)]).size);
 
           const cloudDb = payload?.db || payload;
-          // Risolvi il nome esatto del DB — cerca in APP.databases la chiave che corrisponde
-          let nomeDb = payload?.dbName || dbKey;
-          // Se dbName non corrisponde a nessuna chiave in APP.databases, cerca per dbKey
-          if (!APP.databases[nomeDb]) {
-            const match = Object.keys(APP.databases).find(k => getDbKey(k) === dbKey);
-            if (match) nomeDb = match;
-          }
           if (!cloudDb || typeof cloudDb !== 'object') continue;
+
+          // Il NAS restituisce dbName come slug (es. "ice-grest-2026")
+          // ma APP.databases usa il nome originale (es. "Ice Grest 2026")
+          // → cerca la chiave in APP.databases il cui slug corrisponde
+          const nomeDb = Object.keys(APP.databases).find(k => getDbKey(k) === dbKey)
+                         || payload?.dbName
+                         || dbKey;
 
           // Protezione: non sovrascrivere con dati vuoti (cloud svuotato per errore)
           // NON bloccare se cloud ha meno iscritti — potrebbe essere una cancellazione legittima
