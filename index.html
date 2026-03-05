@@ -22629,7 +22629,7 @@ async function autoSyncUtenti() {
     if (tsRemoto > tsLocale) {
       APP.utenti = remoto.data.utenti;
       _ultimoSyncUtenti = remoto.updated_at;
-      saveStorage();
+      _saveStorageOriginal(); // usa originale — non triggera upload
     } else if (tsLocale > tsRemoto) {
       await uploadUtentiCloud();
     }
