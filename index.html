@@ -21931,8 +21931,8 @@ async function _uploadSingoloDb(nomeDb, db, retries = 3) {
     }
 
     _uploadedDataHashes[nomeDb] = currentHash;
-    // Aggiorna timestamp locale: i dati che abbiamo appena caricato sono "freschi"
-    _localDbTimestamps[dbKey] = new Date().toISOString();
+    // Salva il timestamp esatto usato nell'upload — usato per confronto al prossimo sync
+    _localDbTimestamps[dbKey] = now;
     _sbContaChiamata(new Blob([JSON.stringify(payload)]).size);
     console.log('✅ Upload NAS completato per:', nomeDb);
     return true;
@@ -22057,51 +22057,56 @@ async function sincronizzaOra() {
     }
 
     let aggiornati = 0, caricati = 0;
-    const hadOfflineEdits = localStorage.getItem('grest_offline_edits') === 'true';
 
     for (const record of records) {
       if (!record.data || !record.data.db) continue;
-      const nomeDb = record.data.dbName && !/^[a-z0-9-]+$/.test(record.data.dbName) ? record.data.dbName : (record.data.dbName || record.id);
-      const cloudDb = record.data.db;
 
-      if (!APP.databases[nomeDb]) {
-        // Database nuovo dal cloud → accetta
-        APP.databases[nomeDb] = cloudDb;
+      // Risolvi nome DB: cerca in APP.databases la chiave il cui slug corrisponde
+      const recordKey = record.data.dbName || record.id;
+      const nomeDb = Object.keys(APP.databases).find(k => getDbKey(k) === getDbKey(recordKey))
+                     || (APP.databases[recordKey] ? recordKey : null);
+
+      const cloudDb = record.data.db;
+      const cloudTs = record.data.aggiornato || record.updated_at
+                      ? new Date(record.data.aggiornato || record.updated_at).getTime()
+                      : 0;
+
+      if (!nomeDb || !APP.databases[nomeDb]) {
+        // DB nuovo dal cloud → accetta sempre
+        const chiave = nomeDb || recordKey;
+        APP.databases[chiave] = cloudDb;
+        _localDbTimestamps[getDbKey(chiave)] = record.data.aggiornato || record.updated_at || '';
+        _uploadedDataHashes[chiave] = _hashDb(cloudDb);
         aggiornati++;
-        console.log('📥 Nuovo DB dal cloud:', nomeDb);
+        console.log('📥 Nuovo DB dal cloud:', chiave);
       } else {
         const localDb = APP.databases[nomeDb];
-        const cloudSize = (cloudDb?.iscritti?.length||0) + (cloudDb?.animatori?.length||0);
-        const localSize = (localDb?.iscritti?.length||0) + (localDb?.animatori?.length||0);
+        // Timestamp locale: salvato al momento dell'ultimo upload riuscito
+        const localTsRaw = _localDbTimestamps[getDbKey(nomeDb)];
+        const localTs = localTsRaw ? new Date(localTsRaw).getTime() : 0;
 
-        if (hadOfflineEdits) {
-          // Modifiche offline → locale vince, ma SOLO se ha dati
-          if (localSize > 0) {
-            await _uploadSingoloDb(nomeDb, localDb);
-            caricati++;
-            console.log('📤 Offline edits: locale vince per:', nomeDb);
-          }
-        } else if (cloudSize === 0 && localSize > 0) {
-          // ⚠️ PROTEZIONE: cloud vuoto ma locale ha dati → locale vince SEMPRE
+        // ⏱️ TIMESTAMP WINS: chi ha modificato per ultimo ha sempre ragione
+        if (cloudTs >= localTs) {
+          // Cloud più recente o uguale → scarica
+          APP.databases[nomeDb] = _mergeLocalHeavyFields(cloudDb, localDb);
+          _uploadedDataHashes[nomeDb] = _hashDb(APP.databases[nomeDb]);
+          _localDbTimestamps[getDbKey(nomeDb)] = record.data.aggiornato || record.updated_at || '';
+          aggiornati++;
+          console.log(`📥 Cloud vince (ts: ${new Date(cloudTs).toLocaleTimeString('it-IT')}) per:`, nomeDb);
+        } else {
+          // Locale più recente → carica sul cloud
           await _uploadSingoloDb(nomeDb, localDb);
           caricati++;
-          console.log('🛡️ Cloud vuoto, locale ha dati → upload locale per:', nomeDb);
-        } else if (cloudSize > 0) {
-          // Cloud ha dati → cloud vince (è la fonte di verità)
-          // Ma preserva campi pesanti locali
-          APP.databases[nomeDb] = _mergeLocalHeavyFields(cloudDb, localDb);
-          // Aggiorna hash per evitare re-upload immediato
-          _uploadedDataHashes[nomeDb] = _hashDb(APP.databases[nomeDb]);
-          // Memorizza timestamp cloud per il polling a 5s
-          if (record.updated_at) _localDbTimestamps[getDbKey(nomeDb)] = record.updated_at;
-          aggiornati++;
-          console.log('📥 Cloud → locale per:', nomeDb, `(cloud:${cloudSize}, locale:${localSize})`);
+          console.log(`📤 Locale vince (ts: ${new Date(localTs).toLocaleTimeString('it-IT')}) per:`, nomeDb);
         }
       }
     }
 
     // Upload db locali non presenti sul cloud
-    const cloudKeys = new Set(records.map(r => r.data?.dbName || r.id));
+    const cloudKeys = new Set(records.map(r => {
+      const k = r.data?.dbName || r.id;
+      return Object.keys(APP.databases).find(n => getDbKey(n) === getDbKey(k)) || k;
+    }));
     for (const nomeDb of Object.keys(APP.databases||{})) {
       if (!cloudKeys.has(nomeDb) && APP.databases[nomeDb]) {
         const localSize = (APP.databases[nomeDb]?.iscritti?.length||0);
