@@ -22355,7 +22355,13 @@ async function autoSyncSilenzioso() {
           _sbContaChiamata(new Blob([JSON.stringify(payload)]).size);
 
           const cloudDb = payload?.db || payload;
-          const nomeDb = payload?.dbName || dbKey;
+          // Risolvi il nome esatto del DB — cerca in APP.databases la chiave che corrisponde
+          let nomeDb = payload?.dbName || dbKey;
+          // Se dbName non corrisponde a nessuna chiave in APP.databases, cerca per dbKey
+          if (!APP.databases[nomeDb]) {
+            const match = Object.keys(APP.databases).find(k => getDbKey(k) === dbKey);
+            if (match) nomeDb = match;
+          }
           if (!cloudDb || typeof cloudDb !== 'object') continue;
 
           // Protezione: non sovrascrivere con dati vuoti (cloud svuotato per errore)
