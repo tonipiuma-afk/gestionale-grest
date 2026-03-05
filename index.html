@@ -22334,10 +22334,11 @@ async function autoSyncSilenzioso() {
           const nomeDb = payload?.dbName || dbKey;
           if (!cloudDb || typeof cloudDb !== 'object') continue;
 
-          // Protezione: non sovrascrivere con dati vuoti
+          // Protezione: non sovrascrivere con dati vuoti (cloud svuotato per errore)
+          // NON bloccare se cloud ha meno iscritti — potrebbe essere una cancellazione legittima
           const cloudSize = (cloudDb.iscritti?.length||0) + (cloudDb.animatori?.length||0);
           const localSize = (APP.databases[nomeDb]?.iscritti?.length||0) + (APP.databases[nomeDb]?.animatori?.length||0);
-          if (cloudSize === 0 && localSize > 0) continue;
+          if (cloudSize === 0 && localSize > 5) continue; // solo se cloud è vuoto E locale ha molti dati
 
           APP.databases[nomeDb] = _mergeLocalHeavyFields(cloudDb, APP.databases[nomeDb] || {});
           _localDbTimestamps[dbKey] = cloudTsRaw;
@@ -22369,13 +22370,14 @@ function _aggiornaVistaCorrente() {
     const vista = document.querySelector('.view.active');
     if (!vista) return;
     const id = vista.id;
-    if (id === 'view-iscritti'        && typeof renderIscritti === 'function')        renderIscritti();
-    else if (id === 'view-animatori'  && typeof renderAnimatori === 'function')       renderAnimatori();
-    else if (id === 'view-presenze'   && typeof renderPresenze === 'function')        renderPresenze();
-    else if (id === 'view-squadre'    && typeof renderSquadre === 'function')         renderSquadre();
-    else if (id === 'view-contabilita'&& typeof renderContabilita === 'function')     renderContabilita();
-    else if (id === 'view-comunicazioni' && typeof renderComunicazioni === 'function') renderComunicazioni();
-    else if (id === 'view-calendario' && typeof renderCalendario === 'function')      renderCalendario();
+    if      (id === 'view-anagrafica'    && typeof renderAnagrafica === 'function')     renderAnagrafica();
+    else if (id === 'view-animatori'     && typeof renderAnimatori === 'function')      renderAnimatori();
+    else if (id === 'view-presenze'      && typeof renderPresenze === 'function')       renderPresenze();
+    else if (id === 'view-squadre'       && typeof renderSquadre === 'function')        renderSquadre();
+    else if (id === 'view-contabilita'   && typeof renderContabilita === 'function')    renderContabilita();
+    else if (id === 'view-comunicazioni' && typeof renderComunicazioni === 'function')  renderComunicazioni();
+    else if (id === 'view-calendario'    && typeof renderCalendario === 'function')     renderCalendario();
+    else if (id === 'view-dashboard'     && typeof updateDashboard === 'function')      updateDashboard();
     updateHeader();
   } catch(e) {
     console.warn('[5s-sync] Errore aggiornamento vista:', e);
