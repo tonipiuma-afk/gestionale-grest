@@ -8708,13 +8708,6 @@ function loadStorage(){
     return;
   }
   try{
-    // ── Pulizia residui: rimuovi eventuali grest_db_* da sessioni precedenti ──
-    try{
-      const _oldNames=localStorage.getItem('grest_db_names');
-      if(_oldNames){ JSON.parse(_oldNames).forEach(n=>{ try{localStorage.removeItem('grest_db_'+n);}catch(e){} }); }
-      localStorage.removeItem('grest_db_names');
-      Object.keys(localStorage).filter(k=>k.startsWith('grest_db_')).forEach(k=>localStorage.removeItem(k));
-    }catch(e){}
     // Leggi solo metadati leggeri
     const r=localStorage.getItem('grest_meta') || localStorage.getItem('grest_v2');
     if(r){const d=JSON.parse(r);APP.currentDb=d.currentDb||null;APP.utenti=d.utenti||[];}
@@ -8723,8 +8716,21 @@ function loadStorage(){
     if(ultimoDb){
       APP.currentDb=ultimoDb;
     }
-    // ── NO fallback locale: i database sono gestiti esclusivamente dal NAS ──
-    // Il sync NAS caricherà i database dopo la connessione
+    // ── FALLBACK LOCALE: carica database salvati localmente ──
+    // Così l'app funziona anche senza NAS / prima che il NAS risponda
+    const dbNames=localStorage.getItem('grest_db_names');
+    if(dbNames){
+      const nomi=JSON.parse(dbNames);
+      for(const nome of nomi){
+        try{
+          const raw=localStorage.getItem('grest_db_'+nome);
+          if(raw && !APP.databases[nome]){
+            APP.databases[nome]=JSON.parse(raw);
+            console.log('📦 [loadStorage] DB caricato da localStorage:', nome);
+          }
+        }catch(e2){console.warn('loadStorage db err:',nome,e2);}
+      }
+    }
     if(APP.currentDb && !APP.databases[APP.currentDb]) {
       // Non creare un db vuoto — il sync lo caricherà dal cloud
       // (creare un db vuoto causava sovrascrittura dei dati reali)
@@ -8795,11 +8801,24 @@ function nascondiUndoButton() {
 function saveStorage(immediate){
   const salvaLeggero = () => {
     try{
-      // Solo metadati leggeri — i database sono gestiti esclusivamente dal NAS
       localStorage.setItem('grest_meta',JSON.stringify({currentDb:APP.currentDb,utenti:APP.utenti}));
       if(APP.currentDb)try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e2){}
     }catch(e){console.warn('saveStorage meta error:',e);}
-    // ── NO localStorage per i database: unica fonte di verità = NAS ──
+    // Salva anche i database localmente come fallback offline
+    try{
+      const dbKeys=Object.keys(APP.databases||{});
+      for(const nome of dbKeys){
+        try{
+          const payload=JSON.stringify(APP.databases[nome]);
+          // Salva solo se < 4MB (limite sicuro localStorage)
+          if(payload.length < 4*1024*1024){
+            localStorage.setItem('grest_db_'+nome, payload);
+          }
+        }catch(e2){/* db troppo grande, salta */}
+      }
+      // Salva lista nomi db
+      localStorage.setItem('grest_db_names', JSON.stringify(dbKeys));
+    }catch(e){console.warn('saveStorage dbs error:',e);}
   };
   if(immediate){
     clearTimeout(_saveTimer);_saveTimer=null;
@@ -11677,27 +11696,39 @@ function togglePresenza(iscId,data){
   const db=getDb();if(!db)return;
   if(!db.presenze[data])db.presenze[data]={};
   db.presenze[data][iscId]=!db.presenze[data][iscId];
-  db.presenze[data]['_ts_'+iscId]=new Date().toISOString(); // timestamp per merge
+  const ts = new Date().toISOString();
+  db.presenze[data]['_ts_'+iscId]=ts;
 
   // Haptic feedback mobile
   if(navigator.vibrate){
-    navigator.vibrate(db.presenze[data][iscId]?30:15); // Vibra più lungo se presente
+    navigator.vibrate(db.presenze[data][iscId]?30:15);
   }
 
   // Salva localmente subito
   _saveStorageOriginal();
   if(APP.currentDb) try{localStorage.setItem('grest_ultimo_db',APP.currentDb);}catch(e){}
-  localStorage.setItem('grest_offline_edits', 'true');
 
-  // Upload immediato (500ms) — le presenze devono sincronizzarsi subito
-  _forceNextUpload = true;
-  delete _uploadedDataHashes[APP.currentDb];
-  clearTimeout(_jbSyncTimer);
-  _jbSyncTimer = setTimeout(() => {
-    if (!_syncInCorso) uploadToFirebase();
-  }, 500);
-
+  // Aggiorna UI immediatamente
   loadPresenzeGiornaliere();
+
+  // PATCH atomico sul NAS — solo questa presenza, nessuna race condition
+  const valore = db.presenze[data][iscId];
+  const dbKey = getDbKey(APP.currentDb);
+  fetch(`${NAS_URL}/api/db/${encodeURIComponent(dbKey)}/presenze`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data, iscId, valore, ts })
+  }).then(r => {
+    if (!r.ok) throw new Error('PATCH presenze fallito: ' + r.status);
+    console.log('⚡ Presenza salvata sul NAS:', iscId, '=', valore);
+  }).catch(e => {
+    // Fallback: upload completo
+    console.warn('PATCH presenze fallito, fallback upload completo:', e.message);
+    _forceNextUpload = true;
+    delete _uploadedDataHashes[APP.currentDb];
+    clearTimeout(_jbSyncTimer);
+    _jbSyncTimer = setTimeout(() => { if (!_syncInCorso) uploadToFirebase(); }, 500);
+  });
 }
 
 function segnaPresenzaMassa(presente){
@@ -22427,158 +22458,118 @@ async function mostraBackup() {
 let _autoSyncInterval = null;
 let _ultimoAggiornamentoCloud = null;
 let _operazioneCriticaInCorso = false;
-let _realtimeChannel = null;
-let _realtimeConnesso = false;
-
 // ══════════════════════════════════════════════════
-// WEBSOCKET — sincronizzazione real-time via NAS
+// WEBSOCKET NATIVO — connessione diretta al NAS
+// Sostituisce Supabase Realtime
 // ══════════════════════════════════════════════════
 let _ws = null;
+let _wsConnesso = false;
 let _wsReconnectTimer = null;
-let _wsReconnectDelay = 2000;
+let _realtimeConnesso = false; // alias per compatibilità
+
+function _wsUrl() {
+  // Converte https://api.gestionale-grest.uk → wss://api.gestionale-grest.uk
+  return (NAS_URL || '').replace(/^https?:\/\//, (m) => m.startsWith('https') ? 'wss://' : 'ws://');
+}
 
 function avviaRealtime() {
+  if (!_jbSyncEnabled) return;
+  _wsConnetti();
+}
+
+function _wsConnetti() {
   if (_ws && (_ws.readyState === WebSocket.OPEN || _ws.readyState === WebSocket.CONNECTING)) return;
-  if (_wsReconnectTimer) clearTimeout(_wsReconnectTimer);
   try {
-    const wsUrl = NAS_URL.replace('https://', 'wss://').replace('http://', 'ws://');
-    console.log('🔌 WebSocket: connessione a', wsUrl);
-    _ws = new WebSocket(wsUrl);
-    _realtimeChannel = _ws; // compatibilità
+    const url = _wsUrl();
+    console.log('🔌 WebSocket: connessione a', url);
+    _ws = new WebSocket(url);
 
     _ws.onopen = () => {
+      _wsConnesso = true;
       _realtimeConnesso = true;
-      _wsReconnectDelay = 2000;
-      console.log('✅ WebSocket connesso al NAS');
+      console.log('✅ WebSocket NAS connesso — real-time attivo');
       aggiornaStatoFB('connected');
+      if (_wsReconnectTimer) { clearTimeout(_wsReconnectTimer); _wsReconnectTimer = null; }
     };
 
     _ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        console.log('📨 WS ricevuto:', msg.tipo);
-
-        if (msg.tipo === 'db_aggiornato') {
-          // Un altro dispositivo ha salvato — scarico subito
-          if (_uploadInCorso || _syncInCorso) return;
-          console.log('🔔 Modifica ricevuta per:', msg.dbName, '— scarico dal NAS');
-          setTimeout(() => _scaricaDbAggiornato(msg.dbName), 200);
-        }
-        else if (msg.tipo === 'utenti_aggiornati') {
-          setTimeout(() => autoSyncUtenti(), 500);
-        }
-        else if (msg.tipo === 'msg_giorno') {
-          if (msg.testo && typeof mostraNotificaMsgGiorno === 'function') {
-            mostraNotificaMsgGiorno(msg);
+        if (msg.tipo === 'presenza_aggiornata') {
+          // Aggiorna SOLO quella presenza — nessun download necessario
+          const db = APP.databases[msg.dbName];
+          if (!db) return;
+          if (!db.presenze) db.presenze = {};
+          if (!db.presenze[msg.data]) db.presenze[msg.data] = {};
+          const tsCloud = msg.ts ? new Date(msg.ts).getTime() : 0;
+          const tsLocal = db.presenze[msg.data]['_ts_' + msg.iscId]
+            ? new Date(db.presenze[msg.data]['_ts_' + msg.iscId]).getTime() : 0;
+          if (tsCloud >= tsLocal) {
+            db.presenze[msg.data][msg.iscId] = msg.valore;
+            db.presenze[msg.data]['_ts_' + msg.iscId] = msg.ts;
+            _saveStorageOriginal();
+            // Aggiorna UI se stiamo guardando quella schermata
+            if (APP.currentDb === msg.dbName && typeof loadPresenzeGiornaliere === 'function') {
+              loadPresenzeGiornaliere();
+            }
+            console.log('⚡ Presenza live:', msg.iscId, '=', msg.valore, '(', msg.data, ')');
           }
+        } else if (msg.tipo === 'db_aggiornato') {
+          if (_uploadInCorso || _syncInCorso) return;
+          console.log('🔔 WS: db aggiornato da altro dispositivo —', msg.dbName);
+          setTimeout(() => autoSyncSilenzioso(), 200);
+        } else if (msg.tipo === 'msg_giorno') {
+          if (typeof mostraNotificaMsgGiorno === 'function') mostraNotificaMsgGiorno(msg);
         }
-        else if (msg.tipo === 'connesso') {
-          console.log('🔌 ID sessione WS:', msg.clientId);
-        }
-      } catch(e) { console.warn('WS parse error:', e); }
+      } catch(e) {}
     };
 
     _ws.onclose = () => {
+      _wsConnesso = false;
       _realtimeConnesso = false;
-      _ws = null;
-      console.warn('⚠️ WebSocket disconnesso — riconnessione tra', _wsReconnectDelay/1000, 's');
-      aggiornaStatoFB('error');
-      _wsReconnectTimer = setTimeout(() => {
-        _wsReconnectDelay = Math.min(_wsReconnectDelay * 1.5, 30000);
-        avviaRealtime();
-      }, _wsReconnectDelay);
+      console.warn('⚠️ WebSocket disconnesso — riconnessione in 5s');
+      aggiornaStatoFB('connecting');
+      _wsReconnectTimer = setTimeout(() => _wsConnetti(), 5000);
     };
 
-    _ws.onerror = () => {
-      console.warn('⚠️ WebSocket errore');
+    _ws.onerror = (e) => {
+      console.warn('⚠️ WebSocket errore:', e.message || e);
+      _wsConnesso = false;
       _realtimeConnesso = false;
     };
 
   } catch(e) {
-    console.warn('WebSocket non supportato:', e);
+    console.warn('WebSocket non disponibile:', e);
+    _wsConnesso = false;
     _realtimeConnesso = false;
   }
 }
 
-// ── Scarica un singolo database aggiornato dal NAS ──
-async function _scaricaDbAggiornato(dbName) {
-  if (_syncInCorso) return;
-  _syncInCorso = true;
-  try {
-    const dbKey = getDbKey(dbName);
-    const res = await fetch(`${NAS_URL}/api/db/${encodeURIComponent(dbKey)}`, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) return;
-    const json = await res.json();
-    if (!json || !json.db) return;
-
-    const cloudDb = json.db;
-    const nomeDb = json.dbName || dbName;
-    const localDb = APP.databases[nomeDb];
-    const cloudHash = _hashDb(cloudDb);
-
-    // Salta se è lo stesso che abbiamo appena caricato noi
-    if (_uploadedDataHashes[nomeDb] === cloudHash) {
-      console.log('⏭️ Dati identici, skip aggiornamento per:', nomeDb);
-      return;
-    }
-
-    // Applica i dati
-    APP.databases[nomeDb] = localDb ? _mergeLocalHeavyFields(cloudDb, localDb) : cloudDb;
-    _uploadedDataHashes[nomeDb] = cloudHash;
-    _ultimoAggiornamentoCloud = new Date().toISOString();
-
-    // Aggiorna la vista se stiamo guardando questo db
-    if (nomeDb === APP.currentDb) {
-      const diff = localDb ? confrontaDati(localDb, cloudDb) : null;
-      if (diff && diff.importante) {
-        const parti = [];
-        if (diff.deltaIscritti !== 0) parti.push(`${diff.deltaIscritti > 0 ? '+' : ''}${diff.deltaIscritti} iscritti`);
-        if (diff.deltaAnimatori !== 0) parti.push(`${diff.deltaAnimatori > 0 ? '+' : ''}${diff.deltaAnimatori} animatori`);
-        showToast('📥 ' + (parti.length ? parti.join(', ') : 'Dati aggiornati') + ' dal NAS', 'info');
-      }
-      _aggiornaVistaCorrente();
-      updateHeader();
-    }
-
-    _saveStorageOriginal();
-    const el = document.getElementById('fb-last-sync');
-    if (el) el.textContent = new Date().toLocaleTimeString('it-IT');
-    aggiornaStatoFB('connected');
-    console.log('✅ DB aggiornato dal NAS:', nomeDb);
-
-  } catch(e) {
-    console.error('_scaricaDbAggiornato error:', e);
-  } finally {
-    _syncInCorso = false;
-  }
+function _broadcastCambiamento() {
+  // Non serve più — il NAS fa broadcast autonomamente dopo ogni POST
 }
-
-// ── Invia campanello (compatibilità — ora il NAS fa il broadcast) ──
-function _broadcastCambiamento() { /* Il NAS notifica automaticamente tutti via WebSocket */ }
 
 function fermaRealtime() {
   if (_ws) {
     try { _ws.close(); } catch(e) {}
     _ws = null;
-    _realtimeChannel = null;
-    _realtimeConnesso = false;
   }
+  _wsConnesso = false;
+  _realtimeConnesso = false;
   if (_wsReconnectTimer) { clearTimeout(_wsReconnectTimer); _wsReconnectTimer = null; }
 }
 
-// ── Avvia: WebSocket principale + polling fallback ogni 30s ──
+// ── Avvia auto-sync: WebSocket NAS + polling fallback ogni 3 minuti ──
 function avviaAutoSync() {
   if (_autoSyncInterval) clearInterval(_autoSyncInterval);
   avviaRealtime();
-  // Polling fallback ogni 30s (solo se WS disconnesso)
+  // Polling fallback: si attiva SOLO se il WebSocket è disconnesso
   _autoSyncInterval = setInterval(() => {
-    if (!_realtimeConnesso && !_syncInCorso && !_uploadInCorso) {
+    if (!_wsConnesso && !_syncInCorso && !_uploadInCorso) {
       console.log('🔄 Polling fallback (WS disconnesso)');
       autoSyncSilenzioso();
     }
-  }, 30 * 1000);
+  }, 3 * 60 * 1000);
 }
 
 function fermaAutoSync() {
