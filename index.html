@@ -3394,7 +3394,6 @@ svg {
 
 /* ═══ ANIMAZIONI DASHBOARD ═══ */
 @keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
-@keyframes tickerLoop{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 @keyframes tickerUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 @keyframes tickerDown{from{transform:translateY(0);opacity:1;}to{transform:translateY(100%);opacity:0;}}
 @keyframes fadeInUp{
@@ -5072,19 +5071,11 @@ img:not([loading]) { loading: lazy; }
 <!-- ═══════════ MESSAGGIO DEL GIORNO ═══════════ -->
 <div id="modal-msg-giorno" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;height:38px;background:linear-gradient(90deg,var(--teal),#2e7d32);color:#fff;overflow:hidden;box-shadow:0 -2px 12px rgba(0,0,0,0.15);animation:tickerUp .4s ease both">
   <span onclick="chiudiMsgGiorno()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:0.6;z-index:2;cursor:pointer;background:rgba(0,0,0,0.15);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">✕</span>
-  <div id="msg-giorno-track" style="display:flex;white-space:nowrap;animation:tickerLoop var(--ticker-dur,40s) linear infinite">
-    <div id="msg-giorno-ticker" style="display:inline-flex;align-items:center;white-space:nowrap;font-size:13px;font-weight:700;line-height:38px;padding-right:80px">
-      <span id="msg-giorno-emoji" style="margin-right:6px">☀️</span>
-      <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-right:8px">📣 Messaggio del giorno</span>
-      <span id="msg-giorno-testo">Buona giornata a tutti!</span>
-      <span id="msg-giorno-firma" style="opacity:0.7;margin-left:10px">— Admin</span>
-    </div>
-    <div id="msg-giorno-ticker-clone" aria-hidden="true" style="display:inline-flex;align-items:center;white-space:nowrap;font-size:13px;font-weight:700;line-height:38px;padding-right:80px">
-      <span class="msg-giorno-emoji-clone" style="margin-right:6px">☀️</span>
-      <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-right:8px">📣 Messaggio del giorno</span>
-      <span class="msg-giorno-testo-clone">Buona giornata a tutti!</span>
-      <span class="msg-giorno-firma-clone" style="opacity:0.7;margin-left:10px">— Admin</span>
-    </div>
+  <div id="msg-giorno-ticker" style="display:inline-block;white-space:nowrap;font-size:13px;font-weight:700;line-height:38px;padding-left:100%;animation:tickerScroll var(--ticker-dur,16s) linear infinite">
+    <span id="msg-giorno-emoji" style="margin-right:6px">☀️</span>
+    <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-right:8px">📣 Messaggio del giorno</span>
+    <span id="msg-giorno-testo">Buona giornata a tutti!</span>
+    <span id="msg-giorno-firma" style="opacity:0.7;margin-left:10px">— Admin</span>
   </div>
 </div>
 
@@ -10939,8 +10930,7 @@ function deleteIscritto(id){
     if(isc) { isc._eliminato = true; isc._eliminatoIl = new Date().toISOString(); isc._eliminatoDa = AUTH.currentUser?.nome || 'sconosciuto'; isc._ts = new Date().toISOString(); }
     delete db.pagamenti[id];
     auditLog('ELIMINAZIONE', `Eliminato iscritto: ${isc?.nome||''} ${isc?.cognome||''}`);
-    saveStorage();
-    showToast('Iscritto spostato nel cestino','warning');renderAnagrafica();
+    saveStorage();showToast('Iscritto spostato nel cestino','warning');renderAnagrafica();
   });
 }
 
@@ -19235,9 +19225,11 @@ async function loginSubmit(){
   // 💬 Messaggio del giorno (personalizzato) o motivazionale random
   const _msgDb=getDb();
   const _msgCustom=_msgDb?.impostazioni?.msgGiorno;
-  const _chiuso=localStorage.getItem('grest_msg_giorno_chiuso');
-  if(_msgCustom&&_msgCustom.attivo&&_msgCustom.testo&&_chiuso!==_msgCustom.testo){
+  const _oggi=new Date().toISOString().slice(0,10);
+  const _visto=localStorage.getItem('grest_msg_giorno_visto');
+  if(_msgCustom&&_msgCustom.attivo&&_msgCustom.testo&&_visto!==_oggi){
     setTimeout(()=>mostraMsgGiornoModal(_msgCustom.emoji,_msgCustom.testo,_msgCustom.firma), 900);
+    localStorage.setItem('grest_msg_giorno_visto', _oggi);
   } else {
     setTimeout(()=> mostraMessaggioMotivazionale(trovato.utente.nome), 900);
   }
@@ -19974,37 +19966,38 @@ function anteprimaMsgGiorno(){
 function mostraMsgGiornoModal(emoji,testo,firma){
   document.getElementById('msg-giorno-emoji').textContent=emoji||'☀️';
   document.getElementById('msg-giorno-testo').textContent=testo;
-  document.getElementById('msg-giorno-firma').textContent=firma||'';
-  const cloneEl=document.getElementById('msg-giorno-ticker-clone');
-  if(cloneEl){
-    cloneEl.querySelector('.msg-giorno-emoji-clone').textContent=emoji||'☀️';
-    cloneEl.querySelector('.msg-giorno-testo-clone').textContent=testo;
-    cloneEl.querySelector('.msg-giorno-firma-clone').textContent=firma||'';
-  }
+  document.getElementById('msg-giorno-firma').textContent=firma?firma:'';
   const m=document.getElementById('modal-msg-giorno');
+  // Calcola durata scroll in base alla lunghezza testo
   const len=(testo||'').length+(firma||'').length;
-  const dur=Math.max(30, len*0.5);
+  const dur=Math.max(12, len*0.2);
+  m.style.setProperty('--ticker-dur', dur+'s');
   m.style.display='block';
   m.style.animation='tickerUp .4s ease both';
-  const track=document.getElementById('msg-giorno-track');
-  if(track){ track.style.animation='none'; track.offsetHeight; track.style.animation='tickerLoop '+dur+'s linear infinite'; }
+  // Duplica testo per loop continuo
+  const ticker=document.getElementById('msg-giorno-ticker');
+  const base=ticker.innerHTML;
+  // Aggiungi separatore e replica per scroll continuo
+  if(!ticker.dataset.duplicated){
+    ticker.innerHTML=base+'  &nbsp; ❄️ &nbsp;  '+base+'  &nbsp; ❄️ &nbsp;  '+base;
+    ticker.dataset.duplicated='1';
+  }
 }
 
 function chiudiMsgGiorno(){
   const m=document.getElementById('modal-msg-giorno');
   m.style.animation='tickerDown .4s ease forwards';
   setTimeout(()=>{ m.style.display='none'; },400);
-  const db=getDb();
-  const msgId=db?.impostazioni?.msgGiorno?.testo||'chiuso';
-  localStorage.setItem('grest_msg_giorno_chiuso', msgId);
+  localStorage.setItem('grest_msg_giorno_visto', new Date().toISOString().slice(0,10));
 }
 
 function checkMsgGiorno(){
   const db=getDb();if(!db)return;
   const msg=db.impostazioni?.msgGiorno;
   if(!msg||!msg.attivo||!msg.testo)return;
-  const chiuso=localStorage.getItem('grest_msg_giorno_chiuso');
-  if(chiuso===msg.testo)return;
+  const oggi=new Date().toISOString().slice(0,10);
+  const visto=localStorage.getItem('grest_msg_giorno_visto');
+  if(visto===oggi)return;
   setTimeout(()=>mostraMsgGiornoModal(msg.emoji,msg.testo,msg.firma),1200);
 }
 
@@ -21179,7 +21172,7 @@ function eliminaUtente(id){
     if(altriAdmin.length===0){ showToast('⚠️ Non puoi eliminare lunico Admin rimasto!','error'); return; }
   }
   showConfirm("Eliminare utente "+u.nome+" (@"+u.username+")?",()=>{
-    u._eliminato = true; u._eliminatoIl = new Date().toISOString(); u._eliminatoDa = AUTH.currentUser?.nome || 'sconosciuto'; u._ts = new Date().toISOString();
+    u._eliminato = true; u._eliminatoIl = new Date().toISOString(); u._eliminatoDa = AUTH.currentUser?.nome || 'sconosciuto';
     auditLog('ELIMINAZIONE',`Eliminato utente: ${u.nome} (@${u.username})`);
     saveStorage(); sincronizzaUtenti(); renderUtenti(); showToast('🗑️ Utente spostato nel cestino','warning');
   });
