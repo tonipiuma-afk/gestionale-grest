@@ -22162,6 +22162,16 @@ function calcolaEtaAnim(dataNascita){
   return eta;
 }
 
+function _animBtnCreaAccount(a, utenti, compact) {
+  var u = utenti.find(function(x){ return x.id === a.userId && !x._eliminato; });
+  if (!a.userId || !u) {
+    if (compact) {
+      return '<button type="button" class="btn btn-sm" style="background:#ffebee;color:#c62828;border:1px solid #ef9a9a;padding:3px 7px;font-size:11px;font-weight:800;min-width:0" onclick="event.stopPropagation();animCreaAccount(\'' + a.id + '\')" title="Crea account">Crea</button>';
+    }
+    return '<button type="button" class="btn btn-sm" style="flex:1;background:#ffebee;color:#c62828;border:1px solid #ef9a9a;font-weight:800" onclick="event.stopPropagation();animCreaAccount(\'' + a.id + '\')">Crea account</button>';
+  }
+  return '';
+}
 function renderAnimatori(){
   const db=getDb();const tbody=document.getElementById('tbody-animatori');if(!tbody)return;
   let anim=db?[...(db.animatori||[])].filter(a=>!a._eliminato):[];
@@ -22212,6 +22222,7 @@ function renderAnimatori(){
           </div>
         </div>
         <div class="ana-card-actions">
+          ${_animBtnCreaAccount(a, APP.utenti||[], false)}
           <button type="button" class="btn btn-outline btn-sm" style="flex:1" onclick="editAnimatore('${a.id}')">✏️ Modifica</button>
           <button type="button" class="btn btn-sm" style="flex:1;background:#e8eaf6;color:#3949ab;border:1.5px solid #7986cb;font-weight:800" onclick="event.stopPropagation();apriStoricoAnimatore('${a.id}')">📊 Storico</button>
           <button type="button" class="btn btn-danger btn-sm" style="flex:1" onclick="event.stopPropagation();deleteAnimatore('${a.id}')">🗑️ Elimina</button>
@@ -22237,6 +22248,7 @@ function renderAnimatori(){
       <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text-muted)" title="${escapeHtml(a.note||'')}">${escapeHtml(a.note||'–')}</td>
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:nowrap">
+          ${_animBtnCreaAccount(a, APP.utenti||[], true)}
           <button type="button" class="btn btn-ghost" style="padding:3px 6px;font-size:13px;min-width:0" onclick="editAnimatore('${a.id}')">✏️</button>
           <button type="button" class="btn btn-sm" style="background:#e8eaf6;color:#3949ab;padding:3px 6px;font-size:13px;min-width:0;border:none" onclick="event.stopPropagation();apriStoricoAnimatore('${a.id}')" title="Storico">📊</button>
           <button type="button" class="btn btn-ghost btn-danger-ghost" style="padding:3px 6px;font-size:13px;min-width:0" onclick="event.stopPropagation();deleteAnimatore('${a.id}')">🗑️</button>
@@ -22246,6 +22258,34 @@ function renderAnimatori(){
     if(!anim.length)tbody.innerHTML=`<tr><td colspan="9" class="text-center text-muted" style="padding:20px">Nessun animatore trovato</td></tr>`;
   }
 }
+function animCreaAccount(animId) {
+  var db = getDb(); if (!db) return;
+  var a = (db.animatori||[]).find(function(x){ return x.id === animId; });
+  if (!a) return;
+  var uEliminato = (APP.utenti||[]).find(function(u){ return u.id === a.userId && u._eliminato; });
+  if (uEliminato) {
+    showConfirm('L'account @' + uEliminato.username + ' era stato eliminato. Ripristinarlo?', function() {
+      delete uEliminato._eliminato; delete uEliminato._eliminatoIl; delete uEliminato._eliminatoDa;
+      uploadUtentiCloud().then(function(){ _ultimoSyncUtenti = new Date().toISOString(); renderAnimatori(); showToast('Account @' + uEliminato.username + ' ripristinato', 'success'); }).catch(function(){ showToast('Errore ripristino account', 'error'); });
+    });
+    return;
+  }
+  var baseUser = (a.nome||'').toLowerCase().replace(/[^a-z]/g,'');
+  var username = baseUser; var suffix = 1;
+  while ((APP.utenti||[]).find(function(u){ return !u._eliminato && u.username === username; })) { username = baseUser + suffix; suffix++; }
+  var pwd = baseUser;
+  var nuovoUtente = { id: 'u' + Date.now(), nome: (a.nome||'') + ' ' + (a.cognome||''), username: username, password: pwd, ruolo: a.ruolo || 'Animatore', foto: a.foto || '' };
+  a.userId = nuovoUtente.id;
+  APP.utenti = APP.utenti || [];
+  APP.utenti.push(nuovoUtente);
+  saveStorage(); gSegnaModifiche();
+  uploadUtentiCloud().then(function(){
+    _ultimoSyncUtenti = new Date().toISOString();
+    renderAnimatori();
+    showToast('Account creato: @' + username + ' / ' + pwd, 'success', 7000);
+  }).catch(function(){ showToast('Errore creazione account', 'error'); });
+}
+
 function creaProfiloAnimatoreFromUtente(){
   const u=(APP.utenti||[]).find(function(x){return x.id===_editingUtente;});
   if(!u){showToast('⚠️ Utente non trovato','warning');return;}
@@ -22475,6 +22515,10 @@ function saveAnimatore(e){
   }
   else {
     // ── Auto-creazione utente per nuovo animatore ──
+    if(dati.userId) {
+      const uCheck = (APP.utenti||[]).find(u => u.id === dati.userId);
+      if (!uCheck || uCheck._eliminato) { dati.userId = ''; }
+    }
     if(!dati.userId){
       const baseUser = (dati.nome||'').toLowerCase().replace(/[^a-z]/g,'');
       let username = baseUser;
@@ -30112,8 +30156,18 @@ async function loginSubmit(){
       document.getElementById('header').style.display='none';
       document.getElementById('sidebar').style.display='none';
       document.getElementById('main').style.display='none';
-      avviaAutoSync();
-      genMostraPortale();
+      // Mostra spinner mentre aspetta il sync NAS
+      const _pgSpinner = document.getElementById('portale-genitore');
+      if(_pgSpinner) { _pgSpinner.style.display=''; _pgSpinner.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top:4px solid var(--teal,#26a69a);border-radius:50%;animation:spin 1s linear infinite"></div><div style="color:#666;font-size:14px">Caricamento dati...</div></div>'; }
+      // Aspetta il sync NAS prima di mostrare il portale
+      eseguiSyncInizialeNAS().then(function(){
+        avviaAutoSync();
+        genMostraPortale();
+      }).catch(function(){
+        // Se il sync fallisce, prova comunque
+        avviaAutoSync();
+        genMostraPortale();
+      });
       return;
     }
 
@@ -31942,11 +31996,28 @@ function renderUtenti(){
     }
     pillHtml+='</div>';
 
+    const RUOLI_ANIM = ['Animatore','Animatore Laboratorio','Caposquadra'];
+    const animatoriSenzaAccount = db ? (db.animatori||[]).filter(function(a){
+      if(a._eliminato) return false;
+      if(!RUOLI_ANIM.includes(a.ruolo)) return false;
+      const u = (APP.utenti||[]).find(function(u){ return u.id===a.userId && !u._eliminato; });
+      return !a.userId || !u;
+    }) : [];
+    const avvisoAnimHtml = animatoriSenzaAccount.length > 0 && (filtroRuolo==='tutti'||RUOLI_ANIM.includes(filtroRuolo))
+      ? '<div style="background:#fff3e0;border:1.5px solid #ffb74d;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+        + '<span style="font-size:20px">⚠️</span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-weight:800;color:#e65100;font-size:13px">' + animatoriSenzaAccount.length + ' animator' + (animatoriSenzaAccount.length===1?'e':'i') + ' senz'account collegato</div>'
+        + '<div style="font-size:12px;color:#bf360c;margin-top:2px">' + animatoriSenzaAccount.map(function(a){ return escapeHtml((a.cognome||'')+' '+(a.nome||'')); }).join(', ') + '</div>'
+        + '</div>'
+        + '<button type="button" class="btn btn-sm" style="background:#e65100;color:#fff;border:none;font-weight:800;white-space:nowrap" onclick="navigate('animatori')">Vai agli animatori</button>'
+        + '</div>'
+      : '';
     const staffFiltrato = filtroRuolo==='tutti' ? staff : staff.filter(u=>u.ruolo===filtroRuolo);
     const emptyMsg = filtroRuolo==='tutti'
       ? '<div class="empty-state"><div class="ei">&#128101;</div><div>Nessuno staff registrato</div></div>'
       : `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px">Nessun utente con ruolo <b>${filtroRuolo}</b></div>`;
-    bodyHtml = pillHtml + (staffFiltrato.length ? staffFiltrato.map(cardStaff).join('') : emptyMsg);
+    bodyHtml = avvisoAnimHtml + pillHtml + (staffFiltrato.length ? staffFiltrato.map(cardStaff).join('') : emptyMsg);
 
   } else {
     const genBtns=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
@@ -35760,7 +35831,13 @@ window.onload = function(){
       document.getElementById('header').style.display='none';
       document.getElementById('sidebar').style.display='none';
       document.getElementById('main').style.display='none';
-      genMostraPortale();
+      const _pgSpinner2 = document.getElementById('portale-genitore');
+      if(_pgSpinner2) { _pgSpinner2.style.display=''; _pgSpinner2.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top:4px solid var(--teal,#26a69a);border-radius:50%;animation:spin 1s linear infinite"></div><div style="color:#666;font-size:14px">Caricamento dati...</div></div>'; }
+      eseguiSyncInizialeNAS().then(function(){
+        genMostraPortale();
+      }).catch(function(){
+        genMostraPortale();
+      });
       return;
     }
     // ── Animatore / Caposquadra: portale dedicato ──
@@ -37920,6 +37997,7 @@ let _operazioneCriticaInCorso = 0;
 let _ws = null;
 let _wsConnesso = false;
 let _wsReconnectTimer = null;
+let _wsFailCount = 0;
 let _wsPingTimer = null;      // heartbeat: rileva connessioni zombie
 let _wsPongTimeout = null;    // timeout attesa pong
 let _realtimeConnesso = false; // alias per compatibilità
@@ -37944,6 +38022,7 @@ function _wsConnetti() {
     _ws.onopen = () => {
       _wsConnesso = true;
       _realtimeConnesso = true;
+      _wsFailCount = 0; // reset contatore fallimenti
       console.log('✅ WebSocket NAS connesso — real-time attivo');
       aggiornaStatoFB('connected');
       if (_wsReconnectTimer) { clearTimeout(_wsReconnectTimer); _wsReconnectTimer = null; }
@@ -37960,9 +38039,9 @@ function _wsConnetti() {
             try { _ws.close(); } catch(e) {}
             _ws = null;
             _wsConnetti();
-          }, 15000); // era 8000 — aumentato a 15s per evitare false disconnessioni su NAS lento
+          }, 30000); // aumentato a 30s per tunnel Cloudflare
         } catch(e) {}
-      }, 20000);
+      }, 45000); // ping ogni 45s
     };
 
     _ws.onmessage = (event) => {
@@ -38049,9 +38128,19 @@ function _wsConnetti() {
       _realtimeConnesso = false;
       if (_wsPingTimer) { clearInterval(_wsPingTimer); _wsPingTimer = null; }
       if (_wsPongTimeout) { clearTimeout(_wsPongTimeout); _wsPongTimeout = null; }
-      console.warn('⚠️ WebSocket disconnesso — riconnessione in 5s');
-      aggiornaStatoFB('connecting');
-      _wsReconnectTimer = setTimeout(() => _wsConnetti(), 5000);
+      _wsFailCount = (_wsFailCount || 0) + 1;
+      const delay = Math.min(5000 * _wsFailCount, 30000); // backoff: 5s, 10s, 15s... max 30s
+      console.warn('⚠️ WebSocket disconnesso — riconnessione in ' + (delay/1000) + 's');
+      // Dopo 3 fallimenti mostra "Online" invece di "Sync..." per non allarmare
+      if (_wsFailCount >= 3) {
+        const ht = document.getElementById('sync-status-text');
+        if (ht) ht.textContent = 'Online';
+        const hd = document.getElementById('sync-status-dot');
+        if (hd) hd.style.background = '#4CAF50';
+      } else {
+        aggiornaStatoFB('connecting');
+      }
+      _wsReconnectTimer = setTimeout(() => _wsConnetti(), delay);
     };
 
     _ws.onerror = (e) => {
@@ -40161,11 +40250,19 @@ function genMostraPortale(){
 
 function pgCaricaDati(){
   var user=AUTH.currentUser;if(!user||user.ruolo!=='Genitore')return;
-  var db=getDb();if(!db){
-    // DB non ancora caricato: riprova tra 1 secondo
-    setTimeout(pgCaricaDati, 1000);
+  if(!window._pgCaricaDatiTentativi) window._pgCaricaDatiTentativi = 0;
+  var db=getDb();if(!db || !Object.keys(APP.databases||{}).length){
+    window._pgCaricaDatiTentativi++;
+    if(window._pgCaricaDatiTentativi < 15) {
+      // DB non ancora caricato: riprova tra 1 secondo (max 15 tentativi = 15s)
+      setTimeout(pgCaricaDati, 1000);
+    } else {
+      window._pgCaricaDatiTentativi = 0;
+      showToast('⚠️ Impossibile caricare i dati. Verifica la connessione.', 'error');
+    }
     return;
   }
+  window._pgCaricaDatiTentativi = 0;
   // Trova iscritto — prima per iscrittoId esatto
   var isc=null;
   if(user.iscrittoId){
@@ -45291,6 +45388,13 @@ function iscrPubValida() {
     document.getElementById('ip-come-conosciuto')?.classList.add('errore');
   }
 
+  // Come ci hai conosciuto
+  const comeConosc = document.getElementById('ip-come-conosciuto')?.value;
+  if (!comeConosc) {
+    errori.push('Indica come ci hai conosciuto');
+    document.getElementById('ip-come-conosciuto')?.classList.add('errore');
+  }
+
   // Privacy
   if (!document.getElementById('ip-privacy')?.checked) {
     errori.push('Accetta l\'informativa sulla privacy');
@@ -46845,9 +46949,9 @@ async function _uploadApprovazione(nuovoIscritto) {
         if (!dbNas.pagamenti) dbNas.pagamenti = {};
         dbNas.pagamenti[nuovoIscritto.id] = APP.databases[nomeDb].pagamenti[nuovoIscritto.id];
       }
-      // Sostituisce il DB locale con la versione fusa prima di caricare
+      // Aggiorna memoria locale con la versione fusa (necessario per uploadToFirebase)
+      // NON salva in localStorage — il NAS è la fonte autoritativa
       APP.databases[nomeDb] = dbNas;
-      saveStorage();
       console.log('🔀 Pre-merge approvazione: iscritti NAS=' + dbNas.iscritti.length);
     }
     // Carica sul NAS
