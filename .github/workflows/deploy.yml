@@ -15,7 +15,7 @@ jobs:
       - name: Inject timestamp into index.html
         run: |
           TIMESTAMP=$(TZ="Europe/Rome" date "+%d/%m/%Y %H:%M")
-    sed -i "s|__BUILD_TIMESTAMP__|${TIMESTAMP}|g" index.html
+          sed -i "s|__BUILD_TIMESTAMP__|${TIMESTAMP}|g" index.html
           echo "Timestamp: ${TIMESTAMP}"
 
       - name: Commit updated index.html
@@ -25,5 +25,3 @@ jobs:
           git add index.html
           git diff --staged --quiet || git commit -m "Build: $(TZ='Europe/Rome' date '+%d/%m/%Y %H:%M')"
           git push
-
-          
