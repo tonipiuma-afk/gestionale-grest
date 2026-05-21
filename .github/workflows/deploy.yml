@@ -2,7 +2,7 @@ name: Inject Build Timestamp
 
 on:
   push:
-    branches: [ principale ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -25,4 +25,5 @@ jobs:
           git add index.html
           git diff --staged --quiet || git commit -m "Build: $(TZ='Europe/Rome' date '+%d/%m/%Y %H:%M')"
           git push
+
           
