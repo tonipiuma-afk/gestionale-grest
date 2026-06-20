@@ -8553,7 +8553,7 @@ table tbody tr:hover{
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
       <h1 style="margin:0;cursor:pointer" onclick="navigate('dashboard')" title="Vai alla Dashboard"><span class="header-title-full">GESTIONALE GREST</span></h1>
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
-      <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 20/06/2026 15:22</span>
+      <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
       <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
         <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
         <span id="sync-status-text">Online</span>
@@ -52627,7 +52627,7 @@ function ptBanner(sport,nomeFase){
   const cfg=PT_SPORT[sport];
   return `<div class="pt-fase-banner"><div class="pt-fase-sport">${cfg.icon} ${cfg.label}</div><div class="pt-fase-nome">${nomeFase}</div></div>`;
 }
-function ptMatch(t,m,r){
+function ptMatch(t,m,r,marcatori){
   const a=ptBandiera(t,m.a)+ptNome(t,m.a), b=ptBandiera(t,m.b)+ptNome(t,m.b);
   let cls='', score;
   if(r&&r.ra!=null&&r.rb!=null){
@@ -52636,7 +52636,26 @@ function ptMatch(t,m,r){
   } else {
     score=`<div class="pt-score tbd">VS</div>`;
   }
-  return `<div class="pt-match ${cls}"><div class="pt-team a">${a}</div>${score}<div class="pt-team b">${b}</div></div>`;
+  // Marcatori (solo calcio): elenco sotto la partita, divisi per squadra
+  let mrcHtml='';
+  if(Array.isArray(marcatori) && marcatori.length){
+    function listaSq(sqId){
+      return marcatori.filter(x=>x.squadraId===sqId).map(x=>{
+        const nome=ptNomeBambino(x.iscrittoId);
+        const n=(+x.gol||0)>1?` ×${x.gol}`:'';
+        const ag=x.autogol?' <span style="color:#c0392b;font-weight:700">(aut)</span>':'';
+        return `<div style="font-size:12px;color:#3a567f;line-height:1.5">⚽ ${nome}${ag}${n}</div>`;
+      }).join('');
+    }
+    const la=listaSq(m.a), lb=listaSq(m.b);
+    if(la||lb){
+      mrcHtml=`<div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #e4ecf7">
+        <div style="text-align:right">${la||'<span style="font-size:12px;color:#9bb3d6">—</span>'}</div>
+        <div style="text-align:left">${lb||'<span style="font-size:12px;color:#9bb3d6">—</span>'}</div>
+      </div>`;
+    }
+  }
+  return `<div class="pt-match ${cls}"><div class="pt-team a">${a}</div>${score}<div class="pt-team b">${b}</div>${mrcHtml}</div>`;
 }
 function ptRenderFase(t,sport,fase){
   const nomeFase=fase==='apertura'?'TORNEO APERTURA':'TORNEO CLAUSURA';
@@ -52646,7 +52665,7 @@ function ptRenderFase(t,sport,fase){
     return html+`<div class="pt-empty"><span class="pt-empty-icon">📅</span>Calendario non ancora disponibile.</div>`;
   fz.calendario.forEach((giornata,gi)=>{
     html+=`<div class="pt-giornata"><div class="pt-giornata-title">${gi+1}ª GIORNATA</div>`;
-    (giornata||[]).forEach((m,pi)=>{ html+=ptMatch(t,m,(fz.risultati||{})[gi+'-'+pi]); });
+    (giornata||[]).forEach((m,pi)=>{ const k=gi+'-'+pi; html+=ptMatch(t,m,(fz.risultati||{})[k], sport==='calcio'?((fz.marcatori||{})[k]):null); });
     html+=`</div>`;
   });
   html+=ptTabella(t,fase,'CLASSIFICA '+(fase==='apertura'?'APERTURA':'CLAUSURA'));
