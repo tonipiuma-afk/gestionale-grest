@@ -8551,7 +8551,7 @@ table tbody tr:hover{
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
       <h1 style="margin:0;cursor:pointer" onclick="navigate('dashboard')" title="Vai alla Dashboard"><span class="header-title-full">GESTIONALE GREST</span></h1>
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
-      <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 20/06/2026 15:04</span>
+      <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
       <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
         <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
         <span id="sync-status-text">Online</span>
@@ -31393,6 +31393,18 @@ function icecupNomeSquadra(sport,id){
   const s=t.squadre.find(x=>x.id===id);
   return s? s.nome : '—';
 }
+// Restituisce l'HTML della bandierina della squadra (per id squadra torneo).
+// Risale alla squadra reale via srcId per recuperare il campo .bandiera (immagine).
+function icecupBandieraSquadra(sport,id,size){
+  const db=getDb(); const t=db.tornei[sport];
+  const s=t&&t.squadre? t.squadre.find(x=>x.id===id):null;
+  if(!s) return '';
+  let band=null;
+  if(s.srcId){ const real=(db.squadre||[]).find(q=>q.id===s.srcId); if(real&&real.bandiera) band=real.bandiera; }
+  const h=size||18, w=Math.round(h*1.5);
+  if(band) return `<img src="${band}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:3px;border:1px solid var(--border);vertical-align:middle;margin-right:6px" alt="">`;
+  return '';
+}
 function icecupRisKey(g,p){ return g+'-'+p; }
 
 // ── Calcolo classifica di una fase ───────────────────────────
@@ -31599,82 +31611,104 @@ function icecupRenderMarcatoriPartita(fase,gIdx,pIdx,m){
   const golA=lista.filter(x=>x.squadraId===m.a).reduce((s,x)=>s+(+x.gol||0),0);
   const golB=lista.filter(x=>x.squadraId===m.b).reduce((s,x)=>s+(+x.gol||0),0);
   const nomeA=icecupNomeSquadra('calcio',m.a), nomeB=icecupNomeSquadra('calcio',m.b);
-  // avviso coerenza col risultato
+  // avviso coerenza col risultato (solo informativo, il risultato segue i marcatori)
   let warn='';
   if(r&&r.ra!=null&&r.rb!=null){
     const okA=golA===(+r.ra), okB=golB===(+r.rb);
-    if(!okA||!okB) warn=`<div style="font-size:12px;color:var(--danger);margin-top:6px">⚠️ Gol assegnati (${golA}-${golB}) diversi dal risultato (${r.ra}-${r.rb})</div>`;
-    else warn=`<div style="font-size:12px;color:var(--success);margin-top:6px">✅ Marcatori completi (${golA}-${golB})</div>`;
+    if(!okA||!okB) warn=`<div style="font-size:12px;color:var(--danger);margin-top:6px">⚠️ Marcatori (${golA}-${golB}) diversi dal risultato nei box (${r.ra}-${r.rb}). Sistema i marcatori o correggi i box a mano.</div>`;
   }
-  const righe=lista.map((x,i)=>`
+  // righe marcatori già inseriti, con X per rimuovere
+  const righe=lista.map((x,i)=>{
+    const ag=x.autogol?` <span style="color:var(--danger);font-weight:700">(AUTOGOL)</span>`:'';
+    return `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:13px">
-      <span style="flex:1">⚽ <strong>${icecupNomeBambino(x.iscrittoId)}</strong> <span style="color:var(--text-muted)">(${icecupNomeSquadra('calcio',x.squadraId)})</span> × ${x.gol}</span>
-      <button type="button" class="btn btn-danger btn-sm" onclick="icecupRimuoviMarcatore('${fase}',${gIdx},${pIdx},${i})" style="padding:2px 8px">🗑️</button>
-    </div>`).join('');
-  function optBambini(sqId){
-    return icecupBambiniSquadra(sqId).map(b=>`<option value="${b.id}">${b.nome.replace(/</g,'&lt;')}</option>`).join('');
-  }
+      <span style="flex:1">⚽ <strong>${icecupNomeBambino(x.iscrittoId)}</strong> <span style="color:var(--text-muted)">(${icecupNomeSquadra('calcio',x.squadraId)})</span>${ag} × ${x.gol}</span>
+      <button type="button" class="btn btn-danger btn-sm" onclick="icecupRimuoviMarcatore('${fase}',${gIdx},${pIdx},${i})" style="padding:2px 8px" title="Rimuovi (-1 gol)">✖</button>
+    </div>`;
+  }).join('');
   const idp=`ic-mrc-${fase}-${gIdx}-${pIdx}`;
+  // Pulsantiere: per ogni squadra i nomi cliccabili + bottone AUTOGOL
+  function pulsantiSquadra(sqId,sqAvv,nomeSq){
+    const bambini=icecupBambiniSquadra(sqId);
+    let btns=bambini.map(b=>
+      `<button type="button" class="btn btn-gray btn-sm ic-goal-btn" onclick="icecupGolClick('${fase}',${gIdx},${pIdx},'${sqId}','${b.id}',false)" style="margin:2px;padding:5px 9px;font-size:12px">⚽ ${b.nome.replace(/</g,'&lt;')}</button>`
+    ).join('');
+    if(!bambini.length) btns=`<span style="color:var(--text-muted);font-size:12px">Nessun bambino in questa squadra</span>`;
+    // AUTOGOL: gol per nomeSq segnato da un avversario → apre i nomi della squadra avversaria
+    btns+=`<button type="button" class="btn btn-danger btn-sm" onclick="icecupAutogolApri('${fase}',${gIdx},${pIdx},'${sqId}','${sqAvv}')" style="margin:2px;padding:5px 9px;font-size:12px">↩️ AUTOGOL</button>`;
+    return `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px">
+        <div style="font-weight:800;font-size:13px;color:var(--teal);margin-bottom:6px">${nomeSq}</div>
+        <div style="display:flex;flex-wrap:wrap">${btns}</div>
+      </div>`;
+  }
   return `
   <details style="margin:-4px 0 12px;border:1px dashed var(--border);border-radius:8px;padding:8px 10px">
     <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--teal)">⚽ Marcatori ${golA}-${golB}</summary>
     <div style="margin-top:10px">
-      ${righe||'<div style="color:var(--text-muted);font-size:13px;margin-bottom:8px">Nessun marcatore inserito.</div>'}
+      ${righe||'<div style="color:var(--text-muted);font-size:13px;margin-bottom:8px">Nessun marcatore inserito. Clicca un nome per assegnare un gol.</div>'}
       ${warn}
-      <div style="display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-        <select class="form-control" id="${idp}-sq" onchange="icecupAggiornaOptBambini('${fase}',${gIdx},${pIdx})">
-          <option value="${m.a}">${nomeA}</option>
-          <option value="${m.b}">${nomeB}</option>
-        </select>
-        <select class="form-control" id="${idp}-bimbo">${optBambini(m.a)}</select>
-        <div style="display:flex;gap:6px">
-          <input type="number" min="1" value="1" class="form-control" id="${idp}-gol" style="width:80px;text-align:center" title="Gol">
-          <button type="button" class="btn btn-teal btn-sm" onclick="icecupAggiungiMarcatore('${fase}',${gIdx},${pIdx},'${m.a}','${m.b}')" style="flex:1">➕ Aggiungi gol</button>
-        </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        ${pulsantiSquadra(m.a,m.b,nomeA)}
+        ${pulsantiSquadra(m.b,m.a,nomeB)}
       </div>
     </div>
   </details>`;
 }
-// quando cambi squadra nel select, ripopolo i bambini
-function icecupAggiornaOptBambini(fase,gIdx,pIdx){
-  const idp=`ic-mrc-${fase}-${gIdx}-${pIdx}`;
-  const sqId=document.getElementById(idp+'-sq').value;
-  const sel=document.getElementById(idp+'-bimbo');
-  sel.innerHTML=icecupBambiniSquadra(sqId).map(b=>`<option value="${b.id}">${b.nome.replace(/</g,'&lt;')}</option>`).join('');
-}
-function icecupAggiungiMarcatore(fase,gIdx,pIdx,idA,idB){
-  const idp=`ic-mrc-${fase}-${gIdx}-${pIdx}`;
-  const sqId=document.getElementById(idp+'-sq').value;
-  const bimbo=document.getElementById(idp+'-bimbo').value;
-  const gol=parseInt(document.getElementById(idp+'-gol').value);
-  if(!bimbo){ showToast('Seleziona un bambino','error'); return; }
-  if(isNaN(gol)||gol<1){ showToast('Gol non valido','error'); return; }
+// Click su un nome → +1 gol a quella squadra, risultato e salvataggio automatici
+function icecupGolClick(fase,gIdx,pIdx,sqId,bimboId,autogol){
   const db=getDb(); const t=db.tornei.calcio;
   const lista=icecupMarcatoriLista(fase,gIdx,pIdx);
-  // vincolo col risultato
-  const r=t[fase].risultati[icecupRisKey(gIdx,pIdx)];
-  if(r&&r.ra!=null&&r.rb!=null){
-    const giaSq=lista.filter(x=>x.squadraId===sqId).reduce((s,x)=>s+(+x.gol||0),0);
-    const max=(sqId===idA)?+r.ra:+r.rb;
-    if(giaSq+gol>max){
-      showToast(`Troppi gol per ${icecupNomeSquadra('calcio',sqId)}: max ${max} (già ${giaSq})`,'error');
-      return;
-    }
-  } else {
-    showToast('Salva prima il risultato della partita','error'); return;
-  }
-  // se il bambino ha già segnato in questa partita, accumula
-  const esist=lista.find(x=>x.iscrittoId===bimbo);
-  if(esist) esist.gol=(+esist.gol||0)+gol;
-  else lista.push({ iscrittoId:bimbo, squadraId:sqId, gol });
+  // accumula se lo stesso bimbo (stesso tipo gol/autogol) ha già segnato in questa partita
+  const esist=lista.find(x=>x.iscrittoId===bimboId && x.squadraId===sqId && !!x.autogol===!!autogol);
+  if(esist) esist.gol=(+esist.gol||0)+1;
+  else lista.push({ iscrittoId:bimboId, squadraId:sqId, gol:1, autogol:!!autogol });
+  icecupSyncRisultatoDaMarcatori(fase,gIdx,pIdx);
   saveStorage();
-  showToast('⚽ Gol aggiunto!','success');
+  showToast(autogol?'↩️ Autogol aggiunto!':'⚽ Gol aggiunto!','success');
   renderCampionato();
+}
+// AUTOGOL per la squadra sqId: mostra i giocatori della squadra avversaria (sqAvv)
+function icecupAutogolApri(fase,gIdx,pIdx,sqId,sqAvv){
+  const avversari=icecupBambiniSquadra(sqAvv);
+  const nomeSq=icecupNomeSquadra('calcio',sqId);
+  const nomeAvv=icecupNomeSquadra('calcio',sqAvv);
+  if(!avversari.length){ showToast('Nessun bambino nella squadra avversaria','error'); return; }
+  let body=`<div style="padding:20px">
+    <div style="font-weight:800;font-size:16px;color:var(--danger);margin-bottom:6px">↩️ Autogol — gol a ${nomeSq}</div>
+    <p style="font-size:13px;margin-bottom:12px;color:var(--text-muted)">Chi l'ha segnato? (giocatore di <strong>${nomeAvv}</strong>)</p>
+    <div style="display:flex;flex-wrap:wrap">`;
+  body+=avversari.map(b=>
+    `<button type="button" class="btn btn-gray btn-sm" onclick="icecupAutogolScegli('${fase}',${gIdx},${pIdx},'${sqId}','${b.id}')" style="margin:3px;padding:7px 11px;font-size:13px">↩️ ${b.nome.replace(/</g,'&lt;').replace(/'/g,'&#39;')}</button>`
+  ).join('');
+  body+=`</div>
+    <div style="text-align:right;margin-top:16px"><button type="button" class="btn btn-gray btn-sm" onclick="closeModal('custom-modal')">Annulla</button></div>
+  </div>`;
+  showModal(body);
+}
+function icecupAutogolScegli(fase,gIdx,pIdx,sqId,bimboAvversarioId){
+  closeModal('custom-modal');
+  // il gol va alla squadra sqId, ma il marcatore registrato è l'avversario, con flag autogol
+  icecupGolClick(fase,gIdx,pIdx,sqId,bimboAvversarioId,true);
+}
+// Riallinea i box risultato alla somma dei marcatori
+function icecupSyncRisultatoDaMarcatori(fase,gIdx,pIdx){
+  const db=getDb(); const t=db.tornei.calcio;
+  // serve sapere chi è a/b: lo ricavo dal calendario
+  const m=t[fase].calendario[gIdx][pIdx];
+  const lista=icecupMarcatoriLista(fase,gIdx,pIdx);
+  const golA=lista.filter(x=>x.squadraId===m.a).reduce((s,x)=>s+(+x.gol||0),0);
+  const golB=lista.filter(x=>x.squadraId===m.b).reduce((s,x)=>s+(+x.gol||0),0);
+  t[fase].risultati[icecupRisKey(gIdx,pIdx)]={ra:golA,rb:golB};
 }
 function icecupRimuoviMarcatore(fase,gIdx,pIdx,i){
   const lista=icecupMarcatoriLista(fase,gIdx,pIdx);
-  lista.splice(i,1);
+  const it=lista[i];
+  if(it && (+it.gol||0)>1){ it.gol=(+it.gol)-1; }   // -1 gol se ne aveva più di uno
+  else lista.splice(i,1);                            // altrimenti rimuovi la riga
+  icecupSyncRisultatoDaMarcatori(fase,gIdx,pIdx);
   saveStorage();
+  showToast('Gol rimosso','info');
   renderCampionato();
 }
 // Classifica cannonieri cumulata (apertura + clausura + finali)
@@ -31684,6 +31718,8 @@ function icecupClassificaCannonieri(){
     const mrc=t[fase].marcatori||{};
     Object.values(mrc).forEach(lista=>{
       (lista||[]).forEach(x=>{
+        if(x.autogol) return;
+
         if(!agg[x.iscrittoId]) agg[x.iscrittoId]={ id:x.iscrittoId, nome:icecupNomeBambino(x.iscrittoId), squadraId:x.squadraId, gol:0 };
         agg[x.iscrittoId].gol+=(+x.gol||0);
       });
@@ -31693,6 +31729,8 @@ function icecupClassificaCannonieri(){
   const fmrc=(t.finali&&t.finali.marcatori)||{};
   Object.values(fmrc).forEach(lista=>{
     (lista||[]).forEach(x=>{
+      if(x.autogol) return;
+
       if(!agg[x.iscrittoId]) agg[x.iscrittoId]={ id:x.iscrittoId, nome:icecupNomeBambino(x.iscrittoId), squadraId:x.squadraId, gol:0 };
       agg[x.iscrittoId].gol+=(+x.gol||0);
     });
@@ -31707,7 +31745,7 @@ function icecupRenderCannonieri(){
     const med=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     return `<tr>
       <td style="text-align:center;font-weight:900">${med}</td>
-      <td><strong>${s.nome}</strong></td>
+      <td><strong>${icecupBandieraSquadra('calcio',s.squadraId)}${s.nome}</strong></td>
       <td style="color:var(--text-muted)">${icecupNomeSquadra('calcio',s.squadraId)}</td>
       <td style="text-align:center"><span class="badge" style="background:var(--success);color:#fff;font-size:15px;padding:5px 11px">${s.gol}</span></td>
     </tr>`;
@@ -52455,6 +52493,7 @@ async function ptCarica(){
     if(!db){ ptErrore('Impossibile contattare il server. Riprova tra poco.'); return; }
     window._PT_dati = db.tornei || {};
     window._PT_iscritti = Array.isArray(db.iscritti)? db.iscritti : [];
+    window._PT_squadre = Array.isArray(db.squadre)? db.squadre : [];
     ptRender();
     const info=document.getElementById('pt-refresh-info');
     if(info) info.textContent='Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -52496,6 +52535,15 @@ function ptSetSezione(sez){
 
 // ── Calcolo (versione pura, opera sul db scaricato) ──
 function ptNome(t,id){ const s=(t.squadre||[]).find(x=>x.id===id); return s?s.nome:'—'; }
+function ptBandiera(t,id,size){
+  const s=(t.squadre||[]).find(x=>x.id===id);
+  if(!s) return '';
+  let band=null;
+  if(s.srcId){ const real=(window._PT_squadre||[]).find(q=>q.id===s.srcId); if(real&&real.bandiera) band=real.bandiera; }
+  const h=size||16, w=Math.round(h*1.5);
+  if(band) return `<img src="${band}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:3px;border:1px solid #cdd8ec;vertical-align:middle;margin-right:6px" alt="">`;
+  return '';
+}
 function ptCmp(a,b){
   if(b.pt!==a.pt) return b.pt-a.pt;
   if(b.dr!==a.dr) return b.dr-a.dr;
@@ -52669,12 +52717,16 @@ function ptRenderCannonieri(t,sport){
   ['apertura','clausura'].forEach(fase=>{
     const mrc=(t[fase]&&t[fase].marcatori)||{};
     Object.values(mrc).forEach(lista=>(lista||[]).forEach(x=>{
+      if(x.autogol) return;
+
       if(!agg[x.iscrittoId]) agg[x.iscrittoId]={id:x.iscrittoId,squadraId:x.squadraId,gol:0};
       agg[x.iscrittoId].gol+=(+x.gol||0);
     }));
   });
   const fmrc=(t.finali&&t.finali.marcatori)||{};
   Object.values(fmrc).forEach(lista=>(lista||[]).forEach(x=>{
+    if(x.autogol) return;
+
     if(!agg[x.iscrittoId]) agg[x.iscrittoId]={id:x.iscrittoId,squadraId:x.squadraId,gol:0};
     agg[x.iscrittoId].gol+=(+x.gol||0);
   }));
@@ -52686,7 +52738,7 @@ function ptRenderCannonieri(t,sport){
     const med=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     return `<tr class="${i<3?'top':''}">
       <td class="pt-pos">${med}</td>
-      <td class="team">${ptNomeBambino(s.id)}</td>
+      <td class="team">${ptBandiera(t,s.squadraId)}${ptNomeBambino(s.id)}</td>
       <td style="text-align:left;color:#5a7299;font-weight:700">${ptNome(t,s.squadraId)}</td>
       <td class="pt-pt">${s.gol}</td>
     </tr>`;
