@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Istituto San Giuseppe",
+  "short_name": "San Giuseppe",
+  "description": "Gestionale dell'Istituto San Giuseppe",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#17325e",
+  "theme_color": "#17325e",
+  "lang": "it",
+  "categories": ["productivity", "education"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
