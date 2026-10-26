@@ -1,7 +1,6 @@
 // ═══════════════════════════════════════════════════════
-//  GESTIONALE GREST 2026 — Service Worker
-//  File: sw.js
-//  Da caricare su GitHub Pages nella stessa cartella di index.html
+//  GESTIONALE — Service Worker (ottobre 2026: notifiche)
+//  File: sw.js — accanto a index.html su GitHub Pages
 // ═══════════════════════════════════════════════════════
 
 const CACHE = 'grest-v2';
@@ -30,53 +29,44 @@ self.addEventListener('fetch', e => {
   }
 });
 
-// ── Gestione Push in arrivo ──
+// ── Notifica in arrivo dal server ──
+// Il server manda: { titolo, corpo, tag, vai, app: 'scu' | 'grest' }
+// (si accettano anche i vecchi campi tipo/url)
 self.addEventListener('push', e => {
-  let data = {
-    titolo: 'Gestionale GREST',
-    corpo: 'Hai una nuova notifica',
-    tipo: 'generale',
-    url: '/'
-  };
-  try {
-    if (e.data) data = Object.assign(data, e.data.json());
-  } catch(err) {}
-
-  const emoji = {
-    messaggio: '💬',
-    sondaggio: '📋',
-    pagamento: '💰',
-    presenza:  '📅',
-    iscrizione:'🏕️'
-  };
-
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) {
+    try { d = { corpo: e.data ? e.data.text() : '' }; } catch (e2) {}
+  }
+  const scu = d.app === 'scu';
+  const titolo = d.titolo || (scu ? 'Servizio Civile' : 'Gestionale');
   const opzioni = {
-    body: (emoji[data.tipo] ? emoji[data.tipo] + ' ' : '') + data.corpo,
-    icon: './icon-192.png',
-    badge: './icon-192.png',
-    tag: data.tipo || 'grest',
-    renotify: true,
-    vibrate: [200, 100, 200],
-    data: { url: data.url || '/' }
+    body: d.corpo || '',
+    icon: scu ? './scu-icon-192.png' : './icon-192.png',
+    badge: scu ? './scu-icon-192.png' : './icon-192.png',
+    tag: d.tag || undefined,
+    renotify: !!d.tag,
+    vibrate: [120, 60, 120],
+    timestamp: d.il || Date.now(),
+    data: { vai: d.vai || '', app: scu ? 'scu' : 'grest', url: d.url || '' }
   };
-
-  e.waitUntil(
-    self.registration.showNotification(data.titolo, opzioni)
-  );
+  // ogni notifica arrivata va mostrata (iPhone lo richiede)
+  e.waitUntil(self.registration.showNotification(titolo, opzioni));
 });
 
-// ── Click sulla notifica: apre/porta in primo piano l'app ──
+// ── Tocco sulla notifica: apre l'app sulla pagina giusta ──
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const targetUrl = (e.notification.data && e.notification.data.url)
-    ? e.notification.data.url
-    : '/';
-  e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cls => {
-      for (const c of cls) {
-        if (c.url && c.focus) { c.focus(); return; }
+  const dati = e.notification.data || {};
+  const base = new URL('./', self.registration.scope).href;
+  const url = dati.url || (base + (dati.app === 'scu' ? '?app=scu' : '') + (dati.vai ? (dati.app === 'scu' ? '&' : '?') + 'vai=' + encodeURIComponent(dati.vai) : ''));
+  e.waitUntil((async () => {
+    const lista = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of lista) {
+      if (c.url && c.url.indexOf(base) === 0 && 'focus' in c) {
+        try { c.postMessage({ tipo: 'notifica-vai', vai: dati.vai || '' }); } catch (err) {}
+        return c.focus();
       }
-      if (clients.openWindow) return clients.openWindow(targetUrl);
-    })
-  );
+    }
+    if (clients.openWindow) return clients.openWindow(url);
+  })());
 });
