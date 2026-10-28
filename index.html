@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/10/2026 08:11</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/10/2026 08:11 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -86973,5 +86973,63 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   window.alert = function(testo){ window.xAvviso(testo); };
 })();
 </script>
+
+<style id="gestionale-2026">
+/* ═══ Gestionale degli amministratori: stesso stile dei portali (ottobre 2026) — solo grafica ═══
+   Sfondo grigio chiaro, schede bianche arrotondate senza bordo, titoli senza grazie, campi pieni, pulsanti morbidi. */
+:root{
+  --g-bg:#eef1f6; --g-card:#fff; --g-card2:#f4f6fa; --g-line:#e6eaf1; --g-txt:#0f172a; --g-sub:#64748b; --g-ten:#94a3b8;
+  --g-acc:#1f4580; --g-acc2:#eaf0ff; --g-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06);
+  --g-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,system-ui,sans-serif;
+}
+body{ background:var(--g-bg) !important }
+#main{ background:var(--g-bg) !important; font-family:var(--g-font) !important; color:var(--g-txt) }
+#main .view{ font-family:var(--g-font) }
+/* titoli */
+#main .page-title{ font-family:var(--g-font) !important; font-size:30px !important; font-weight:800 !important; letter-spacing:-.02em !important; color:var(--g-txt) !important; text-transform:none !important; margin-bottom:16px !important }
+#main .page-title svg{ color:var(--g-acc) }
+#main .section-title, #main .card-title{ font-family:var(--g-font) !important; font-size:13px !important; font-weight:700 !important; letter-spacing:.06em !important; text-transform:uppercase !important; color:var(--g-sub) !important; border:0 !important }
+#main .breadcrumb{ font-size:13px; color:var(--g-sub) }
+/* schede */
+#main .card, #main .ios-card, #main .dl-card, #main .scc-card, #main .dash-tab-btn:not(.active) .dtab-card, #main .cal-day-card, #main .preiscr-stat-card, #main .mensa-stat-card, #main .idb-box{
+  background:var(--g-card) !important; border:0 !important; border-radius:20px !important; box-shadow:var(--g-shadow) !important }
+#main .card{ padding:18px !important }
+#main .imz-kpi{ background:var(--g-card) !important; border:0 !important; border-radius:16px !important; box-shadow:var(--g-shadow) !important }
+#main .imz-kpi.rosso, #main .imz-kpi[class*="rosso"]{ background:#fdecec !important } #main .imz-kpi.giallo, #main .imz-kpi[class*="giallo"]{ background:#fef6e4 !important }
+#main .imz-kpi-l, #main .sb-label, #main .mensa-stat-label{ color:var(--g-sub) !important; font-weight:600 !important; letter-spacing:.04em }
+#main .imz-kpi-v, #main .sb-value{ font-family:var(--g-font) !important; font-weight:800 !important; letter-spacing:-.02em; color:var(--g-txt) }
+/* pulsanti */
+#main .btn, .imz-modal .btn{ font-family:var(--g-font) !important; border-radius:12px !important; font-weight:650 !important; letter-spacing:0 !important; text-transform:none !important; box-shadow:none !important; transition:transform .1s, filter .15s }
+#main .btn:active, .imz-modal .btn:active{ transform:scale(.98) }
+#main .btn-teal, .imz-modal .btn-teal, #main .btn-blue, #main .btn-primary{ background:var(--g-acc) !important; border-color:var(--g-acc) !important; color:#fff !important }
+#main .btn-outline, .imz-modal .btn-outline{ background:var(--g-card) !important; border:1.5px solid var(--g-line) !important; color:var(--g-txt) !important }
+#main .btn-outline:hover, .imz-modal .btn-outline:hover{ border-color:var(--g-acc) !important; color:var(--g-acc) !important }
+#main .btn-gray, .imz-modal .btn-gray, #main .btn-ghost{ background:var(--g-card2) !important; border:0 !important; color:var(--g-txt) !important }
+/* campi */
+#main .form-control, .imz-modal .form-control, #main .pi-search, #main input[type="search"]{
+  background:var(--g-card2) !important; border:1.5px solid transparent !important; border-radius:12px !important; color:var(--g-txt) !important; font-family:var(--g-font) !important; box-shadow:none !important; min-height:40px }
+#main .form-control:focus, .imz-modal .form-control:focus{ border-color:var(--g-acc) !important; background:var(--g-card) !important; outline:0 !important }
+#main .form-label, .imz-modal label, #main .imz-f > label{ color:var(--g-sub) !important; font-weight:650 !important }
+/* schede a linguette */
+#main .imz-tab, #main .sc-tab, #main .imp-tab-btn, #main .dash-tab-btn{ font-family:var(--g-font) !important; border-radius:10px !important }
+#main .imz-tab.on, #main .sc-tab.active, #main .imp-tab-btn.active{ color:var(--g-acc) !important }
+/* tabelle */
+#main table{ font-family:var(--g-font) }
+#main table th{ background:var(--g-card2) !important; color:var(--g-sub) !important; font-size:12px !important; font-weight:700 !important; letter-spacing:.05em !important; text-transform:uppercase; border-color:var(--g-line) !important }
+#main table td{ border-color:var(--g-line) !important }
+#main table tbody tr:hover td{ background:color-mix(in srgb,var(--g-acc) 4%,transparent) }
+#main .table-wrap{ border-radius:16px !important; border:1px solid var(--g-line) !important; overflow:hidden; box-shadow:none !important }
+/* finestre (modulo nuovo impegno, mezzo, ragazzo…) */
+.imz-modal{ background:rgba(5,10,20,.45) !important; backdrop-filter:none !important }
+.imz-modal .imz-mbox{ border-radius:24px !important; border:0 !important; box-shadow:0 24px 70px rgba(0,0,0,.25) !important; font-family:var(--g-font) !important; overflow:hidden }
+.imz-modal .imz-mh{ font-family:var(--g-font) !important; font-size:18px !important; font-weight:750 !important; letter-spacing:-.01em; color:var(--g-txt) !important; border-bottom:1px solid var(--g-line) !important; background:var(--g-card) !important }
+.imz-modal .imz-x{ border-radius:50% !important; background:var(--g-card2) !important; border:0 !important }
+.imz-modal .imz-mf{ border-top:1px solid var(--g-line) !important; background:var(--g-card) !important }
+.imz-modal .imz-f label, .imz-modal .ic-chk{ font-family:var(--g-font) !important; text-transform:none !important; letter-spacing:0 !important; font-size:13px !important }
+@media (max-width:700px){ .imz-modal .imz-mbox{ border-radius:24px 24px 0 0 !important } }
+/* barra in alto e menu */
+#sidebar .sb-label, #sidebar a, #header{ font-family:var(--g-font) !important }
+#sidebar a.active, #sidebar a.attivo{ border-radius:10px !important }
+</style>
 </body>
 </html>
