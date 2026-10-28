@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/10/2026 14:00</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/10/2026 14:00 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -87580,7 +87580,7 @@ body{ background:var(--g-bg) !important }
 <script id="scu-disposizioni-2026-11-js">
 /* ═══ Servizio Civile › Orari: «Nuove disposizioni» (novembre 2026) ═══
    Un solo pulsante (solo amministratori) che rimette in ordine, dopo aver mostrato cosa cambia:
-     1. turni tipo   2. regole del controllo   3. elenco dei compiti   4. turni dal 2 al 7 novembre
+     1. turni tipo   2. regole del controllo   3. elenco dei compiti   (i turni NON li tocca: li carica Tonino)
    Prima di scrivere salva una copia di tutto in sc.impostazioni.backupDisposizioni (si può ripristinare). */
 (function(){
   if(typeof scGetDb !== 'function' || typeof _ttScrivi !== 'function' || typeof _tckScrivi !== 'function') return;
@@ -87591,7 +87591,7 @@ body{ background:var(--g-bg) !important }
   var SAB = ['Dario a scuola', 'stare con i ragazzi'];
   var G = {
     1:{ o:'12:30-17:30', a:['13.00 Ludovica', '13.15 Lorenzo e Ginevra', '14.00 Giulia e Leonardo'] },
-    2:{ o:'13:30-17:30', a:['14.00 Giulia, Ludovica e Leonardo'] },
+    2:{ o:'13:00-17:30', a:['13.15 Lorenzo e Ginevra', '14.00 Giulia, Ludovica e Leonardo'] },
     3:{ o:'12:30-17:30', a:['13.00 Ludovica', '13.15 Lorenzo e Ginevra', '14.00 Giulia e Leonardo'] },
     4:{ o:'13:00-17:30', a:['13.15 Lorenzo e Ginevra', '14.00 Giulia, Ludovica e Leonardo'] },
     5:{ o:'12:30-17:30', a:['13.00 Ludovica e Giulia', '13.15 Lorenzo e Ginevra', '14.00 Leonardo'] }
@@ -87622,7 +87622,7 @@ body{ background:var(--g-bg) !important }
     { id:'r_dario', nome:'Dario a scuola il sabato', giorni:[6], parole:'dario', dalle:'07:30', alle:'08:30', sesso:'', min:1, max:null, attiva:true }
   ];
   var COMPITI = ['Asilo', 'Doposcuola', 'Doposcuola - fratelli Giuffrida', 'Doposcuola Marta e Cassandra', 'Doposcuola Marta', 'Doposcuola Cassandra', 'Portineria',
-    J(MAT), J(G[1].a), J(G[2].a), J(G[4].a), J(G[5].a), J(G[1].a.concat(SER)), J(SER), J(SAB), 'Accompagnamenti', 'Formazione'];
+    J(MAT), J(G[1].a), J(G[4].a), J(G[5].a), J(G[1].a.concat(SER)), J(SER), J(SAB), 'Accompagnamenti', 'Formazione'];
 
   /* turni dal 2 al 7 novembre: [cognome, [lun..sab]] — null = libero, 'P' = permesso (non tocco la giornata) */
   var T = function(o, c){ return { o:o, c:c }; };
@@ -87632,9 +87632,9 @@ body{ background:var(--g-bg) !important }
     ['Virzi',       [DOP, DOP, DOP, DOP, POR, null]],
     ['Costanzo',    [T('15:30-19:30', 'Doposcuola Marta e Cassandra'), POR, T('15:30-19:30', 'Doposcuola Cassandra'), T('15:30-19:30', 'Doposcuola Marta'), T('15:30-19:30', 'Doposcuola Cassandra'), null]],
     ['Garibaldi',   [POR, DOP, DOP, DOP, DOP, null]],
-    ['Naselli',     [M, S, T('12:30-19:30', J(G[3].a.concat(SER))), T('13:00-17:30', J(G[4].a)), S, null]],
-    ['Pettiglione', [S, T('13:30-17:30', J(G[2].a)), M, S, M, null]],
-    ['Galesi',      [T('12:30-17:30', J(G[1].a)), M, null, M, T('12:30-17:30', J(G[5].a)), T('07:30-13:30', J(SAB))]],
+    ['Naselli',     [M, S, T('12:30-19:30', J(G[3].a.concat(SER))), M, S, null]],
+    ['Pettiglione', [S, T('13:00-17:30', J(G[2].a)), M, S, M, null]],
+    ['Galesi',      [T('12:30-17:30', J(G[1].a)), M, null, T('13:00-17:30', J(G[4].a)), T('12:30-17:30', J(G[5].a)), T('07:30-13:30', J(SAB))]],
     ['Gullotta',    [ASI, ASI, ASI, ASI, 'P', null]],
     ['Santonocito', [DOP, DOP, POR, DOP, DOP, null]],
     ['Guarnera',    [DOP, DOP, DOP, POR, ASI, null]],
@@ -87673,10 +87673,10 @@ body{ background:var(--g-bg) !important }
 
   window.dspApri = async function(){
     try{ await Promise.all([_ttLeggi().catch(function(){}), _tckLeggi().catch(function(){})]); }catch(e){}
-    var P = piano(), b = bk();
+    var b = bk();
     var sez = function(k, tit, righe){ return '<div class="dsp-sez"><label><input type="checkbox" id="dsp-' + k + '" checked> ' + tit + '</label><ul>' + righe.map(function(r){ return '<li>' + r + '</li>'; }).join('') + '</ul></div>'; };
     var corpo = (b ? '<div class="dsp-ok">✓ Già applicate il ' + E(_scaFmt ? _scaFmt(b.quando) : b.quando) + '. Puoi riapplicarle oppure tornare a com\'era prima.</div>' : '')
-      + '<div class="dsp-intro">Rimetto in ordine il Servizio Civile ordinario con le nuove disposizioni: Michele a scuola la mattina, niente più Michele alle 15, Dario solo il sabato, Ludovica e Leonardo scritti per esteso. Prima salvo una copia di tutto, così puoi tornare indietro.</div>'
+      + '<div class="dsp-intro">Rimetto in ordine il Servizio Civile ordinario con le nuove disposizioni: Michele a scuola la mattina, niente più Michele alle 15, Dario solo il sabato, Ludovica e Leonardo scritti per esteso. Cambio solo le impostazioni: i turni non li tocco, quelli li carichi tu. Prima salvo una copia, così puoi tornare indietro.</div>'
       + sez('tipi', '🧩 Turni tipo', [
           '<b>Mattina</b> lun–ven 07.30–13.30: ' + E(J(MAT)),
           '<b>Giro mezzogiorno</b> senza «15.00 Michele», con Ludovica e Leonardo per esteso',
@@ -87691,9 +87691,7 @@ body{ background:var(--g-bg) !important }
           'Portineria mattina e pomeriggio, una ragazza all\'asilo, un ragazzo per Scuola Allegra: come prima',
           'Tolta la regola doppia «Portineria la mattina»'])
       + sez('compiti', '📋 Elenco dei compiti', ['Sostituito con ' + COMPITI.length + ' compiti puliti (quelli della settimana nuova), tolti quelli con Dario in settimana, Ludo/Leo e Michele alle 15'])
-      + sez('sett', '🗓️ Turni dal 2 al 7 novembre', ['Scrivo orario e compito di ' + abbina().righe.length + ' volontari, come nel file che ti ho preparato (Alfio libero mercoledì e al sabato, Simone mercoledì 12.30–19.30, portineria una a testa, venerdì asilo a Giulia)',
-          'Permessi e malattie già segnati non li tocco'])
-      + (P.avvisi.length ? '<div class="dsp-av">⚠️ ' + P.avvisi.map(E).join('<br>⚠️ ') + '</div>' : '');
+;
     _imzModal('🔧 Nuove disposizioni turni', corpo,
       (b ? '<button type="button" class="btn btn-outline btn-sm" style="margin-right:auto" onclick="dspRipristina()">↺ Torna a com\'era prima</button>' : '')
       + '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" id="dsp-vai" onclick="dspApplica()">Applica</button>');
@@ -87701,7 +87699,7 @@ body{ background:var(--g-bg) !important }
 
   window.dspApplica = async function(){
     var on = function(k){ var x = document.getElementById('dsp-' + k); return !!(x && x.checked); };
-    var scelte = { tipi:on('tipi'), regole:on('regole'), compiti:on('compiti'), sett:on('sett') };
+    var scelte = { tipi:on('tipi'), regole:on('regole'), compiti:on('compiti'), sett:false };
     if(!scelte.tipi && !scelte.regole && !scelte.compiti && !scelte.sett){ showToast('Non hai scelto niente', 'info'); return; }
     var btn = document.getElementById('dsp-vai'); if(btn){ btn.disabled = true; btn.textContent = 'Applico…'; }
     var sc = scGetDb(); if(!sc){ showToast('Servizio Civile non caricato', 'warning'); return; }
@@ -87711,8 +87709,7 @@ body{ background:var(--g-bg) !important }
       // copia di sicurezza (la prima volta: quella di prima delle disposizioni resta)
       var vecchio = sc.impostazioni.backupDisposizioni;
       if(!vecchio){
-        var P0 = piano(), celle = { orariCal:{}, compiti:{} };
-        P0.celle.forEach(function(x){ celle.orariCal[x.k] = (sc.orariCal || {})[x.k] || null; celle.compiti[x.k] = (sc.compiti || {})[x.k] || null; });
+        var celle = { orariCal:{}, compiti:{} };   // i turni non si toccano
         sc.impostazioni.backupDisposizioni = { quando:new Date().toISOString(), da:(typeof _imzUtente === 'function') ? _imzUtente() : '',
           tipi:Array.isArray(_TT.tipi) ? JSON.parse(JSON.stringify(_TT.tipi)) : null,
           regole:Array.isArray(_TCK.regole) ? JSON.parse(JSON.stringify(_TCK.regole)) : null,
@@ -87722,17 +87719,6 @@ body{ background:var(--g-bg) !important }
       if(scelte.tipi){ await _ttScrivi(JSON.parse(JSON.stringify(TIPI))); fatto.push('turni tipo'); }
       if(scelte.regole){ await _tckScrivi(JSON.parse(JSON.stringify(REGOLE))); fatto.push('regole'); }
       if(scelte.compiti){ sc.impostazioni.compitiLista = COMPITI.slice(); fatto.push('elenco compiti'); }
-      if(scelte.sett){
-        try{ _turniPrimaDiModificare(); }catch(e){}
-        if(!sc.orariCal) sc.orariCal = {}; if(!sc.compiti) sc.compiti = {};
-        var P = piano();
-        P.celle.forEach(function(x){
-          var o = x.o ? scNormalizzaOrario(x.o) : '';
-          if(o) sc.orariCal[x.k] = o; else delete sc.orariCal[x.k];
-          if(x.c) sc.compiti[x.k] = x.c; else delete sc.compiti[x.k];
-        });
-        fatto.push('turni dal 2 al 7 novembre');
-      }
       saveStorage();
       try{ if(typeof auditLog === 'function') auditLog('ORARI', 'Nuove disposizioni turni applicate: ' + fatto.join(', '), { sezione:'Servizio Civile' }); }catch(e){}
       _imzChiudi();
@@ -87747,7 +87733,7 @@ body{ background:var(--g-bg) !important }
 
   window.dspRipristina = async function(){
     var sc = scGetDb(), b = bk(); if(!sc || !b) return;
-    if(!await xConferma('Tornare a com\'era prima delle nuove disposizioni?\n\nRimetto turni tipo, regole, elenco dei compiti e i turni dal 2 al 7 novembre come erano il ' + (_scaFmt ? _scaFmt(b.quando) : b.quando) + '.')) return;
+    if(!await xConferma('Tornare a com\'era prima delle nuove disposizioni?\n\nRimetto turni tipo, regole ed elenco dei compiti come erano il ' + (_scaFmt ? _scaFmt(b.quando) : b.quando) + '.')) return;
     try{
       await _ttScrivi(b.tipi || _ttPredefiniti());
       await _tckScrivi(b.regole || _tckPredefinite());
@@ -87776,6 +87762,112 @@ body{ background:var(--g-bg) !important }
     return r;
   };
   window._dspDati = { TIPI:TIPI, REGOLE:REGOLE, COMPITI:COMPITI, SETT:SETT, GIORNI:GIORNI };
+})();
+</script>
+
+
+<style id="scu-avviso-settimana-2026">
+.avs-et{ display:flex; align-items:center; gap:10px; border-radius:14px; padding:9px 14px; margin-bottom:12px; font-size:13.5px; font-weight:650 }
+.avs-et b{ font-size:12px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:3px 10px }
+.avs-et.corrente{ background:#fff1e6; color:#9a3c00 } .avs-et.corrente b{ background:#ea6c0a; color:#fff }
+.avs-et.prossima{ background:#e7f7ed; color:#14532d } .avs-et.prossima b{ background:#16a34a; color:#fff }
+.avs-et.passata{ background:#f1f5f9; color:#475569 } .avs-et.passata b{ background:#94a3b8; color:#fff }
+.avs-et.futura{ background:#eef2ff; color:#1f3a8a } .avs-et.futura b{ background:#6366f1; color:#fff }
+.avs-imp{ background:#fff1e6; color:#9a3c00; border-radius:8px; padding:8px 10px; font-size:12px; font-weight:700; margin-bottom:10px }
+</style>
+<script id="scu-avviso-settimana-2026-js">
+/* ═══ Servizio Civile › Orari: avviso quando si modificano i turni della settimana in corso o passata (ottobre 2026) ═══
+   • etichetta colorata sopra la tabella: SETTIMANA IN CORSO / PROSSIMA / passata / tra N settimane
+   • alla prima modifica di una settimana in corso o passata chiede conferma (una volta per settimana,
+     finché non cambi settimana o esci dagli Orari). Permessi e malattie non chiedono niente.
+   • import Excel: avviso nell'anteprima se il file tocca la settimana in corso o giorni passati. */
+(function(){
+  if(typeof scRenderOrari !== 'function' || typeof scGetSettimana !== 'function') return;
+  var ASS = { po:1, ps:1, mal:1 };
+  var OK = {}, ultimoOffset = null;
+  function iso(d){ return scDataLocale(d); }
+  function lun(ds){ var d = new Date(ds + 'T12:00:00'), w = d.getDay(); d.setDate(d.getDate() - (w === 0 ? 6 : w - 1)); return iso(d); }
+  function lunOggi(){ return lun(iso(new Date())); }
+  function tipo(wk){ var c = lunOggi(); if(wk < c) return 'passata'; if(wk === c) return 'corrente'; var n = Math.round((new Date(wk + 'T12:00:00') - new Date(c + 'T12:00:00')) / 6048e5); return n === 1 ? 'prossima' : 'futura'; }
+  function fmt(ds){ var d = new Date(ds + 'T12:00:00'); return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2); }
+  function lunVista(){ try{ return iso(scGetSettimana(_scSettOffset)[0]); }catch(e){ return lunOggi(); } }
+  function sab(wk){ var d = new Date(wk + 'T12:00:00'); d.setDate(d.getDate() + 5); return iso(d); }
+
+  /* chiede conferma; true = si può modificare */
+  async function permesso(ds){
+    var wk = ds ? lun(ds) : lunVista(), t = tipo(wk);
+    if(t !== 'corrente' && t !== 'passata') return true;
+    if(OK[wk]) return true;
+    var testo = '⚠️ Stai modificando un turno della ' + (t === 'corrente' ? 'SETTIMANA IN CORSO' : 'settimana PASSATA') + ' (' + fmt(wk) + ' – ' + fmt(sab(wk)) + ').\n\n'
+      + 'I turni nuovi di solito vanno nella settimana prossima.\n\nOK = Sì, modifica questa settimana · Annulla = Vai alla settimana prossima';
+    var si = await xConferma(testo);
+    if(si){ OK[wk] = true; return true; }
+    try{ _scOrariVista = 'settimana'; _scSettOffset = 1; }catch(e){}
+    scRenderOrari();
+    showToast('Ora sei nella settimana prossima', 'info');
+    return false;
+  }
+  window._avsPermesso = permesso;
+
+  /* avvolge un comando: prima chiede (se serve), poi lo esegue; se rinunci ridisegna (la tendina torna com'era) */
+  function avvolgi(nome, dsDi, salta){
+    var o = window[nome]; if(typeof o !== 'function' || o._avs) return;
+    var f = async function(){
+      var a = arguments, ds = null;
+      try{ if(salta && salta.apply(this, a)) return o.apply(this, a); ds = dsDi ? dsDi.apply(this, a) : null; }catch(e){}
+      if(!(await permesso(ds))){ return; }
+      return o.apply(this, a);
+    };
+    f._avs = true; window[nome] = f;   // le funzioni globali: cambia anche il nome usato dagli onclick
+  }
+  avvolgi('turniCambiaTurno', function(sel, op, ds){ return ds; }, function(sel){ return sel && ASS[sel.value]; });
+  avvolgi('turniCambiaCompito', function(sel, op, ds){ return ds; }, function(sel){ return sel && sel.value === '__elenco'; });
+  avvolgi('turniRapidoTocca', function(op, ds){ return ds; }, function(){ var R = window._TURNI_RAPIDO || (typeof _TURNI_RAPIDO !== 'undefined' ? _TURNI_RAPIDO : null); return !R || (ASS[R.turno] && !R.compito); });
+  avvolgi('ttAssegna', function(op, ds){ return ds; });
+  avvolgi('turniCopiaSettimanaPrecedente', null);
+  avvolgi('scApplicaColonna', function(ds){ return ds; });
+  avvolgi('scApplicaRiga', null);
+  avvolgi('tcIncollaCella', function(op, ds){ return ds; });
+  avvolgi('tcIncollaGiorno', function(ds){ return ds; });
+  avvolgi('tcIncollaRiga', null);
+  avvolgi('tcIncollaSettimana', null);
+
+  /* etichetta sopra la tabella; cambiare settimana azzera le conferme */
+  var oR = scRenderOrari;
+  var fR = function(){
+    var r = oR.apply(this, arguments);
+    try{
+      if(ultimoOffset !== null && ultimoOffset !== _scSettOffset) OK = {};
+      ultimoOffset = _scSettOffset;
+      var b = document.getElementById('sc-orari-body'); if(!b) return r;
+      var vecchia = document.getElementById('avs-et'); if(vecchia) vecchia.remove();
+      if(typeof _scOrariVista !== 'undefined' && _scOrariVista === 'mese') return r;
+      var wk = lunVista(), t = tipo(wk), n = Math.round((new Date(wk + 'T12:00:00') - new Date(lunOggi() + 'T12:00:00')) / 6048e5);
+      var lab = { corrente:'Settimana in corso', prossima:'Settimana prossima', passata:'Settimana passata', futura:'Tra ' + n + ' settimane' }[t];
+      var d = document.createElement('div'); d.id = 'avs-et'; d.className = 'avs-et ' + t;
+      d.innerHTML = '<b>' + lab + '</b><span>dal ' + fmt(wk) + ' al ' + fmt(sab(wk)) + (t === 'corrente' || t === 'passata' ? ' · le modifiche ti chiedono conferma' : '') + '</span>';
+      b.insertBefore(d, b.firstChild);
+    }catch(e){}
+    return r;
+  };
+  window.scRenderOrari = scRenderOrari = fR;
+  /* uscire dagli Orari azzera le conferme */
+  var oN = window.navigate;
+  if(typeof oN === 'function' && !oN._avs){ var fN = function(){ OK = {}; return oN.apply(this, arguments); }; fN._avs = true; window.navigate = fN; }
+
+  /* import Excel: avviso nell'anteprima */
+  var oA = window._scImpSettAnteprima;
+  if(typeof oA === 'function') window._scImpSettAnteprima = function(imp){
+    var r = oA.apply(this, arguments);
+    try{
+      var c = lunOggi(), t = imp && imp.periodo ? tipo(lun(imp.periodo.da)) : '';
+      if(t === 'corrente' || t === 'passata'){
+        var p = document.getElementById('sc-import-preview'), box = p && p.firstElementChild;
+        if(box){ var w = document.createElement('div'); w.className = 'avs-imp'; w.textContent = '⚠️ Questo file è della ' + (t === 'corrente' ? 'SETTIMANA IN CORSO' : 'settimana PASSATA') + ' (dal ' + fmt(imp.periodo.da) + '): controlla che sia il file giusto prima di importare.'; box.insertBefore(w, box.children[1] || null); }
+      }
+    }catch(e){}
+    return r;
+  };
 })();
 </script>
 
