@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/10/2026 13:33</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/10/2026 13:33 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -87563,6 +87563,219 @@ body{ background:var(--g-bg) !important }
     saveStorage(); _imzChiudi(); scRenderOrari();
     showToast('Elenco compiti salvato' + (aggiorna ? ' · ' + tot + ' casell' + (tot === 1 ? 'a aggiornata' : 'e aggiornate') : ''), 'success');
   };
+})();
+</script>
+
+
+<style id="scu-disposizioni-2026-11">
+.dsp-sez{ border:1.5px solid var(--border,#e6eaf1); border-radius:16px; padding:12px 14px; margin-bottom:10px }
+.dsp-sez > label{ display:flex; gap:10px; align-items:flex-start; font-weight:800; font-size:14.5px; cursor:pointer; text-transform:none !important; letter-spacing:0 !important }
+.dsp-sez > label input{ width:20px; height:20px; margin-top:1px; accent-color:#1f4580; flex-shrink:0 }
+.dsp-sez ul{ margin:8px 0 0 30px; padding:0; font-size:13px; color:var(--text-muted); line-height:1.5 }
+.dsp-sez ul b{ color:var(--text,#0f172a); font-weight:650 }
+.dsp-av{ background:#fef6e4; color:#8a5a00; border-radius:12px; padding:8px 12px; font-size:13px; margin-top:8px }
+.dsp-ok{ background:#e7f7ed; color:#15803d; border-radius:12px; padding:10px 12px; font-size:13.5px; font-weight:650; margin-bottom:10px }
+.dsp-intro{ font-size:13.5px; color:var(--text-muted); margin-bottom:12px }
+</style>
+<script id="scu-disposizioni-2026-11-js">
+/* ═══ Servizio Civile › Orari: «Nuove disposizioni» (novembre 2026) ═══
+   Un solo pulsante (solo amministratori) che rimette in ordine, dopo aver mostrato cosa cambia:
+     1. turni tipo   2. regole del controllo   3. elenco dei compiti   4. turni dal 2 al 7 novembre
+   Prima di scrivere salva una copia di tutto in sc.impostazioni.backupDisposizioni (si può ripristinare). */
+(function(){
+  if(typeof scGetDb !== 'function' || typeof _ttScrivi !== 'function' || typeof _tckScrivi !== 'function') return;
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  var LV = [1,2,3,4,5];
+  var MAT = ['7.45 Michele (Pedara)', '8.00 scuola Michele', '8.15 scuola Alessio', '8.20 colazione', '8.30 portineria'];
+  var SER = ['16.00 Scuola Allegra', '17.30 Villa Angela', '18.15 Semiconvitto'];
+  var SAB = ['Dario a scuola', 'stare con i ragazzi'];
+  var G = {
+    1:{ o:'12:30-17:30', a:['13.00 Ludovica', '13.15 Lorenzo e Ginevra', '14.00 Giulia e Leonardo'] },
+    2:{ o:'13:30-17:30', a:['14.00 Giulia, Ludovica e Leonardo'] },
+    3:{ o:'12:30-17:30', a:['13.00 Ludovica', '13.15 Lorenzo e Ginevra', '14.00 Giulia e Leonardo'] },
+    4:{ o:'13:00-17:30', a:['13.15 Lorenzo e Ginevra', '14.00 Giulia, Ludovica e Leonardo'] },
+    5:{ o:'12:30-17:30', a:['13.00 Ludovica e Giulia', '13.15 Lorenzo e Ginevra', '14.00 Leonardo'] }
+  };
+  var J = function(a){ return a.join(' · '); };
+  function gg(giorni, o, a){ var x = {}; giorni.forEach(function(d){ x[d] = { o:o, a:a.slice() }; }); return x; }
+  function giroCompleto(){ var x = {}; LV.forEach(function(d){ x[d] = { o:G[d].o.slice(0, 5) + '-19:30', a:G[d].a.concat(SER) }; }); return x; }
+  var DOPCRI = { 1:{ o:'15:30-19:30', a:['Doposcuola Marta e Cassandra'] }, 3:{ o:'15:30-19:30', a:['Doposcuola Cassandra'] }, 4:{ o:'15:30-19:30', a:['Doposcuola Marta'] }, 5:{ o:'15:30-19:30', a:['Doposcuola Cassandra'] } };
+
+  var TIPI = [
+    { id:'tt_mat',  nome:'Mattina (Michele a scuola)', sigla:'M', distr:'rot', max:2, serve:1, vale:[], giorni:gg(LV, '07:30-13:30', MAT) },
+    { id:'tt_giro', nome:'Giro mezzogiorno', sigla:'G', distr:'rot', max:null, serve:1, vale:[], giorni:JSON.parse(JSON.stringify(G)) },
+    { id:'tt_pom',  nome:'Pomeriggio ragazzi', sigla:'P', distr:'rot', max:null, serve:1, vale:[], giorni:gg(LV, '15:30-19:30', SER) },
+    { id:'tt_gc',   nome:'Giro completo (mezzogiorno + pomeriggio)', sigla:'G+P', distr:'', max:null, serve:0, vale:['tt_giro', 'tt_pom'], giorni:giroCompleto() },
+    { id:'tt_por',  nome:'Portineria pomeriggio', sigla:'PT', distr:'rot', max:1, serve:1, vale:[], giorni:gg(LV, '13:30-19:30', ['Portineria']) },
+    { id:'tt_asi',  nome:'Asilo', sigla:'A', distr:'stessa', max:null, serve:1, vale:[], giorni:gg(LV, '15:00-19:30', ['Asilo']) },
+    { id:'tt_dop',  nome:'Doposcuola', sigla:'D', distr:'', max:null, serve:0, vale:[], giorni:gg(LV, '15:30-19:30', ['Doposcuola']) },
+    { id:'tt_dmc',  nome:'Doposcuola Marta / Cassandra', sigla:'DM', distr:'stessa', max:null, serve:0, vale:[], giorni:DOPCRI },
+    { id:'tt_dgf',  nome:'Doposcuola fratelli Giuffrida', sigla:'DG', distr:'stessa', max:null, serve:0, vale:[], giorni:gg(LV, '15:30-19:30', ['Doposcuola - fratelli Giuffrida']) },
+    { id:'tt_sab',  nome:'Sabato mattina', sigla:'S', distr:'', max:null, serve:1, vale:[], giorni:gg([6], '07:30-13:30', SAB) }
+  ];
+  var REGOLE = [
+    { id:'r_pmat',  nome:'Portineria di mattina', giorni:LV, parole:'portineria', dalle:'08:30', alle:'13:30', sesso:'', min:1, max:1, attiva:true },
+    { id:'r_ppom',  nome:'Cambio in portineria il pomeriggio', giorni:LV, parole:'portineria', dalle:'13:30', alle:'19:30', sesso:'', min:1, max:1, attiva:true },
+    { id:'r_asilo', nome:'Una ragazza all\'asilo', giorni:LV, parole:'asilo', dalle:'', alle:'', sesso:'F', min:1, max:null, attiva:true },
+    { id:'r_vill',  nome:'Un ragazzo per Scuola Allegra / Villa Angela', giorni:LV, parole:'scuola allegra', dalle:'16:00', alle:'', sesso:'M', min:1, max:null, attiva:true },
+    { id:'r_mich',  nome:'Michele a scuola la mattina', giorni:LV, parole:'michele', dalle:'07:30', alle:'08:00', sesso:'', min:1, max:null, attiva:true },
+    { id:'r_dario', nome:'Dario a scuola il sabato', giorni:[6], parole:'dario', dalle:'07:30', alle:'08:30', sesso:'', min:1, max:null, attiva:true }
+  ];
+  var COMPITI = ['Asilo', 'Doposcuola', 'Doposcuola - fratelli Giuffrida', 'Doposcuola Marta e Cassandra', 'Doposcuola Marta', 'Doposcuola Cassandra', 'Portineria',
+    J(MAT), J(G[1].a), J(G[2].a), J(G[4].a), J(G[5].a), J(G[1].a.concat(SER)), J(SER), J(SAB), 'Accompagnamenti', 'Formazione'];
+
+  /* turni dal 2 al 7 novembre: [cognome, [lun..sab]] — null = libero, 'P' = permesso (non tocco la giornata) */
+  var T = function(o, c){ return { o:o, c:c }; };
+  var DOP = T('15:30-19:30', 'Doposcuola'), POR = T('13:30-19:30', 'Portineria'), ASI = T('15:00-19:30', 'Asilo'), GIU = T('15:30-19:30', 'Doposcuola - fratelli Giuffrida');
+  var M = T('07:30-13:30', J(MAT)), S = T('15:30-19:30', J(SER));
+  var SETT = [
+    ['Virzi',       [DOP, DOP, DOP, DOP, POR, null]],
+    ['Costanzo',    [T('15:30-19:30', 'Doposcuola Marta e Cassandra'), POR, T('15:30-19:30', 'Doposcuola Cassandra'), T('15:30-19:30', 'Doposcuola Marta'), T('15:30-19:30', 'Doposcuola Cassandra'), null]],
+    ['Garibaldi',   [POR, DOP, DOP, DOP, DOP, null]],
+    ['Naselli',     [M, S, T('12:30-19:30', J(G[3].a.concat(SER))), T('13:00-17:30', J(G[4].a)), S, null]],
+    ['Pettiglione', [S, T('13:30-17:30', J(G[2].a)), M, S, M, null]],
+    ['Galesi',      [T('12:30-17:30', J(G[1].a)), M, null, M, T('12:30-17:30', J(G[5].a)), T('07:30-13:30', J(SAB))]],
+    ['Gullotta',    [ASI, ASI, ASI, ASI, 'P', null]],
+    ['Santonocito', [DOP, DOP, POR, DOP, DOP, null]],
+    ['Guarnera',    [DOP, DOP, DOP, POR, ASI, null]],
+    ['Zappala',     [GIU, GIU, GIU, GIU, GIU, null]]
+  ];
+  var GIORNI = ['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07'];
+  var GL = ['lun 2', 'mar 3', 'mer 4', 'gio 5', 'ven 6', 'sab 7'];
+
+  var norm = function(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, ''); };
+  function ordinari(){ return scGetOperatori().filter(function(op){ return op && !op._eliminato && ((typeof scuProgDi !== 'function') || scuProgDi(op) === 'ordinario'); }); }
+  function abbina(){
+    var ops = ordinari(), out = [], mancano = [];
+    SETT.forEach(function(r){ var c = ops.filter(function(op){ return norm(op.cognome) === norm(r[0]); }); if(c.length === 1) out.push({ op:c[0], g:r[1] }); else mancano.push(r[0] + (c.length > 1 ? ' (più di uno)' : '')); });
+    var altri = ops.filter(function(op){ return !out.some(function(x){ return x.op.id === op.id; }); });
+    return { righe:out, mancano:mancano, altri:altri };
+  }
+  function nome(op){ return (typeof _tckNome === 'function') ? _tckNome(op) : (op.nome + ' ' + op.cognome); }
+
+  /* cosa succede nei turni della settimana (per l'anteprima e per applicare) */
+  function piano(){
+    var sc = scGetDb() || {}, A = abbina(), avvisi = [], celle = [];
+    A.righe.forEach(function(x){
+      GIORNI.forEach(function(ds, i){
+        var k = ds + '_' + x.op.id, tg = (sc.giornate || {})[k] || 'normale', v = x.g[i];
+        if(tg !== 'normale'){ if(v && v !== 'P') avvisi.push(nome(x.op) + ', ' + GL[i] + ': è segnato/a in ' + tg + ', il turno non lo scrivo'); return; }
+        if(v === 'P'){ avvisi.push(nome(x.op) + ', ' + GL[i] + ': doveva essere in permesso ma nel gestionale non risulta, lascio la casella vuota'); v = null; }
+        celle.push({ k:k, o:v ? v.o : '', c:v ? v.c : '' });
+      });
+    });
+    A.mancano.forEach(function(n){ avvisi.push('Non trovo il volontario «' + n + '» nel Servizio Civile ordinario: i suoi turni non li scrivo'); });
+    A.altri.forEach(function(op){ avvisi.push(nome(op) + ' non è nel piano: i suoi turni di quella settimana restano come sono'); });
+    return { celle:celle, avvisi:avvisi };
+  }
+
+  function bk(){ var sc = scGetDb() || {}; return (sc.impostazioni || {}).backupDisposizioni || null; }
+
+  window.dspApri = async function(){
+    try{ await Promise.all([_ttLeggi().catch(function(){}), _tckLeggi().catch(function(){})]); }catch(e){}
+    var P = piano(), b = bk();
+    var sez = function(k, tit, righe){ return '<div class="dsp-sez"><label><input type="checkbox" id="dsp-' + k + '" checked> ' + tit + '</label><ul>' + righe.map(function(r){ return '<li>' + r + '</li>'; }).join('') + '</ul></div>'; };
+    var corpo = (b ? '<div class="dsp-ok">✓ Già applicate il ' + E(_scaFmt ? _scaFmt(b.quando) : b.quando) + '. Puoi riapplicarle oppure tornare a com\'era prima.</div>' : '')
+      + '<div class="dsp-intro">Rimetto in ordine il Servizio Civile ordinario con le nuove disposizioni: Michele a scuola la mattina, niente più Michele alle 15, Dario solo il sabato, Ludovica e Leonardo scritti per esteso. Prima salvo una copia di tutto, così puoi tornare indietro.</div>'
+      + sez('tipi', '🧩 Turni tipo', [
+          '<b>Mattina</b> lun–ven 07.30–13.30: ' + E(J(MAT)),
+          '<b>Giro mezzogiorno</b> senza «15.00 Michele», con Ludovica e Leonardo per esteso',
+          '<b>Giro completo</b> (nuovo): giro di mezzogiorno + pomeriggio fino alle 19.30, vale per tutti e due',
+          '<b>Portineria pomeriggio</b> a rotazione, una a testa',
+          '<b>Doposcuola Marta / Cassandra</b> (Cristina) e <b>fratelli Giuffrida</b> (Carola)',
+          '<b>Sabato mattina</b>: Dario a scuola · stare con i ragazzi',
+          'Tolti quelli vecchi con Dario in settimana e «Marta e Benedetta»'])
+      + sez('regole', '⚙️ Regole del controllo', [
+          '<b>Michele a scuola la mattina</b>: lun–ven, compito con «michele», 07.30–08.00',
+          '<b>Dario a scuola il sabato</b>: solo sabato',
+          'Portineria mattina e pomeriggio, una ragazza all\'asilo, un ragazzo per Scuola Allegra: come prima',
+          'Tolta la regola doppia «Portineria la mattina»'])
+      + sez('compiti', '📋 Elenco dei compiti', ['Sostituito con ' + COMPITI.length + ' compiti puliti (quelli della settimana nuova), tolti quelli con Dario in settimana, Ludo/Leo e Michele alle 15'])
+      + sez('sett', '🗓️ Turni dal 2 al 7 novembre', ['Scrivo orario e compito di ' + abbina().righe.length + ' volontari, come nel file che ti ho preparato (Alfio libero mercoledì e al sabato, Simone mercoledì 12.30–19.30, portineria una a testa, venerdì asilo a Giulia)',
+          'Permessi e malattie già segnati non li tocco'])
+      + (P.avvisi.length ? '<div class="dsp-av">⚠️ ' + P.avvisi.map(E).join('<br>⚠️ ') + '</div>' : '');
+    _imzModal('🔧 Nuove disposizioni turni', corpo,
+      (b ? '<button type="button" class="btn btn-outline btn-sm" style="margin-right:auto" onclick="dspRipristina()">↺ Torna a com\'era prima</button>' : '')
+      + '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" id="dsp-vai" onclick="dspApplica()">Applica</button>');
+  };
+
+  window.dspApplica = async function(){
+    var on = function(k){ var x = document.getElementById('dsp-' + k); return !!(x && x.checked); };
+    var scelte = { tipi:on('tipi'), regole:on('regole'), compiti:on('compiti'), sett:on('sett') };
+    if(!scelte.tipi && !scelte.regole && !scelte.compiti && !scelte.sett){ showToast('Non hai scelto niente', 'info'); return; }
+    var btn = document.getElementById('dsp-vai'); if(btn){ btn.disabled = true; btn.textContent = 'Applico…'; }
+    var sc = scGetDb(); if(!sc){ showToast('Servizio Civile non caricato', 'warning'); return; }
+    if(!sc.impostazioni) sc.impostazioni = {};
+    var fatto = [];
+    try{
+      // copia di sicurezza (la prima volta: quella di prima delle disposizioni resta)
+      var vecchio = sc.impostazioni.backupDisposizioni;
+      if(!vecchio){
+        var P0 = piano(), celle = { orariCal:{}, compiti:{} };
+        P0.celle.forEach(function(x){ celle.orariCal[x.k] = (sc.orariCal || {})[x.k] || null; celle.compiti[x.k] = (sc.compiti || {})[x.k] || null; });
+        sc.impostazioni.backupDisposizioni = { quando:new Date().toISOString(), da:(typeof _imzUtente === 'function') ? _imzUtente() : '',
+          tipi:Array.isArray(_TT.tipi) ? JSON.parse(JSON.stringify(_TT.tipi)) : null,
+          regole:Array.isArray(_TCK.regole) ? JSON.parse(JSON.stringify(_TCK.regole)) : null,
+          compitiLista:Array.isArray(sc.impostazioni.compitiLista) ? sc.impostazioni.compitiLista.slice() : null, celle:celle };
+        saveStorage();
+      } else vecchio.quando = new Date().toISOString();
+      if(scelte.tipi){ await _ttScrivi(JSON.parse(JSON.stringify(TIPI))); fatto.push('turni tipo'); }
+      if(scelte.regole){ await _tckScrivi(JSON.parse(JSON.stringify(REGOLE))); fatto.push('regole'); }
+      if(scelte.compiti){ sc.impostazioni.compitiLista = COMPITI.slice(); fatto.push('elenco compiti'); }
+      if(scelte.sett){
+        try{ _turniPrimaDiModificare(); }catch(e){}
+        if(!sc.orariCal) sc.orariCal = {}; if(!sc.compiti) sc.compiti = {};
+        var P = piano();
+        P.celle.forEach(function(x){
+          var o = x.o ? scNormalizzaOrario(x.o) : '';
+          if(o) sc.orariCal[x.k] = o; else delete sc.orariCal[x.k];
+          if(x.c) sc.compiti[x.k] = x.c; else delete sc.compiti[x.k];
+        });
+        fatto.push('turni dal 2 al 7 novembre');
+      }
+      saveStorage();
+      try{ if(typeof auditLog === 'function') auditLog('ORARI', 'Nuove disposizioni turni applicate: ' + fatto.join(', '), { sezione:'Servizio Civile' }); }catch(e){}
+      _imzChiudi();
+      try{ scRenderOrari(); }catch(e){}
+      try{ _tckBar(); }catch(e){}
+      showToast('✓ Fatto: ' + fatto.join(', '), 'success');
+    }catch(e){
+      showToast('⚠️ Non completato (' + (e.message || e) + '). Fatto finora: ' + (fatto.join(', ') || 'niente'), 'warning');
+      if(btn){ btn.disabled = false; btn.textContent = 'Applica'; }
+    }
+  };
+
+  window.dspRipristina = async function(){
+    var sc = scGetDb(), b = bk(); if(!sc || !b) return;
+    if(!await xConferma('Tornare a com\'era prima delle nuove disposizioni?\n\nRimetto turni tipo, regole, elenco dei compiti e i turni dal 2 al 7 novembre come erano il ' + (_scaFmt ? _scaFmt(b.quando) : b.quando) + '.')) return;
+    try{
+      await _ttScrivi(b.tipi || _ttPredefiniti());
+      await _tckScrivi(b.regole || _tckPredefinite());
+      if(b.compitiLista) sc.impostazioni.compitiLista = b.compitiLista; else delete sc.impostazioni.compitiLista;
+      if(!sc.orariCal) sc.orariCal = {}; if(!sc.compiti) sc.compiti = {};
+      Object.keys((b.celle || {}).orariCal || {}).forEach(function(k){ var v = b.celle.orariCal[k]; if(v) sc.orariCal[k] = v; else delete sc.orariCal[k]; });
+      Object.keys((b.celle || {}).compiti || {}).forEach(function(k){ var v = b.celle.compiti[k]; if(v) sc.compiti[k] = v; else delete sc.compiti[k]; });
+      delete sc.impostazioni.backupDisposizioni;
+      saveStorage(); _imzChiudi();
+      try{ scRenderOrari(); }catch(e){} try{ _tckBar(); }catch(e){}
+      showToast('Tornato a com\'era prima', 'success');
+    }catch(e){ showToast('⚠️ Ripristino non completato: ' + (e.message || e), 'warning'); }
+  };
+
+  /* pulsante negli Orari, accanto a «Turni tipo» (solo amministratori, fino a metà novembre) */
+  var oB = window._ttBottone;
+  window._ttBottone = function(){
+    var r = typeof oB === 'function' ? oB.apply(this, arguments) : undefined;
+    try{
+      var tt = document.getElementById('tt-btn');
+      var vedi = (typeof _scaAdmin === 'function' && _scaAdmin()) && scDataLocale(new Date()) <= '2026-11-15';
+      var b = document.getElementById('dsp-btn');
+      if(tt && vedi && !b){ b = document.createElement('button'); b.type = 'button'; b.id = 'dsp-btn'; b.className = 'btn btn-outline btn-sm'; b.textContent = '🔧 Nuove disposizioni'; b.onclick = function(){ dspApri(); }; tt.parentNode.insertBefore(b, tt.nextSibling); }
+      if(b && !vedi) b.remove();
+    }catch(e){}
+    return r;
+  };
+  window._dspDati = { TIPI:TIPI, REGOLE:REGOLE, COMPITI:COMPITI, SETT:SETT, GIORNI:GIORNI };
 })();
 </script>
 
