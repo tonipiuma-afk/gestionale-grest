@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/10/2026 11:40</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/10/2026 11:40 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -67609,7 +67609,7 @@ function _turniRender(container, sc, ops, giorni){
           + '<option value="">compito…</option>'
           + compiti.map(function(c){ return '<option value="' + esc(c) + '"' + (comp === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('')
           + (comp && compiti.indexOf(comp) < 0 ? '<option value="' + esc(comp) + '" selected>' + esc(comp) + '</option>' : '')
-          + '<option value="__nuovo">+ nuovo compito…</option></select>';
+          + (comp ? '<option value="__modifica">✏️ modifica questo compito…</option>' : '') + '<option value="__nuovo">+ nuovo compito…</option><option value="__elenco">⚙️ gestisci elenco compiti…</option></select>';
       }
       h += '</td>';
     });
@@ -71565,7 +71565,7 @@ window.approvaAnimatore = async function(regId){
         + '<select onchange="turniCambiaCompito(this,\'' + op.id + '\',\'' + ds + '\')">'
         + '<option value="">compito…</option>' + compiti.map(function(c){ return '<option value="' + esc(c) + '"' + (comp === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('')
         + (comp && compiti.indexOf(comp) < 0 ? '<option value="' + esc(comp) + '" selected>' + esc(comp) + '</option>' : '')
-        + '<option value="__nuovo">+ nuovo compito…</option></select></div>';
+        + (comp ? '<option value="__modifica">✏️ modifica questo compito…</option>' : '') + '<option value="__nuovo">+ nuovo compito…</option><option value="__elenco">⚙️ gestisci elenco compiti…</option></select></div>';
     });
     h += '<div class="tm-tit"><span>' + nomiL[g] + ' ' + giorni[g].getDate() + '</span><small>' + (totG ? scFmtOre(totG) + ' previste' : 'nessun turno') + '</small></div>' + schede;
     // riepilogo settimana per volontario
@@ -87476,6 +87476,92 @@ body{ background:var(--g-bg) !important }
     var opz = function(l){ return l.sort(function(a, b){ return _iosNome(a).localeCompare(_iosNome(b)); }).map(function(o){ return '<option value="' + o.id + '">' + E(_iosNome(o)) + ' (' + _isaVisiteDi(o.id).length + ')</option>'; }).join(''); };
     _imzModal('📚 Storico visite', '<div class="imz-f pieno"><label>Di quale ragazzo?</label><select id="isx-osp" class="form-control"><optgroup label="Presenti">' + opz(pres) + '</optgroup>' + (altri.length ? '<optgroup label="Non più presenti">' + opz(altri) + '</optgroup>' : '') + '</select></div>',
       '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" onclick="var i=_imzV(\'isx-osp\');if(i)isaStorico(i,\'tab\')">Apri →</button>');
+  };
+})();
+</script>
+
+
+<style id="scu-elenco-compiti-2026">
+.tel-r{ display:flex; gap:6px; align-items:center; padding:5px 0; border-top:1px solid var(--border,#e6eaf1) }
+.tel-r:first-child{ border-top:0 }
+.tel-r input{ flex:1; min-width:0; text-transform:none !important }
+.tel-r .tel-b{ border:0; background:var(--g-card2,#f4f6fa); border-radius:10px; width:34px; height:34px; cursor:pointer; font-size:14px; flex-shrink:0 }
+.tel-r .tel-b:disabled{ opacity:.35; cursor:default }
+.tel-r.nuovo input{ border-color:#1f4580 !important }
+.tel-n{ font-size:11px; color:var(--text-muted); min-width:44px; text-align:right; flex-shrink:0 }
+.tel-intro{ font-size:13px; color:var(--text-muted); margin-bottom:10px }
+</style>
+<script id="scu-elenco-compiti-2026-js">
+/* ═══ Servizio Civile › Orari: modificare i compiti invece di aggiungerne sempre di nuovi (ottobre 2026) ═══
+   Nella tendina del compito: «✏️ modifica questo compito…» e «⚙️ gestisci elenco compiti…».
+   Se cambi il testo di un compito, puoi aggiornarlo anche nelle caselle già assegnate da oggi in poi. */
+(function(){
+  if(typeof turniCambiaCompito !== 'function' || typeof _turniCompitiLista !== 'function') return;
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  function oggi(){ return scDataLocale(new Date()); }
+  /* caselle da oggi in poi che hanno esattamente questo compito */
+  function caselle(sc, testo){ var o = oggi(); return Object.keys(sc.compiti || {}).filter(function(k){ return k.slice(0, 10) >= o && sc.compiti[k] === testo; }); }
+  function salvaLista(sc, L){ if(!sc.impostazioni) sc.impostazioni = {}; sc.impostazioni.compitiLista = L; }
+
+  var orig = turniCambiaCompito;
+  window.turniCambiaCompito = turniCambiaCompito = async function(sel, opId, ds){
+    var v = sel.value;
+    if(v === '__elenco'){ scRenderOrari(); turniElencoApri(); return; }
+    if(v !== '__modifica') return orig.apply(this, arguments);
+    var sc = scGetDb(); if(!sc) return;
+    var k = ds + '_' + opId, vecchio = (sc.compiti || {})[k] || '';
+    if(!vecchio){ scRenderOrari(); return; }
+    var n = await xDomanda('Modifica il compito:', vecchio);
+    if(n === null || !(n = n.trim()) || n === vecchio){ scRenderOrari(); return; }
+    _turniPrimaDiModificare();
+    var altre = caselle(sc, vecchio).filter(function(x){ return x !== k; });
+    sc.compiti[k] = n;
+    if(altre.length && await xConferma('Lo stesso compito è assegnato in altre ' + altre.length + ' casell' + (altre.length === 1 ? 'a' : 'e') + ' da oggi in poi.\n\nCambiare anche quelle?\n\nOK = Cambia anche quelle · Annulla = Solo questa'))
+      altre.forEach(function(x){ sc.compiti[x] = n; });
+    var L = _turniCompitiLista().slice(), i = L.indexOf(vecchio);
+    if(L.indexOf(n) < 0){ if(i >= 0) L[i] = n; else L.push(n); }
+    else if(i >= 0 && !caselle(sc, vecchio).length) L.splice(i, 1);   // il nuovo testo c'era già: tolgo il doppione
+    salvaLista(sc, L);
+    saveStorage(); scRenderOrari();
+    showToast('Compito modificato', 'success');
+  };
+
+  /* ── finestra «Elenco compiti» ── */
+  var B = null;
+  window.turniElencoApri = function(){ B = _turniCompitiLista().map(function(t){ return { o:t, t:t }; }); disegna(); };
+  function disegna(fuoco){
+    var sc = scGetDb() || {};
+    var righe = B.map(function(x, i){
+      var n = x.o ? caselle(sc, x.o).length : 0;
+      return '<div class="tel-r' + (x.o ? '' : ' nuovo') + '"><input class="form-control" data-i="' + i + '" value="' + E(x.t) + '" oninput="turniElencoTesto(' + i + ',this.value)" placeholder="Nuovo compito…">'
+        + '<span class="tel-n" title="Caselle da oggi in poi con questo compito">' + (n ? n + '×' : '') + '</span>'
+        + '<button type="button" class="tel-b" onclick="turniElencoSposta(' + i + ',-1)" aria-label="Su"' + (i ? '' : ' disabled') + '>↑</button>'
+        + '<button type="button" class="tel-b" onclick="turniElencoSposta(' + i + ',1)" aria-label="Giù"' + (i < B.length - 1 ? '' : ' disabled') + '>↓</button>'
+        + '<button type="button" class="tel-b" onclick="turniElencoTogli(' + i + ')" aria-label="Togli">🗑️</button></div>';
+    }).join('');
+    _imzModal('⚙️ Elenco compiti',
+      '<div class="tel-intro">Correggi il testo direttamente qui. Se cambi un compito già assegnato, ti chiedo se aggiornare anche le caselle da oggi in poi. Togliere un compito dall\'elenco non lo cancella dai turni già fatti.</div>'
+      + '<div id="tel-l">' + (righe || '<div class="tel-intro">Elenco vuoto.</div>') + '</div>'
+      + '<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" onclick="turniElencoAggiungi()">➕ Aggiungi compito</button>',
+      '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" onclick="turniElencoSalva()">Salva elenco</button>');
+    if(fuoco != null) setTimeout(function(){ var el = document.querySelector('#tel-l input[data-i="' + fuoco + '"]'); if(el){ el.focus(); el.scrollIntoView({ block:'nearest' }); } }, 30);
+  }
+  window.turniElencoTesto = function(i, v){ if(B[i]) B[i].t = v; };
+  window.turniElencoSposta = function(i, d){ var j = i + d; if(j < 0 || j >= B.length) return; var x = B[i]; B[i] = B[j]; B[j] = x; disegna(j); };
+  window.turniElencoTogli = function(i){ B.splice(i, 1); disegna(); };
+  window.turniElencoAggiungi = function(){ B.push({ o:'', t:'' }); disegna(B.length - 1); };
+  window.turniElencoSalva = async function(){
+    var sc = scGetDb(); if(!sc) return;
+    var visti = {}, L = [];
+    B.forEach(function(x){ var t = String(x.t || '').trim(); if(t && !visti[t.toLowerCase()]){ visti[t.toLowerCase()] = 1; L.push(t); } });
+    var cambi = B.filter(function(x){ return x.o && String(x.t || '').trim() && String(x.t).trim() !== x.o; });
+    var tot = 0; cambi.forEach(function(x){ tot += caselle(sc, x.o).length; });
+    var aggiorna = false;
+    if(tot) aggiorna = await xConferma('Hai modificato ' + cambi.length + ' compit' + (cambi.length === 1 ? 'o' : 'i') + ', già assegnat' + (cambi.length === 1 ? 'o' : 'i') + ' in ' + tot + ' casell' + (tot === 1 ? 'a' : 'e') + ' da oggi in poi.\n\nAggiornare anche quelle col testo nuovo?\n\nOK = Aggiorna anche le caselle · Annulla = Solo l\'elenco');
+    if(aggiorna){ _turniPrimaDiModificare(); cambi.forEach(function(x){ var n = String(x.t).trim(); caselle(sc, x.o).forEach(function(k){ sc.compiti[k] = n; }); }); }
+    salvaLista(sc, L);
+    saveStorage(); _imzChiudi(); scRenderOrari();
+    showToast('Elenco compiti salvato' + (aggiorna ? ' · ' + tot + ' casell' + (tot === 1 ? 'a aggiornata' : 'e aggiornate') : ''), 'success');
   };
 })();
 </script>
