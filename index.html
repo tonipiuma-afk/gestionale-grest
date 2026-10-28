@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/10/2026 21:52</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/10/2026 21:52 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -87897,6 +87897,141 @@ body{ background:var(--g-bg) !important }
     }catch(e){}
     return r;
   };
+})();
+</script>
+
+
+<style id="scu-portale-wow-2026">
+/* ═══ Portale volontari SCU: compito a tappe (Oggi) e tessera (Profilo) — novembre 2026, solo grafica ═══ */
+.xt-tap{ margin-top:14px; padding-top:12px; border-top:1px solid var(--x-line,#e6eaf1) }
+.xt-tap .xt-lab{ font-size:12.5px; font-weight:650; color:var(--x-sub,#64748b); margin-bottom:6px }
+.xt-l{ position:relative; padding-left:24px }
+.xt-l:before{ content:""; position:absolute; left:7px; top:9px; bottom:9px; width:2px; border-radius:2px; background:var(--x-line,#e2e8f0) }
+.xt-s{ position:relative; padding:5px 0; font-size:14.5px; font-weight:600; color:var(--x-ten,#94a3b8); transition:color .3s, background .3s }
+.xt-s b{ font-variant-numeric:tabular-nums; margin-right:6px; font-weight:750 }
+.xt-s:before{ content:""; position:absolute; left:-22px; top:9px; width:12px; height:12px; border-radius:50%; background:var(--x-line,#e2e8f0); border:2px solid var(--x-card,#fff); transition:background .3s }
+.xt-s.ok{ color:var(--x-txt,#0f172a) } .xt-s.ok:before{ background:var(--x-ok,#16a34a) }
+.xt-s.ora{ color:var(--x-acc,#1f4580); background:var(--x-acc2,#eaf0ff); border-radius:10px; padding:7px 9px; margin-left:-6px }
+.xt-s.ora:before{ left:-16px; top:12px; background:var(--x-acc,#1f4580); box-shadow:0 0 0 4px color-mix(in srgb,var(--x-acc,#1f4580) 22%,transparent); animation:xtPulsa 2s ease-in-out infinite }
+.xt-s .xt-adesso{ display:none; font-size:10.5px; font-weight:850; letter-spacing:.07em }
+.xt-s.ora .xt-adesso{ display:block }
+@keyframes xtPulsa{ 50%{ box-shadow:0 0 0 7px color-mix(in srgb,var(--x-acc,#1f4580) 10%,transparent) } }
+
+.x-task.xt-ok b{ color:var(--x-sub,#64748b) }
+.x-task.xt-ok .x-ora{ background:color-mix(in srgb,var(--x-ok,#16a34a) 14%,transparent) !important; color:var(--x-ok,#16a34a) !important }
+.x-task.xt-ok .x-ora:after{ content:" ✓" }
+.x-task.xt-ora{ background:var(--x-acc2,#eaf0ff); border-radius:14px; padding:10px 10px !important; margin:2px -10px; border-top-color:transparent !important }
+.x-task.xt-ora + .x-task{ border-top-color:transparent }
+.x-task.xt-ora b:before{ content:"ADESSO"; display:block; font-size:10.5px; font-weight:850; letter-spacing:.07em; color:var(--x-acc,#1f4580); margin-bottom:1px }
+.x-task.xt-ora .x-ora{ background:var(--x-acc,#1f4580) !important; color:#fff !important }
+.xt-tw{ perspective:1100px; margin:4px 0 6px }
+.xt-tc{ position:relative; height:200px; transform-style:preserve-3d; transition:transform .7s cubic-bezier(.2,.8,.2,1); cursor:pointer; -webkit-tap-highlight-color:transparent }
+.xt-tc.giro{ transform:rotateY(180deg) }
+.xt-f, .xt-r{ position:absolute; inset:0; border-radius:24px; overflow:hidden; color:#fff; padding:20px; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:left;
+  background:linear-gradient(125deg,#0f2a57 0%,#1f4580 45%,#2f63c4 100%); box-shadow:0 18px 40px rgba(31,69,128,.38) }
+.xt-r{ transform:rotateY(180deg); background:linear-gradient(125deg,#1f4580,#0f2a57) }
+.xt-f:before{ content:""; position:absolute; inset:-40%; background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.30) 50%,transparent 58%); transform:translateX(-60%); animation:xtLuce 7s ease-in-out infinite; pointer-events:none }
+@keyframes xtLuce{ 0%,55%{ transform:translateX(-60%) } 80%,100%{ transform:translateX(60%) } }
+.xt-f .xt-lg{ font-size:10.5px; font-weight:800; letter-spacing:.12em; opacity:.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:calc(100% - 100px) }
+.xt-f .xt-ch{ position:absolute; left:20px; top:52px; width:44px; height:34px; border-radius:7px; background:linear-gradient(135deg,#fde68a,#d4a017) }
+.xt-f .xt-ft{ position:absolute; right:20px; top:36px; width:84px; height:84px; border-radius:50%; border:3px solid rgba(255,255,255,.75); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:28px; color:#fff; overflow:hidden; padding:0; cursor:pointer }
+.xt-f .xt-ft img{ width:100%; height:100%; object-fit:cover }
+.xt-f .xt-cam{ position:absolute; right:16px; top:98px; width:30px; height:30px; border-radius:50%; background:#fff; color:#1f4580; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.25); pointer-events:none }
+.xt-f .xt-cam svg{ width:15px; height:15px }
+.xt-f .xt-n{ position:absolute; left:20px; right:20px; bottom:52px; font-size:22px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.xt-f .xt-p{ position:absolute; left:20px; bottom:30px; font-size:13px; opacity:.85; font-weight:600 }
+.xt-f .xt-g, .xt-r .xt-g{ position:absolute; right:16px; bottom:12px; font-size:11px; font-weight:800; opacity:.75 }
+.xt-r .xt-band{ position:absolute; left:0; right:0; top:24px; height:36px; background:#0b1d3d }
+.xt-r .xt-rr{ position:absolute; left:20px; right:20px; display:flex; justify-content:space-between; gap:12px; font-size:13px; font-weight:600 }
+.xt-r .xt-rr span{ opacity:.72; flex-shrink:0 } .xt-r .xt-rr b{ text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+@media (prefers-reduced-motion:reduce){ .xt-tc{ transition:none } .xt-f:before, .xt-s.ora:before{ animation:none } }
+</style>
+<script id="scu-portale-wow-2026-js">
+(function(){
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+
+  /* ═══ 1. OGGI: il compito a tappe ═══ */
+  function tappe(compito){
+    var pezzi = String(compito || '').split(/\s*·\s*/).map(function(s){ return s.trim(); }).filter(Boolean), out = [], conOra = 0;
+    pezzi.forEach(function(p){
+      var m = /^(\d{1,2})[.:](\d{2})\s+(.+)$/.exec(p);
+      if(m && +m[1] < 24 && +m[2] < 60){ conOra++; out.push({ min:+m[1] * 60 + +m[2], ora:m[1] + '.' + m[2], t:m[3] }); }
+      else out.push({ min:null, ora:'', t:p });
+    });
+    return conOra ? out : null;   // solo se nel compito ci sono degli orari
+  }
+  function aggiornaTappe(){
+    var now = new Date(), m = now.getHours() * 60 + now.getMinutes();
+    document.querySelectorAll('.xt-l').forEach(function(l){
+      var S = Array.prototype.slice.call(l.querySelectorAll('.xt-s')), cur = -1;
+      S.forEach(function(s, i){ var v = s.getAttribute('data-min'); if(v !== '' && v != null && +v <= m) cur = i; });
+      var fine = +(l.getAttribute('data-fine') || 0);
+      S.forEach(function(s, i){
+        s.classList.remove('ok', 'ora');
+        if(fine && m >= fine){ s.classList.add('ok'); return; }   // turno finito: tutto fatto
+        if(i < cur) s.classList.add('ok'); else if(i === cur) s.classList.add('ora');
+      });
+    });
+  }
+  /* le righe di «I compiti di oggi» (che ci sono già) diventano tappe: fatte ✓ e ADESSO */
+  function statoCompiti(){
+    var P = document.querySelector('[data-psc-pannello="oggi"]'); if(!P) return;
+    var righe = Array.prototype.slice.call(P.querySelectorAll('.x-task')); if(!righe.length) return;
+    var fine = 0;
+    try{ var a = paGetAnimatore(), sc = scGetDb(), k = scDataLocale(new Date()) + '_' + a.id, o = (sc.orariCal || {})[k] || '', g = (sc.giornate || {})[k] || 'normale';
+      if(g !== 'normale' || !o) return; var mm = String(o).match(/(\d{1,2})[:.](\d{2})\s*$/); if(mm) fine = +mm[1] * 60 + +mm[2]; }catch(e){ return; }
+    var now = new Date(), m = now.getHours() * 60 + now.getMinutes(), cur = -1, conOra = 0;
+    var minuti = righe.map(function(r){ var x = r.querySelector('.x-ora'), t = x ? /(\d{1,2})[:.](\d{2})/.exec(x.textContent) : null; if(t) conOra++; return t ? +t[1] * 60 + +t[2] : null; });
+    if(conOra < 2) return;   // servono almeno due orari per parlare di tappe
+    minuti.forEach(function(v, i){ if(v != null && v <= m) cur = i; });
+    righe.forEach(function(r, i){
+      r.classList.remove('xt-ok', 'xt-ora');
+      if(fine && m >= fine){ if(cur >= 0) r.classList.add('xt-ok'); return; }
+      if(i < cur) r.classList.add('xt-ok'); else if(i === cur) r.classList.add('xt-ora');
+    });
+  }
+  var oO = window._paScOggiHtml;
+  if(typeof oO === 'function' && !oO._xt){
+    var fO = function(){ var h = oO.apply(this, arguments); setTimeout(statoCompiti, 0); return h; };
+    fO._xt = true; window._paScOggiHtml = fO;
+  }
+  setInterval(function(){ try{ statoCompiti(); }catch(e){} }, 30000);
+
+  /* ═══ 3. PROFILO: la tessera ═══ */
+  function dataIt(iso){ var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : ''; }
+  function tessera(testa){
+    var a = (typeof paGetAnimatore === 'function') ? paGetAnimatore() : null; if(!a) return;
+    var ente = (typeof scDatiEnte === 'function') ? scDatiEnte() : {}, D = (typeof _paScDate === 'function') ? _paScDate(a.id) : null;
+    var prog = (typeof scuProgDi === 'function' && typeof SCU_PROGRAMMI !== 'undefined' && SCU_PROGRAMMI[scuProgDi(a)]) ? (SCU_PROGRAMMI[scuProgDi(a)].nome || scuProgDi(a)) : 'ordinario';
+    var nome = String((a.nome || '') + ' ' + (a.cognome || '')).trim().toLowerCase().replace(/(^|[\s'’])\S/g, function(x){ return x.toUpperCase(); });
+    var ini = ((a.nome || '?').charAt(0) + (a.cognome || '').charAt(0)).toUpperCase();
+    var col = 'linear-gradient(135deg,#fbbf24,#f97316)';
+    var genere = a.sesso === 'F' ? 'Volontaria' : 'Volontario';
+    var rfid = String(a.rfid || ''), qui = testa.querySelector('#x-banner-qui');
+    var riga = function(top, l, v){ return v ? '<div class="xt-rr" style="top:' + top + 'px"><span>' + l + '</span><b>' + E(v) + '</b></div>' : ''; };
+    var r = 76, righe = '';
+    [['Servizio', D ? dataIt(D.ini) + ' – ' + dataIt(D.fine) : ''], ['Sede', ente.sede ? 'codice ' + ente.sede : ''], ['Ente', ente.enteAcc || ''], ['Tessera', rfid ? '•••• ' + rfid.slice(-4) : '']]
+      .forEach(function(x){ if(x[1]){ righe += riga(r, x[0], x[1]); r += 26; } });
+    testa.setAttribute('data-tess', '1');
+    testa.innerHTML = '<div class="xt-tw"><div class="xt-tc" role="button" tabindex="0" aria-label="Tessera: tocca per girarla" onclick="this.classList.toggle(\'giro\')" onkeydown="if(event.key===\'Enter\')this.classList.toggle(\'giro\')">'
+      + '<div class="xt-f"><div class="xt-lg">SERVIZIO CIVILE' + (ente.progetto ? ' · ' + E(String(ente.progetto).split(/\s+/)[0]) : '') + '</div><div class="xt-ch"></div>'
+      + '<button type="button" class="xt-ft" style="background:' + col + '" onclick="event.stopPropagation();paApriSceltaFoto()" aria-label="Cambia foto">' + (a.foto ? '<img src="' + E(a.foto) + '" alt="">' : E(ini)) + '</button>'
+      + '<span class="xt-cam" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>'
+      + '<div class="xt-n">' + E(nome) + '</div><div class="xt-p">' + genere + ' · Programma ' + E(String(prog).toLowerCase()) + '</div><div class="xt-g">↻ tocca per girarla</div></div>'
+      + '<div class="xt-r"><div class="xt-band"></div>' + righe + '<div class="xt-g">↻ tocca per girarla</div></div>'
+      + '</div></div>';
+    if(qui) testa.appendChild(qui); else { var q = document.createElement('div'); q.id = 'x-banner-qui'; testa.appendChild(q); }
+  }
+  var inCoda = false;
+  function guarda(){
+    if(inCoda) return; inCoda = true;
+    requestAnimationFrame(function(){
+      inCoda = false;
+      try{ var t = document.querySelector('#x-prof .x-prof-testa:not([data-tess])'); if(t && t.querySelector('.x-prof-av')) tessera(t); }catch(e){ console.warn('[tessera]', e); }
+    });
+  }
+  try{ new MutationObserver(guarda).observe(document.body, { childList:true, subtree:true }); }catch(e){}
+  guarda();
 })();
 </script>
 
