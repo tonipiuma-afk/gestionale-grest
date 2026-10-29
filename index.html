@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 29/10/2026 00:06</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 29/10/2026 00:06 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -84958,6 +84958,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     ops.forEach(function(o){
       var r = {};
       for(var i = 0; i < 28; i++){ var d = new Date(oggi); d.setDate(d.getDate() + i); var ds = scDataLocale(d), k = ds + '_' + o.id;
+        if(window._scuBozza && window._scuBozza(ds)) continue;   // settimana in bozza: i ragazzi non la vedono, niente notifiche
         var v = [(sc.orariCal || {})[k] || '', (sc.giornate || {})[k] || '', (sc.compiti || {})[k] || ''].join('|'); if(v !== '||') r[ds] = v; }
       f[o.id] = r;
     });
@@ -84988,6 +84989,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     }catch(e){ console.warn('[notifiche] turni', e); }
   }
   window._nfControllaTurni = controllaTurni;
+  window._nfFotoTurni = fotoTurni;
   // le modifiche arrivate da altri dispositivi entrano nella foto senza avvisare (le ha già avvisate chi le ha fatte)
   setInterval(function(){ try{ var u = io(); if(!u || STAFF_SCU.indexOf(u.ruolo) < 0 || typeof scGetDb !== 'function') return; if(typeof gHaModifiche === 'function' && gHaModifiche()) return; if(typeof _gPendente !== 'undefined' && _gPendente) return; LS('nf_turni_foto', JSON.stringify(fotoTurni())); }catch(e){} }, 60000);
   // comunicazione dell'OLP: parte dopo il SALVA che la pubblica
@@ -88032,6 +88034,408 @@ body{ background:var(--g-bg) !important }
   }
   try{ new MutationObserver(guarda).observe(document.body, { childList:true, subtree:true }); }catch(e){}
   guarda();
+})();
+</script>
+
+
+<style id="scu-bozze-turni-2026">
+.bz-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; border-radius:14px; padding:10px 14px; margin:-4px 0 12px; font-size:13.5px; font-weight:650 }
+.bz-bar.bozza{ background:#fef6d8; color:#7a5300; border:1.5px dashed #e8b923 }
+.bz-bar.inviata{ background:#e7f7ed; color:#14532d }
+.bz-bar.ritardo{ background:#fdecec; color:#991b1b; border:1.5px solid #f3b4b4 }
+.bz-bar b.bz-et{ font-size:12px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:3px 10px; background:#e8b923; color:#3d2a00 }
+.bz-bar.inviata b.bz-et{ background:#16a34a; color:#fff } .bz-bar.ritardo b.bz-et{ background:#dc2626; color:#fff }
+.bz-bar .bz-az{ margin-left:auto; display:flex; gap:6px; flex-wrap:wrap }
+.bz-bar button{ border:0; border-radius:10px; padding:8px 14px; font-weight:750; font-size:13px; cursor:pointer; font-family:inherit }
+.bz-bar button.bz-invia{ background:#1f4580; color:#fff } .bz-bar button.bz-torna{ background:rgba(0,0,0,.06); color:inherit }
+.bz-prep{ text-align:center; padding:18px 16px !important }
+.bz-prep b{ display:block; font-size:16px; margin:6px 0 2px }
+.bz-prep span{ font-size:13.5px; color:var(--x-sub,#64748b) }
+</style>
+<script id="scu-bozze-turni-2026-js">
+/* ═══ Servizio Civile: turni in BOZZA e «Invia i turni ai ragazzi» (ottobre 2026) ═══
+   • Le settimane FUTURE sono in bozza finché un Admin / Responsabile Generale / OLP non le invia.
+     In bozza: i ragazzi nel portale non le vedono («turni in preparazione») e non parte nessuna notifica.
+   • «📤 Invia i turni ai ragazzi» (sopra la tabella degli Orari): la settimana diventa visibile, si salva,
+     e a ognuno arriva una notifica sola «I tuoi turni sono pronti» (la manda il controllo dei turni già esistente).
+   • Settimana in corso e passate: sempre visibili. Alla prima apertura dopo l'aggiornamento, le settimane
+     future GIÀ preparate si considerano inviate (per i ragazzi non cambia niente).
+   • Sabato mattina dalle 9: se la settimana dopo è ancora in bozza, il TOTEM manda un promemoria
+     ad Admin, Responsabile Generale e OLP (una volta sola). In più, nel gestionale, avviso rosso.
+   Dati: sc.impostazioni.bozzeAttive (data di attivazione) e sc.impostazioni.turniInviati { lunedì: {il, da} }. */
+(function(){
+  if(typeof scGetDb !== 'function') return;
+  var STAFF = ['Admin', 'Responsabile Generale', 'OLP'];
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  function iso(d){ return scDataLocale(d); }
+  var memoLun = {};
+  function lun(ds){ if(memoLun[ds]) return memoLun[ds]; var d = new Date(ds + 'T12:00:00'), w = d.getDay(); d.setDate(d.getDate() - (w === 0 ? 6 : w - 1)); return (memoLun[ds] = iso(d)); }
+  function lunOggi(){ return lun(iso(new Date())); }
+  function piu(ds, n){ var d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); }
+  function fmt(ds){ var d = new Date(ds + 'T12:00:00'); return d.getDate() + '/' + (d.getMonth() + 1); }
+  function imp(){ var sc = scVero() || {}; return sc.impostazioni || {}; }
+  function ruolo(){ try{ var u = (typeof AUTH !== 'undefined' && AUTH) ? AUTH.currentUser : null; return u ? u.ruolo : ''; }catch(e){ return ''; } }
+  function staff(){ return STAFF.indexOf(ruolo()) >= 0; }
+
+  /* una data è in bozza? (solo settimane future, solo se le bozze sono attive) */
+  var dentro = null;   // durante il disegno del portale: la scGetDb vera
+  function scVero(){ return (dentro || window.scGetDb)(); }
+  window._dspScReale = function(){ return scVero(); };
+  window._scuBozza = function(ds){
+    try{
+      var I = (scVero() || {}).impostazioni || {}; if(!I.bozzeAttive) return false;
+      var l = lun(String(ds).slice(0, 10)); if(l <= lunOggi()) return false;
+      return !(I.turniInviati || {})[l];
+    }catch(e){ return false; }
+  };
+  function settBozza(l){ return window._scuBozza(l); }
+
+  /* prima apertura da staff: attiva le bozze, le settimane future già preparate contano come inviate */
+  function attiva(){
+    if(!staff()) return;
+    var sc = scVero(); if(!sc) return; if(!sc.impostazioni) sc.impostazioni = {};
+    var I = sc.impostazioni; if(I.bozzeAttive) return;
+    var c = lunOggi(), inv = I.turniInviati = I.turniInviati || {};
+    Object.keys(sc.orariCal || {}).forEach(function(k){ var ds = k.slice(0, 10); if(/^\d{4}-\d{2}-\d{2}$/.test(ds)){ var l = lun(ds); if(l > c && !inv[l]) inv[l] = { il:new Date().toISOString(), da:'(già pronte all\'aggiornamento)' }; } });
+    I.bozzeAttive = iso(new Date());
+    try{ saveStorage(); }catch(e){}
+  }
+
+  /* ═══ PORTALE DEI RAGAZZI: le settimane in bozza non si vedono ═══ */
+  function copiaFiltrata(sc){
+    var I = (sc && sc.impostazioni) || {}; if(!I.bozzeAttive) return sc;
+    var c = Object.assign({}, sc), via = 0;
+    ['orariCal', 'compiti', 'giornate'].forEach(function(n){
+      var o = sc[n]; if(!o) return; var x = {};
+      Object.keys(o).forEach(function(k){ if(window._scuBozza(k.slice(0, 10))) via++; else x[k] = o[k]; });
+      c[n] = x;
+    });
+    return via ? c : sc;
+  }
+  function conFiltro(fn){
+    return function(){
+      if(staff() || ruolo() === 'Totem') return fn.apply(this, arguments);
+      if(dentro) return fn.apply(this, arguments);   // già dentro un disegno filtrato
+      var prima = window.scGetDb, self = this, a = arguments;
+      var f = function(){ return copiaFiltrata(prima.apply(this, arguments)); };
+      dentro = prima; window.scGetDb = f;
+      try{ return fn.apply(self, a); } finally { window.scGetDb = prima; dentro = null; }
+    };
+  }
+  ['paRenderServizioCivile', 'xTurniCalendario'].forEach(function(n){ var o = window[n]; if(typeof o === 'function' && !o._bz){ var f = conFiltro(o); f._bz = true; window[n] = f; } });
+  /* settimana prossima in bozza: «turni in preparazione» */
+  var oS = window._pscSettimaneHtml;
+  if(typeof oS === 'function' && !oS._bz){
+    var fS = function(anim, sc){
+      var h = oS.apply(this, arguments);
+      try{
+        if(staff()) return h;
+        var p = piu(lunOggi(), 7);
+        if(settBozza(p)) h += '<div class="x-card bz-prep"><span style="font-size:26px">🗓️</span><b>Prossima settimana: turni in preparazione</b><span>Dal ' + fmt(p) + ' al ' + fmt(piu(p, 5)) + ' · ti arriva una notifica quando sono pronti.</span></div>';
+      }catch(e){}
+      return h;
+    };
+    fS._bz = true; window._pscSettimaneHtml = fS;
+  }
+
+  /* ═══ GESTIONALE: barra sopra la tabella degli Orari ═══ */
+  function lunVista(){ try{ return iso(scGetSettimana(_scSettOffset)[0]); }catch(e){ return lunOggi(); } }
+  function riepilogo(l){
+    var sc = scVero() || {}, ops = []; try{ ops = scGetOperatori(); }catch(e){}
+    var n = 0, ore = 0;
+    ops.forEach(function(op){ var ha = false; for(var i = 0; i < 7; i++){ var o = (sc.orariCal || {})[piu(l, i) + '_' + op.id]; if(o){ ha = true; ore += (typeof scOreOrario === 'function' ? scOreOrario(o) : 0); } } if(ha) n++; });
+    return { n:n, ore:ore };
+  }
+  function barra(){
+    try{
+      var b = document.getElementById('sc-orari-body'); if(!b) return;
+      var vecchia = document.getElementById('bz-bar'); if(vecchia) vecchia.remove();
+      if(!staff() || !imp().bozzeAttive || (typeof _scOrariVista !== 'undefined' && _scOrariVista === 'mese')) return;
+      var l = lunVista(), c = lunOggi(); if(l <= c) return;
+      var I = imp(), inv = (I.turniInviati || {})[l], d = document.createElement('div'); d.id = 'bz-bar';
+      var periodo = 'dal ' + fmt(l) + ' al ' + fmt(piu(l, 5));
+      if(inv){
+        d.className = 'bz-bar inviata';
+        d.innerHTML = '<b class="bz-et">✓ Inviata</b><span>I ragazzi vedono i turni ' + E(periodo) + (inv.il && !/già pronte/.test(inv.da || '') ? ' · inviati il ' + E(new Date(inv.il).toLocaleDateString('it-IT', { day:'numeric', month:'short' })) + (inv.da ? ' da ' + E(inv.da) : '') : '') + '. Ogni modifica salvata arriva ai ragazzi.</span>'
+          + '<span class="bz-az"><button type="button" class="bz-torna" onclick="bzRimetti(\'' + l + '\')">↩ Rimetti in bozza</button></span>';
+      } else {
+        var sab = new Date().getDay() === 6 || new Date().getDay() === 0, prossima = l === piu(c, 7);
+        d.className = 'bz-bar ' + (sab && prossima ? 'ritardo' : 'bozza');
+        d.innerHTML = '<b class="bz-et">' + (sab && prossima ? '⚠ Non ancora inviata' : 'Bozza') + '</b><span>Turni ' + E(periodo) + ': <b>non visibili ai ragazzi</b>, puoi cambiarli senza mandare notifiche.</span>'
+          + '<span class="bz-az"><button type="button" class="bz-invia" onclick="bzInvia(\'' + l + '\')">📤 Invia i turni ai ragazzi</button></span>';
+      }
+      var et = document.getElementById('avs-et');
+      if(et && et.parentNode === b) b.insertBefore(d, et.nextSibling); else b.insertBefore(d, b.firstChild);
+    }catch(e){ console.warn('[bozze]', e); }
+  }
+  window.bzInvia = async function(l){
+    if(!staff()) return;
+    var R = riepilogo(l);
+    if(!R.n){ showToast('Questa settimana non ha ancora turni', 'info'); return; }
+    if(!await xConferma('Inviare ai ragazzi i turni dal ' + fmt(l) + ' al ' + fmt(piu(l, 5)) + '?\n\n' + R.n + ' volontari · ' + (typeof scFmtOre === 'function' ? scFmtOre(R.ore) : R.ore + 'h') + ' in tutto.\nA ognuno arriva una notifica «I tuoi turni sono pronti».\n\nOK = Invia ai ragazzi · Annulla = Non ancora')) return;
+    var sc = scVero(); if(!sc.impostazioni) sc.impostazioni = {};
+    var I = sc.impostazioni; I.turniInviati = I.turniInviati || {};
+    I.turniInviati[l] = { il:new Date().toISOString(), da:(typeof _imzUtente === 'function') ? _imzUtente() : ruolo() };
+    try{ saveStorage(); }catch(e){}
+    try{ if(typeof auditLog === 'function') auditLog('ORARI', 'Turni inviati ai ragazzi: settimana dal ' + l, { sezione:'Servizio Civile' }); }catch(e){}
+    try{ if(typeof gSalva === 'function') await gSalva(); }catch(e){ console.warn('[bozze] salva', e); }
+    try{ scRenderOrari(); }catch(e){}
+    showToast('📤 Turni inviati: i ragazzi ricevono la notifica', 'success');
+  };
+  window.bzRimetti = async function(l){
+    if(!staff()) return;
+    if(!await xConferma('Rimettere in bozza i turni dal ' + fmt(l) + ' al ' + fmt(piu(l, 5)) + '?\n\nI ragazzi non li vedranno più finché non li invii di nuovo. Non parte nessuna notifica.\n\nOK = Rimetti in bozza · Annulla = Lascia inviata')) return;
+    var sc = scVero(), I = sc.impostazioni || {};
+    if(I.turniInviati) delete I.turniInviati[l];
+    // la «foto» delle notifiche si aggiorna in silenzio: niente avvisi «turno tolto»
+    try{ if(typeof window._nfFotoTurni === 'function') localStorage.setItem('nf_turni_foto', JSON.stringify(window._nfFotoTurni())); }catch(e){}
+    try{ saveStorage(); }catch(e){}
+    try{ if(typeof gSalva === 'function') await gSalva(); }catch(e){}
+    try{ scRenderOrari(); }catch(e){}
+    showToast('Settimana rimessa in bozza', 'info');
+  };
+  var oR = window.scRenderOrari;
+  if(typeof oR === 'function' && !oR._bz){
+    var fR = function(){ try{ attiva(); }catch(e){} var r = oR.apply(this, arguments); barra(); return r; };
+    fR._bz = true; window.scRenderOrari = fR;
+  }
+
+  /* ═══ PROMEMORIA DEL SABATO (lo manda il totem) ═══ */
+  function promemoria(){
+    try{
+      if(ruolo() !== 'Totem' || typeof nfInvia !== 'function') return;
+      var ora = new Date(); if(ora.getDay() !== 6 || ora.getHours() < 9) return;
+      var I = imp(); if(!I.bozzeAttive) return;
+      var p = piu(lunOggi(), 7); if(!settBozza(p)) return;
+      var k = 'bz_prom_' + p; try{ if(localStorage.getItem(k)) return; localStorage.setItem(k, '1'); }catch(e){ return; }
+      nfInvia({ ruoli:STAFF.slice(), titolo:'Turni del Servizio Civile da inviare', corpo:'La settimana dal ' + fmt(p) + ' al ' + fmt(piu(p, 5)) + ' è ancora in bozza: i ragazzi non vedono i turni. Aprila negli Orari e premi «Invia i turni ai ragazzi».', tag:'turni-bozza-' + p, vai:'g:servizio-civile', app:'grest' });
+    }catch(e){ console.warn('[bozze] promemoria', e); }
+  }
+  setInterval(promemoria, 5 * 60000); setTimeout(promemoria, 30000);
+  window._bzPromemoria = promemoria;
+})();
+</script>
+
+
+<style id="isa-modulistica-2026">
+.mdl-g{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-bottom:16px }
+.mdl-c{ padding:18px !important }
+.mdl-c h3{ margin:0 0 4px; font-size:17px; font-weight:800 }
+.mdl-c p{ margin:0 0 12px; font-size:13px; color:var(--text-muted) }
+.mdl-st{ font-size:12.5px; font-weight:700; margin-bottom:12px } .mdl-st.ok{ color:#15803d } .mdl-st.no{ color:#b45309 }
+.mdl-az{ display:flex; gap:8px; flex-wrap:wrap }
+.mdl-osp{ max-height:300px; overflow:auto; border:1.5px solid var(--border,#e6eaf1); border-radius:12px; padding:4px 10px }
+.mdl-osp label{ display:flex; gap:10px; align-items:center; padding:8px 0; border-top:1px solid var(--border,#eef1f5); font-size:14px; font-weight:600; text-transform:none !important; letter-spacing:0 !important; cursor:pointer }
+.mdl-osp label:first-child{ border-top:0 }
+.mdl-osp input{ width:18px; height:18px; flex-shrink:0 }
+.mdl-osp small{ margin-left:auto; color:var(--text-muted); font-weight:500; font-size:12px; text-align:right }
+.mdl-manca{ background:#fef6e4; border-radius:12px; padding:10px 12px; margin-top:10px; font-size:13px }
+.mdl-manca .imz-grid{ margin-top:8px }
+.mdl-st-r{ display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border,#eef1f5); font-size:13.5px }
+.mdl-st-r:first-child{ border-top:0 } .mdl-st-r b{ min-width:86px } .mdl-st-r span{ color:var(--text-muted) }
+</style>
+<script id="isa-modulistica-2026-js">
+/* ═══ SANITÀ › MODULISTICA (ottobre 2026) ═══
+   Richieste già pronte: Scelta del medico e Esenzione ticket F02. I modelli sono file Word (.docx) caricati
+   sul NAS (cartella sanita): dentro hanno la parte fissa (intestazione, dichiarante, testo di legge, firma)
+   e gli spazi {DATA} {MEDICO} {NOTA_MEDICO} {PER_MINORI} {CHE_MINORI} e la riga del ragazzo
+   {NOME} {NATO} a {LUOGO} il {NASCITA} c.f. {CF}, che si ripete per ogni ragazzo scelto.
+   Nessun dato di persone nell'index: modelli e storico stanno sul NAS (_ist_modulistica). */
+(function(){
+  if(typeof ISA_VISTE === 'undefined' || typeof _scuGet !== 'function') return;
+  var KEY = '_ist_modulistica';
+  var TIPI = {
+    medico:{ nome:'Scelta del medico', ico:'🩺', descr:'Dichiarazione sostitutiva e richiesta di scelta del medico di medicina generale.', file:'Scelta medico' },
+    f02:{ nome:'Esenzione ticket F02', ico:'📑', descr:'Dichiarazione sostitutiva e richiesta di esenzione F02 per i minori in comunità.', file:'Esenzione F02' }
+  };
+  var E = function(s){ return (typeof _imzE === 'function') ? _imzE(s) : String(s == null ? '' : s); };
+  var X = function(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  var cap = function(s){ return String(s || '').trim().toLowerCase().replace(/(^|[\s'’-])\S/g, function(x){ return x.toUpperCase(); }); };
+  var M = { doc:null, letto:0 };
+  try{ if(typeof ARCHIVI_AREE !== 'undefined' && !ARCHIVI_AREE.some(function(a){ return a.key === KEY; })) ARCHIVI_AREE.push({ key:KEY, nome:'Modulistica sanità (modelli e storico)', area:'Istituto', ripristina:true, conta:function(d){ return Object.keys((d && d.modelli) || {}).length + ' modelli · ' + ((d && d.storico) || []).length + ' moduli preparati'; } }); }catch(e){}
+
+  async function leggi(){ var r = await _scuGet(KEY, 15000); if(!r.ok) throw new Error('NAS non raggiungibile'); M.doc = (!r.vuoto && r.db) ? r.db : { modelli:{}, storico:[] }; M.doc.modelli = M.doc.modelli || {}; M.doc.storico = M.doc.storico || []; M.letto = Date.now(); return M.doc; }
+  async function scrivi(cambia){ var d = await leggi(); cambia(d); d._ts = new Date().toISOString(); if(!(await _scuPost(KEY, d, 20000))) throw new Error('salvataggio sul NAS non riuscito'); M.doc = d; return d; }
+  function chi(){ return (typeof _imzUtente === 'function') ? _imzUtente() : ''; }
+
+  /* ── dati di un ragazzo per il modulo ── */
+  function dati(o){
+    var n = o.nascita ? (/^\d{4}-\d{2}-\d{2}/.test(o.nascita) ? _imzFmt(o.nascita) : String(o.nascita)) : '';
+    return { id:o.id, nome:cap(o.cognome) + ' ' + cap(o.nome), nato:o.sesso === 'F' ? 'nata' : 'nato', f:o.sesso === 'F', luogo:cap(o.luogoNascita || o.luogo || ''), nascita:n, cf:String(o.cf || '').toUpperCase().trim() };
+  }
+
+  /* ═══ PAGINA ═══ */
+  function pagina(){
+    var edit = _isaEdit(), h = '';
+    if(!M.doc){ leggi().then(function(){ if((_IOS.sVista || '') === 'moduli') _isaRender(); }).catch(function(e){ showToast('⚠️ ' + e.message, 'warning'); }); return '<div class="idb-box"><div class="idb-vuoto">Carico la modulistica dal NAS…</div></div>'; }
+    h += '<div class="mdl-g">' + Object.keys(TIPI).map(function(k){
+      var t = TIPI[k], m = M.doc.modelli[k];
+      return '<div class="card mdl-c"><h3>' + t.ico + ' ' + E(t.nome) + '</h3><p>' + E(t.descr) + '</p>'
+        + (m ? '<div class="mdl-st ok">✓ Modello caricato il ' + E(_imzFmt(String(m.il || '').slice(0, 10))) + (m.da ? ' da ' + E(m.da) : '') + '</div>' : '<div class="mdl-st no">⚠️ Modello da caricare (file Word preparato da Claude)</div>')
+        + '<div class="mdl-az">' + (m && edit ? '<button type="button" class="btn btn-teal btn-sm" onclick="mdlPrepara(\'' + k + '\')">📄 Prepara</button>' : '')
+        + (edit ? '<button type="button" class="btn btn-outline btn-sm" onclick="mdlCaricaModello(\'' + k + '\')">⬆️ ' + (m ? 'Sostituisci modello' : 'Carica modello') + '</button>' : '')
+        + (m ? '<button type="button" class="btn btn-outline btn-sm" onclick="mdlScaricaModello(\'' + k + '\')">⬇️ Modello</button>' : '') + '</div></div>';
+    }).join('') + '</div>';
+    var S = (M.doc.storico || []).slice(-25).reverse();
+    h += '<div class="idb-box"><div class="idb-t">🗂️ Moduli preparati di recente</div>' + (S.length ? S.map(function(x){
+      return '<div class="mdl-st-r"><b>' + E(_imzFmt(x.data)) + '</b><div style="flex:1;min-width:0"><div style="font-weight:700">' + E((TIPI[x.tipo] || {}).nome || x.tipo) + (x.medico ? ' · ' + E(x.medico) : '') + '</div><span>' + E((x.nomi || []).join(', ')) + (x.da ? ' · ' + E(x.da) : '') + '</span></div></div>';
+    }).join('') : '<div class="idb-vuoto">Ancora nessun modulo preparato.</div>') + '</div>';
+    return h;
+  }
+  ISA_VISTE.push({ k:'moduli', ico:'📄', t:'Modulistica' });
+  var oR = window._isaRender;
+  window._isaRender = function(){
+    var root = document.getElementById('isa-root');
+    if(root && (_IOS.sVista || '') === 'moduli'){ root.innerHTML = _isaNav('moduli') + pagina(); return; }
+    var r = oR.apply(this, arguments);
+    try{   // riquadro nella panoramica
+      if(root && (_IOS.sVista || 'home') === 'home'){
+        var g = root.querySelector('.ist-mod-grid'), primo = g && g.querySelector('.ist-mod');
+        if(g && primo && !g.querySelector('[data-mdl]')){
+          var c = primo.cloneNode(true); c.setAttribute('data-mdl', '1'); c.setAttribute('onclick', "isaVai('moduli')");
+          var tit = c.querySelector('.ist-mod-t, h3, b'), sub = c.querySelector('.ist-mod-s, small, p');
+          if(tit) tit.textContent = 'Modulistica'; if(sub) sub.textContent = 'Scelta del medico ed esenzione F02 già compilate';
+          var ic = c.querySelector('.ist-mod-i, .ist-mod-ico, svg'); if(ic && ic.tagName !== 'svg') ic.textContent = '📄';
+          g.appendChild(c);
+        }
+      }
+    }catch(e){}
+    return r;
+  };
+
+  /* ── modelli ── */
+  window.mdlCaricaModello = function(k){
+    if(!_isaEdit()) return;
+    var i = document.createElement('input'); i.type = 'file'; i.accept = '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    i.onchange = async function(){
+      var f = i.files && i.files[0]; if(!f) return;
+      try{
+        var JSZip = await _iprZip(), z = await JSZip.loadAsync(await f.arrayBuffer()), x = z.file('word/document.xml');
+        var t = x ? await x.async('string') : '';
+        if(t.indexOf('{NOME}') < 0 || t.indexOf('{DATA}') < 0){ showToast('⚠️ Questo Word non è un modello: mancano gli spazi {NOME} e {DATA}', 'warning'); return; }
+        if(k === 'medico' && t.indexOf('{MEDICO}') < 0){ showToast('⚠️ Nel modello della scelta del medico manca lo spazio {MEDICO}', 'warning'); return; }
+        showToast('⏳ Carico il modello sul NAS…', 'info');
+        var meta = await _nasFileCarica(f, 'sanita');
+        var vecchio = null;
+        await scrivi(function(d){ vecchio = d.modelli[k] || null; d.modelli[k] = Object.assign(meta, { il:new Date().toISOString(), da:chi() }); });
+        if(vecchio && vecchio.id && vecchio.id !== meta.id && typeof _iosFileCestina === 'function') _iosFileCestina(vecchio, 'Modello ' + TIPI[k].nome + ' (sostituito)');
+        showToast('✓ Modello caricato', 'success'); _isaRender();
+      }catch(e){ showToast('⚠️ Modello non caricato: ' + e.message, 'warning'); }
+    };
+    i.click();
+  };
+  async function bloccoModello(k){
+    var m = (M.doc || {}).modelli && M.doc.modelli[k]; if(!m) throw new Error('modello non caricato');
+    var r = await fetch(NAS_URL + '/api/file/' + encodeURIComponent(m.cartella) + '/' + encodeURIComponent(m.id));
+    if(!r.ok) throw new Error('modello non scaricato dal NAS (' + r.status + ')');
+    return await r.arrayBuffer();
+  }
+  window.mdlScaricaModello = async function(k){
+    try{ var b = await bloccoModello(k); _iprScarica(new Blob([b], { type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), 'Modello ' + TIPI[k].file + '.docx'); }
+    catch(e){ showToast('⚠️ ' + e.message, 'warning'); }
+  };
+
+  /* ═══ PREPARA ═══ */
+  var P = null;
+  window.mdlPrepara = async function(k, oid){
+    if(!_isaEdit()) return;
+    try{ if(!M.doc) await leggi(); }catch(e){ showToast('⚠️ ' + e.message, 'warning'); return; }
+    if(!M.doc.modelli[k]){
+      if(oid){ var altro = Object.keys(TIPI).filter(function(x){ return M.doc.modelli[x]; }); if(!altro.length){ showToast('Prima carica i modelli in Sanità › Modulistica', 'warning'); return; } k = altro[0]; }
+      else { showToast('Prima carica il modello', 'warning'); return; }
+    }
+    P = { k:k, sel:{}, extra:{} }; if(oid) P.sel[oid] = 1;
+    disegna();
+  };
+  function scelti(){ return _iosOspiti('Presente').filter(function(o){ return P.sel[o.id]; }); }
+  function disegna(){
+    var k = P.k, t = TIPI[k], osp = _iosOspiti('Presente').filter(function(o){ return !o.semi; }).sort(function(a, b){ return _iosNome(a).localeCompare(_iosNome(b)); });
+    var tipi = '<div class="imz-tabs" style="margin-bottom:12px">' + Object.keys(TIPI).filter(function(x){ return M.doc.modelli[x]; }).map(function(x){ return '<button type="button" class="imz-tab' + (x === k ? ' on' : '') + '" onclick="mdlTipo(\'' + x + '\')">' + TIPI[x].ico + ' ' + E(TIPI[x].nome) + '</button>'; }).join('') + '</div>';
+    var lista = '<div class="mdl-osp">' + osp.map(function(o){ var d = dati(o), s = _isaScheda(o.id) || {};
+      return '<label><input type="checkbox"' + (P.sel[o.id] ? ' checked' : '') + ' onchange="mdlSel(\'' + o.id + '\',this.checked)"><span>' + E(d.nome) + '</span><small>' + E([k === 'medico' ? (s.medico || 'nessun medico') : (s.esenzione || ''), d.cf ? '' : 'c.f. mancante'].filter(Boolean).join(' · ')) + '</small></label>'; }).join('') + '</div>';
+    var med = '';
+    if(k === 'medico'){
+      var L = ((_IOS.sdoc && _IOS.sdoc.liste) || {}).medici || [], S = scelti(), prop = '';
+      var mm = S.map(function(o){ return (_isaScheda(o.id) || {}).medico || ''; }).filter(Boolean);
+      if(P.medico == null) P.medico = mm.length && mm.every(function(x){ return x === mm[0]; }) ? mm[0] : '';
+      if(P.altri == null) P.altri = true;
+      med = '<div class="imz-grid" style="margin-top:12px"><div class="imz-f"><label>Medico scelto</label><input id="mdl-med" class="form-control" list="mdl-medl" value="' + E(P.medico) + '" oninput="mdlVal(\'medico\',this.value)" placeholder="es. Dott. Tabita"><datalist id="mdl-medl">' + L.map(function(x){ return '<option value="' + E(x) + '">'; }).join('') + '</datalist></div>'
+        + '<div class="imz-f" style="display:flex;align-items:flex-end"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13.5px;cursor:pointer"><input type="checkbox"' + (P.altri ? ' checked' : '') + ' onchange="mdlVal(\'altri\',this.checked)" style="width:18px;height:18px"> «medico di altri ospiti della struttura»</label></div></div>';
+    }
+    if(!P.data) P.data = _imzIso(new Date());
+    var quando = '<div class="imz-grid" style="margin-top:12px"><div class="imz-f"><label>Data del modulo</label><input type="date" class="form-control" value="' + E(P.data) + '" onchange="mdlVal(\'data\',this.value)"></div></div>';
+    // dati mancanti
+    var manca = scelti().map(dati).map(function(d){ var x = P.extra[d.id] || {}; return { d:d, luogo:!d.luogo && !x.luogo, nascita:!d.nascita && !x.nascita, cf:!d.cf && !x.cf, x:x }; }).filter(function(r){ return r.luogo || r.nascita || r.cf || P.extra[r.d.id]; });
+    var mh = manca.length ? '<div class="mdl-manca"><b>⚠️ Dati mancanti nella scheda</b> — scrivili qui per questo modulo (per le prossime volte aggiungili nella scheda del ragazzo):' + manca.map(function(r){
+      var inp = function(campo, lab, ph){ var v = (P.extra[r.d.id] || {})[campo] || ''; return '<div class="imz-f"><label>' + lab + '</label><input class="form-control" value="' + E(v) + '" placeholder="' + ph + '" oninput="mdlExtra(\'' + r.d.id + '\',\'' + campo + '\',this.value)"></div>'; };
+      return '<div style="margin-top:8px;font-weight:700">' + E(r.d.nome) + '</div><div class="imz-grid">' + (!r.d.luogo ? inp('luogo', 'Luogo di nascita', 'es. Catania') : '') + (!r.d.nascita ? inp('nascita', 'Data di nascita', 'gg/mm/aaaa') : '') + (!r.d.cf ? inp('cf', 'Codice fiscale', '16 caratteri') : '') + '</div>';
+    }).join('') + '</div>' : '';
+    var n = scelti().length;
+    var corpo = tipi + '<div class="imz-sez" style="display:block">Per quali ragazzi' + (n ? ' · ' + n + ' scelt' + (n === 1 ? 'o' : 'i') : '') + '</div>' + lista + med + quando + mh
+      + '<label style="display:flex;gap:8px;align-items:center;margin-top:12px;text-transform:none;letter-spacing:0;font-size:13.5px;cursor:pointer"><input type="checkbox" id="mdl-salva"' + (P.salva !== false ? ' checked' : '') + ' onchange="mdlVal(\'salva\',this.checked)" style="width:18px;height:18px"> Salva una copia nei documenti sanitari ' + (n === 1 ? 'del ragazzo' : 'dei ragazzi') + '</label>';
+    _imzModal(t.ico + ' ' + E(t.nome), corpo, '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" id="mdl-vai" onclick="mdlGenera()"' + (n ? '' : ' disabled') + '>⬇️ Scarica il Word</button>');
+  }
+  window.mdlTipo = function(k){ P.k = k; P.medico = null; disegna(); };
+  window.mdlSel = function(id, on){ if(on) P.sel[id] = 1; else delete P.sel[id]; if(P.k === 'medico') P.medico = null; var y = document.querySelector('.imz-modal .imz-mb'), sc = y ? y.scrollTop : 0; disegna(); var y2 = document.querySelector('.imz-modal .imz-mb'); if(y2) y2.scrollTop = sc; };
+  window.mdlVal = function(c, v){ P[c] = v; };
+  window.mdlExtra = function(id, c, v){ P.extra[id] = P.extra[id] || {}; P.extra[id][c] = v; };
+
+  /* ── costruisce il Word dal modello ── */
+  function riempi(xml, k, R){
+    var uno = R.length === 1, f = uno && R[0].f;
+    var V = {
+      DATA:_imzFmt(P.data) || P.data,
+      MEDICO:k === 'medico' ? String(P.medico || '').trim() : '',
+      NOTA_MEDICO:k === 'medico' && P.altri ? ' (medico di altri ospiti della struttura)' : '',
+      PER_MINORI:uno ? (f ? 'per la seguente minore:' : 'per il seguente minore:') : 'per i seguenti minori:',
+      CHE_MINORI:uno ? (f ? 'Che la seguente Minore è inserita' : 'Che il seguente Minore è inserito') : 'Che i seguenti Minori sono inseriti'
+    };
+    // la riga del ragazzo si ripete
+    var i = xml.indexOf('{NOME}');
+    if(i >= 0){
+      var a = Math.max(xml.lastIndexOf('<w:p ', i), xml.lastIndexOf('<w:p>', i)), b = xml.indexOf('</w:p>', i) + 6, riga = xml.slice(a, b);
+      var righe = R.map(function(r){ return riga.replace(/\{NOME\}/g, X(r.nome)).replace(/\{NATO\}/g, X(r.nato)).replace(/\{LUOGO\}/g, X(r.luogo)).replace(/\{NASCITA\}/g, X(r.nascita)).replace(/\{CF\}/g, X(r.cf)); }).join('');
+      xml = xml.slice(0, a) + righe + xml.slice(b);
+    }
+    Object.keys(V).forEach(function(k2){ xml = xml.split('{' + k2 + '}').join(X(V[k2])); });
+    return xml;
+  }
+  window.mdlGenera = async function(){
+    var k = P.k, S = scelti();
+    if(!S.length){ showToast('Scegli almeno un ragazzo', 'info'); return; }
+    if(k === 'medico' && !String(P.medico || '').trim()){ showToast('Scrivi il medico scelto', 'warning'); var m = document.getElementById('mdl-med'); if(m) m.focus(); return; }
+    var R = S.map(function(o){ var d = dati(o), x = P.extra[o.id] || {}; if(!d.luogo) d.luogo = cap(x.luogo || ''); if(!d.nascita) d.nascita = String(x.nascita || '').trim(); if(!d.cf) d.cf = String(x.cf || '').toUpperCase().trim(); return d; });
+    var buchi = R.filter(function(d){ return !d.luogo || !d.nascita || !d.cf; });
+    if(buchi.length && !await xConferma('Mancano dei dati per: ' + buchi.map(function(d){ return d.nome; }).join(', ') + '.\n\nNel modulo resteranno degli spazi vuoti.\n\nOK = Scarica lo stesso · Annulla = Torno a completarli')) return;
+    var btn = document.getElementById('mdl-vai'); if(btn){ btn.disabled = true; btn.textContent = '⏳ Preparo…'; }
+    try{
+      var JSZip = await _iprZip(), z = await JSZip.loadAsync(await bloccoModello(k));
+      var xml = await z.file('word/document.xml').async('string');
+      z.file('word/document.xml', riempi(xml, k, R));
+      var blob = await z.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      var nome = TIPI[k].file + ' - ' + (R.length === 1 ? R[0].nome : R.length + ' ragazzi') + ' - ' + P.data + '.docx';
+      _iprScarica(blob, nome);
+      var salva = document.getElementById('mdl-salva'); salva = salva ? salva.checked : true;
+      if(salva){
+        try{
+          var f = new File([blob], nome, { type:blob.type }), meta = await _nasFileCarica(f, 'sanita');
+          for(var j = 0; j < S.length; j++) await _isaAttacca(S[j].id, 'altro', meta, { descr:TIPI[k].nome + (k === 'medico' ? ' · ' + P.medico : ''), data:P.data });
+        }catch(e){ showToast('⚠️ Word scaricato, ma la copia nei documenti non è stata salvata: ' + e.message, 'warning'); }
+      }
+      try{ await scrivi(function(d){ d.storico.push({ tipo:k, data:P.data, ids:S.map(function(o){ return o.id; }), nomi:R.map(function(r){ return r.nome; }), medico:k === 'medico' ? P.medico : '', il:new Date().toISOString(), da:chi() }); if(d.storico.length > 300) d.storico = d.storico.slice(-300); }); }catch(e){}
+      try{ if(typeof _iosLog === 'function') _iosLog('Modulo ' + TIPI[k].nome + ' · ' + R.map(function(r){ return r.nome; }).join(', ')); }catch(e){}
+      _imzChiudi(); showToast('✓ ' + TIPI[k].nome + ' pronto: stampalo e firmalo', 'success');
+      if((_IOS.sVista || '') === 'moduli') _isaRender();
+    }catch(e){ showToast('⚠️ Modulo non preparato: ' + e.message, 'warning'); if(btn){ btn.disabled = false; btn.textContent = '⬇️ Scarica il Word'; } }
+  };
+
+  /* pulsante nella scheda Sanità del ragazzo */
+  var oV = window.isaVisiteHtml;
+  if(typeof oV === 'function') window.isaVisiteHtml = function(o){
+    var h = oV.apply(this, arguments);
+    try{ if(o && _isaEdit() && !o.semi) h = h.replace(/<\/div>$/, '<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px;margin-left:6px" onclick="mdlPrepara(\'medico\',\'' + o.id + '\')">📄 Prepara un modulo</button></div>'); }catch(e){}
+    return h;
+  };
 })();
 </script>
 
