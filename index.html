@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 29/10/2026 10:43</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -45092,7 +45092,7 @@ function scRenderFogli(){
     var c = st[o.id + '|' + ym], nome = ((o.cognome || '') + ' ' + (o.nome || '')).trim();
     return '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;flex-wrap:wrap;' + (i ? 'border-top:1px solid var(--border);' : '') + (c ? 'background:color-mix(in srgb,#16a34a 5%,transparent)' : '') + '">'
       + '<input type="checkbox" ' + (_scFF.sel[o.id] ? 'checked ' : '') + 'onchange="_scFF.sel[\'' + o.id + '\']=this.checked;scRenderFogli()" style="width:18px;height:18px;flex-shrink:0">'
-      + '<div style="flex:1;min-width:170px"><div style="font-weight:900;font-size:14px">' + _scFFe(nome) + '</div>'
+      + '<div style="flex:1;min-width:170px"><div style="font-weight:900;font-size:14px" data-no-sobrio>' + _scFFe((typeof _npCap === 'function') ? _npCap(nome) : nome) + '</div>'
       + '<div style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-top:2px">' + (d.giorni ? d.giorni + (d.giorni === 1 ? ' giorno' : ' giorni') + ' · ' + scFmtOre(d.ore) : 'nessuna timbratura nel mese') + ' · ' + (f ? '<span style="color:#2e7d32">✍️ firma ok</span>' : '<span style="color:#c62828">⚠️ manca la firma</span>') + '</div></div>'
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
       + '<button type="button" onclick="scFFScaricaUno(\'' + o.id + '\')" title="Scarica PDF" style="background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-weight:800;font-size:12px;cursor:pointer">⬇️ PDF</button>'
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 29/10/2026 10:43 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76659,7 +76659,7 @@ function _icDisegna(root, R, sel, da, al, gEv){
   root.innerHTML = h;
 }
 function _icRiga(x){
-  var ora = x.ora ? _icE(x.ora) + (x.oraFine && x.oraFine !== '24:00' ? '<small>' + _icE(x.oraFine) + '</small>' : '') : '<small>tutto il giorno</small>';
+  var ora = x.ora ? _icE(x.ora) + (x.oraFine && x.oraFine !== '24:00' && x.oraFine > x.ora ? '<small>' + _icE(x.oraFine) + '</small>' : '') : '<small>tutto il giorno</small>';
   var sotto = [];
   if(x.fonte === 'turno') sotto.push('Turno educatori');
   else if(x.fonte === 'google') sotto.push(x.calNome || 'Google Calendar');
@@ -76689,7 +76689,7 @@ function icApri(id, ds){
   var osp = e.ospite && _IOS.doc && _IOS.doc.ospiti[e.ospite], mz = e.mezzo && window._IMZ && _IMZ.doc && _IMZ.doc.mezzi && _IMZ.doc.mezzi[e.mezzo];
   var RIP = { sett:'ogni settimana', '2sett':'ogni 2 settimane', mese:'ogni mese' };
   var c = '<div class="ic-det-t" style="--c:' + t.c + '"><i></i>' + _icE(t.l) + (fatto ? ' · <b style="color:#16a34a">✓ fatto</b>' : '') + '</div>'
-    + riga('Quando', _icFmtG(ds) + (e.tutto ? ' · tutto il giorno' : ' · ' + (e.ora || '') + (e.oraFine ? '–' + e.oraFine : '')))
+    + riga('Quando', _icFmtG(ds) + (e.tutto ? ' · tutto il giorno' : ' · ' + (e.ora || '') + (e.oraFine && e.oraFine > (e.ora || '') ? '–' + e.oraFine : '')))
     + riga('Si ripete', e.rip ? RIP[e.rip] + (e.ripFino ? ' fino al ' + _imzFmt(e.ripFino) : '') : '')
     + riga('Chi se ne occupa', e.chi) + riga('Ragazzo', osp ? _iosNome(osp) : '') + riga('Ambulatorio / specialistica', e.specialistica) + riga('Esito della visita', (e.esiti || {})[ds]) + riga('Mezzo', mz ? mz.targa + ' · ' + (mz.modello || '') : '') + riga('Luogo', e.luogo)
     + (e.note ? '<div class="imz-sez" style="display:block">Note</div><div style="white-space:pre-wrap;font-size:14px">' + _icE(e.note) + '</div>' : '')
@@ -88471,6 +88471,60 @@ body{ background:var(--g-bg) !important }
     return h;
   };
 })();
+</script>
+
+
+<style id="mobile-ritocchi-2026-10">
+/* ═══ Telefono: riquadri dei numeri (KPI) — ottobre 2026, solo grafica ═══
+   Il tema «sobrio» toglie il bordo ai riquadri e li mette in un contenitore; il tema 2026 dava loro
+   sfondo e ombra ma senza margine interno → testo attaccato al bordo. Qui si rimettono d'accordo. */
+@media (max-width:716px){
+  /* contenitore unico con i numeri dentro (Istituto, Mezzi, Sanità…) */
+  :root body.sobrio #main .imz-kpis{ background:var(--g-card,#fff) !important; border:0 !important; border-radius:20px !important; box-shadow:var(--g-shadow) !important; padding:10px !important; gap:8px !important }
+  :root body.sobrio #main .imz-kpis > .imz-kpi{ background:var(--g-card2,#f4f6fa) !important; box-shadow:none !important; border:0 !important; border-radius:14px !important; padding:9px 11px !important; min-width:0 }
+  :root body.sobrio #main .imz-kpis > .imz-kpi.rosso{ background:#fdecec !important }
+  :root body.sobrio #main .imz-kpis > .imz-kpi.giallo{ background:#fef6e4 !important }
+  :root body.sobrio #main .imz-kpis > .imz-kpi.oro{ background:#fbf3d9 !important }
+  /* riga di riquadri senza contenitore (Comunità: Emmanuel, San Giuseppe, ingressi…) */
+  :root body.sobrio #main .ios-kpi-row{ display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px !important }
+  :root body.sobrio #main .ios-kpi-row > .imz-kpi{ min-width:0 !important; background:var(--g-card,#fff) !important; border-radius:16px !important; padding:10px 12px !important; box-shadow:var(--g-shadow) !important }
+  :root body.sobrio #main .imz-kpi-l{ line-height:1.2 !important; overflow-wrap:anywhere }
+  :root body.sobrio #main .imz-kpi-v{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+}
+@media (max-width:380px){
+  :root body.sobrio #main .ios-kpi-row{ grid-template-columns:repeat(2,minmax(0,1fr)) }
+}
+/* tema scuro */
+@media (max-width:716px){
+  :root[data-theme="scuro"] body.sobrio #main .imz-kpis > .imz-kpi, [data-theme="scuro"] body.sobrio #main .imz-kpis > .imz-kpi{ background:rgba(255,255,255,.06) !important }
+}
+</style>
+
+<style id="mobile-ritocchi-2026-10b">
+/* testi di aiuto nei campi: mai tutto maiuscolo (il maiuscolo resta per quello che si scrive nei nomi) */
+input::placeholder, textarea::placeholder, .form-control::placeholder{ text-transform:none !important }
+/* GREST › Dashboard: ricerca della città del meteo sul telefono */
+@media (max-width:716px){
+  #meteo-widget div:has(> #meteo-city-input){ flex:1 1 100%; display:flex !important }
+  #meteo-city-input{ flex:1 1 auto; width:auto !important; min-width:0; font-size:16px !important; padding:10px 12px !important; text-transform:none !important; background:transparent !important; border:0 !important; color:#fff !important; box-shadow:none !important; min-height:0 !important }
+  #meteo-city-input::placeholder{ color:rgba(255,255,255,.7) !important }
+  #meteo-widget div:has(> #meteo-city-input) > button{ padding:10px 14px !important }
+  #meteo-days-grid{ flex:1 1 100% !important; width:100% !important }
+  #meteo-empty-msg{ display:none !important }
+}
+</style>
+
+<script id="ic-orari-coerenti-2026">
+/* Nuovo impegno: se l'ora di inizio supera quella di fine, la fine si sposta un'ora dopo (niente più «16:00 – 10:00») */
+document.addEventListener('change', function(ev){
+  try{
+    var t = ev.target; if(!t || t.id !== 'ic-ora' || !t.value) return;
+    var f = document.getElementById('ic-orafine'); if(!f) return;
+    if(f.value && f.value > t.value) return;
+    var p = t.value.split(':'), m = Math.min(23 * 60 + 59, (+p[0]) * 60 + (+p[1]) + 60);
+    f.value = ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2);
+  }catch(e){}
+}, true);
 </script>
 
 </body>
