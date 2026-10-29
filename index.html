@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 29/10/2026 10:23</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 29/10/2026 10:23 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88278,7 +88278,8 @@ body{ background:var(--g-bg) !important }
     }).join('') + '</div>';
     var S = (M.doc.storico || []).slice(-25).reverse();
     h += '<div class="idb-box"><div class="idb-t">🗂️ Moduli preparati di recente</div>' + (S.length ? S.map(function(x){
-      return '<div class="mdl-st-r"><b>' + E(_imzFmt(x.data)) + '</b><div style="flex:1;min-width:0"><div style="font-weight:700">' + E((TIPI[x.tipo] || {}).nome || x.tipo) + (x.medico ? ' · ' + E(x.medico) : '') + '</div><span>' + E((x.nomi || []).join(', ')) + (x.da ? ' · ' + E(x.da) : '') + '</span></div></div>';
+      return '<div class="mdl-st-r"><b>' + E(_imzFmt(x.data)) + '</b><div style="flex:1;min-width:0"><div style="font-weight:700">' + E((TIPI[x.tipo] || {}).nome || x.tipo) + (x.medico ? ' · ' + E(x.medico) : '') + '</div><span>' + E((x.nomi || []).join(', ')) + (x.da ? ' · ' + E(x.da) : '') + '</span></div>'
+        + (edit ? '<button type="button" class="btn btn-outline btn-sm" title="Elimina" onclick="mdlElimina(\'' + E(x.il) + '\')">🗑️</button>' : '') + '</div>';
     }).join('') : '<div class="idb-vuoto">Ancora nessun modulo preparato.</div>') + '</div>';
     return h;
   }
@@ -88415,18 +88416,51 @@ body{ background:var(--g-bg) !important }
       var blob = await z.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
       var nome = TIPI[k].file + ' - ' + (R.length === 1 ? R[0].nome : R.length + ' ragazzi') + ' - ' + P.data + '.docx';
       _iprScarica(blob, nome);
-      var salva = document.getElementById('mdl-salva'); salva = salva ? salva.checked : true;
+      var salva = document.getElementById('mdl-salva'); salva = salva ? salva.checked : true, metaSalvato = null;
       if(salva){
         try{
-          var f = new File([blob], nome, { type:blob.type }), meta = await _nasFileCarica(f, 'sanita');
+          var f = new File([blob], nome, { type:blob.type }), meta = await _nasFileCarica(f, 'sanita'); metaSalvato = meta;
           for(var j = 0; j < S.length; j++) await _isaAttacca(S[j].id, 'altro', meta, { descr:TIPI[k].nome + (k === 'medico' ? ' · ' + P.medico : ''), data:P.data });
         }catch(e){ showToast('⚠️ Word scaricato, ma la copia nei documenti non è stata salvata: ' + e.message, 'warning'); }
       }
-      try{ await scrivi(function(d){ d.storico.push({ tipo:k, data:P.data, ids:S.map(function(o){ return o.id; }), nomi:R.map(function(r){ return r.nome; }), medico:k === 'medico' ? P.medico : '', il:new Date().toISOString(), da:chi() }); if(d.storico.length > 300) d.storico = d.storico.slice(-300); }); }catch(e){}
+      try{ await scrivi(function(d){ d.storico.push({ tipo:k, data:P.data, ids:S.map(function(o){ return o.id; }), nomi:R.map(function(r){ return r.nome; }), medico:k === 'medico' ? P.medico : '', il:new Date().toISOString(), da:chi(), file:metaSalvato }); if(d.storico.length > 300) d.storico = d.storico.slice(-300); }); }catch(e){}
       try{ if(typeof _iosLog === 'function') _iosLog('Modulo ' + TIPI[k].nome + ' · ' + R.map(function(r){ return r.nome; }).join(', ')); }catch(e){}
       _imzChiudi(); showToast('✓ ' + TIPI[k].nome + ' pronto: stampalo e firmalo', 'success');
       if((_IOS.sVista || '') === 'moduli') _isaRender();
     }catch(e){ showToast('⚠️ Modulo non preparato: ' + e.message, 'warning'); if(btn){ btn.disabled = false; btn.textContent = '⬇️ Scarica il Word'; } }
+  };
+
+  /* elimina un modulo dallo storico (e la sua copia nei documenti sanitari dei ragazzi) */
+  window.mdlElimina = async function(il){
+    if(!_isaEdit()) return;
+    var x = ((M.doc || {}).storico || []).filter(function(r){ return r.il === il; })[0]; if(!x) return;
+    var nome = (TIPI[x.tipo] || {}).nome || x.tipo;
+    // le copie nei documenti: quelle con lo stesso file, oppure (moduli vecchi) stesso tipo e stessa data
+    var copie = [];
+    (x.ids || []).forEach(function(oid){
+      var s = _isaScheda(oid) || {};
+      (s.allegati || []).forEach(function(a){
+        var stesso = x.file && a.file && a.file.id === x.file.id;
+        var simile = !x.file && a.tipo === 'altro' && a.data === x.data && String(a.nome || '').indexOf(nome) === 0;
+        if(stesso || simile) copie.push({ oid:oid, aid:a.id, file:a.file });
+      });
+    });
+    if(!await xConferma('Eliminare «' + nome + '» del ' + _imzFmt(x.data) + ' per ' + (x.nomi || []).join(', ') + '?'
+      + (copie.length ? '\n\nTolgo anche ' + (copie.length === 1 ? 'la copia' : 'le ' + copie.length + ' copie') + ' dai documenti sanitari.' : '')
+      + '\n\nOK = Elimina · Annulla = Lascia')) return;
+    try{
+      var cestinati = {};
+      for(var i = 0; i < copie.length; i++){
+        var c = copie[i], s = JSON.parse(JSON.stringify(_isaScheda(c.oid) || {})); s.id = c.oid;
+        s.allegati = (s.allegati || []).filter(function(a){ return a.id !== c.aid; });
+        if(await _iosSalvaRec(ISA_KEY, _isaVuoto, 'schede', s)){
+          if(c.file && c.file.id && !cestinati[c.file.id] && typeof _iosFileCestina === 'function'){ cestinati[c.file.id] = 1; _iosFileCestina(c.file, 'Modulo eliminato · ' + nome); }
+        }
+      }
+      await scrivi(function(d){ d.storico = (d.storico || []).filter(function(r){ return r.il !== il; }); });
+      try{ if(typeof _iosLog === 'function') _iosLog('Eliminato modulo ' + nome + ' · ' + (x.nomi || []).join(', ')); }catch(e){}
+      showToast('Modulo eliminato', 'success'); _isaRender();
+    }catch(e){ showToast('⚠️ Non eliminato: ' + e.message, 'warning'); }
   };
 
   /* pulsante nella scheda Sanità del ragazzo */
