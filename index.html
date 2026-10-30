@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 30/10/2026 12:43</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 30/10/2026 12:43 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88592,6 +88592,8 @@ body.hd-num-spenti .hd-num{ display:none !important }
   body.hd-stretto #main{ margin-left:76px !important }
   html body.hd-stretto aside#sidebar a{ justify-content:center; padding:11px 0 !important; position:relative; display:flex !important; gap:0 !important }
   html body.hd-stretto aside#sidebar a .hd-t{ display:none !important }
+  html body.hd-stretto aside#sidebar a > *:not(svg):not(img):not(.area-logo):not(.hd-num):not(.hd-ini){ display:none !important }
+  html body.hd-stretto aside#sidebar a .area-logo{ margin:0 !important; width:26px !important; height:26px !important }
   html body.hd-stretto aside#sidebar a svg{ width:22px; height:22px; margin:0 !important }
   html body.hd-stretto aside#sidebar .hd-ini{ display:flex !important }
   html body.hd-stretto aside#sidebar .sb-group-header{ font-size:0 !important; height:10px; padding:0 !important; margin:4px 12px !important; border-top:1px solid rgba(255,255,255,.12) }
@@ -88723,11 +88725,14 @@ body.hd-num-spenti .hd-num{ display:none !important }
   /* ── 6. menu stretto ── */
   function prepara(){
     var sb = document.getElementById('sidebar'); if(!sb) return;
-    sb.querySelectorAll('a:not([data-hd])').forEach(function(a){
-      a.setAttribute('data-hd', '1');
+    sb.querySelectorAll('a').forEach(function(a){
       Array.prototype.slice.call(a.childNodes).forEach(function(n){ if(n.nodeType === 3 && n.textContent.trim()){ var s = document.createElement('span'); s.className = 'hd-t'; s.textContent = n.textContent; n.parentNode.replaceChild(s, n); } });
-      if(!a.querySelector('svg')){ var t = a.textContent.replace(/[^\p{L}\p{N} ]/gu, '').trim(), q = document.createElement('span'); q.className = 'hd-ini'; q.textContent = t.slice(0, 2); a.insertBefore(q, a.firstChild); }
-      if(!a.title) a.title = a.textContent.replace(/\d+$/, '').trim();
+      a.querySelectorAll('.hd-t > svg, .hd-t > img').forEach(function(ic){ var t = ic.parentNode; t.parentNode.insertBefore(ic, t); });
+      var icona = a.querySelector('svg, img, .area-logo'), ini = a.querySelector(':scope > .hd-ini');
+      var testo = Array.prototype.slice.call(a.childNodes).filter(function(n){ return !(n.classList && (n.classList.contains('hd-ini') || n.classList.contains('hd-num') || n.classList.contains('area-logo'))); }).map(function(n){ return n.textContent; }).join(' ').replace(/[\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF◉]/g, '').replace(/\s+/g, ' ').trim();
+      if(icona && ini) ini.remove();
+      if(!icona && !ini && testo){ ini = document.createElement('span'); ini.className = 'hd-ini'; ini.textContent = testo.charAt(0).toUpperCase() + testo.charAt(1).toLowerCase(); a.insertBefore(ini, a.firstChild); }
+      if(testo && a.getAttribute('title') !== testo) a.setAttribute('title', testo);
     });
     var b = document.getElementById('hd-stretto');
     if(!b){ b = document.createElement('button'); b.type = 'button'; b.id = 'hd-stretto'; b.onclick = function(){ var on = !document.body.classList.contains('hd-stretto'); document.body.classList.toggle('hd-stretto', on); LS('hd_stretto', on ? '1' : null); b.textContent = on ? '»' : '« Riduci menu'; b.title = on ? 'Allarga il menu' : 'Riduci il menu'; }; sb.appendChild(b); }
