@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 30/10/2026 13:18</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 30/10/2026 13:18 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88533,7 +88533,7 @@ document.addEventListener('change', function(ev){
 /* 1. stato Online accanto a «Home» (computer); in alto resta più spazio per la ricerca */
 #hd-stato{ display:none }
 @media (min-width:717px){
-  html body #header #header-sync-badge, html body #header #online-users-pill{ display:none !important }
+  html body #header #header-sync-badge{ display:none !important }
   html body #btn-dashboard{ position:relative; justify-content:flex-start !important; padding-left:22px !important }
   #hd-stato{ position:absolute; right:12px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:6px; white-space:nowrap; color:#c9d6ea; font:650 11.5px/1 var(--g-font,inherit); background:rgba(255,255,255,.08); border-radius:999px; padding:6px 10px; cursor:pointer; letter-spacing:0 }
   #hd-stato i{ width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.2) }
@@ -88615,14 +88615,14 @@ body.hd-num-spenti .hd-num{ display:none !important }
   function stato(){
     var d = document.getElementById('btn-dashboard'); if(!d) return;
     var s = document.getElementById('hd-stato');
-    if(!s){ s = document.createElement('span'); s.id = 'hd-stato'; s.title = 'Chi è collegato';
-      s.addEventListener('click', function(ev){ ev.stopPropagation(); ev.preventDefault(); var p = document.getElementById('online-users-pill'); if(p && p.onclick) p.onclick(ev); else if(typeof window._toggleOnlinePanel === 'function') window._toggleOnlinePanel(); }, true);
+    if(!s){ s = document.createElement('span'); s.id = 'hd-stato'; s.title = 'Stato della connessione';
+      s.addEventListener('click', function(ev){ ev.stopPropagation(); ev.preventDefault(); }, true);
       d.appendChild(s); }
     var txt = ((document.getElementById('sync-status-text') || {}).textContent || 'Online').trim();
-    var n = parseInt(((document.getElementById('online-count') || {}).textContent || '0'), 10) || 0;
-    var off = !navigator.onLine || /offline|errore|non raggiung/i.test(txt), att = /sincron|salv|attesa/i.test(txt);
-    s.className = off ? 'off' : (att ? 'att' : '');
-    var h = '<i></i><span class="hd-st-t">' + E(off ? 'Offline' : 'Online') + (n ? ' · ' + n : '') + '</span>';
+    var off = !navigator.onLine || /offline|errore|non raggiung/i.test(txt), lenta = /lenta/i.test(txt), att = /sync|sincron|salv|attesa/i.test(txt);
+    s.className = off ? 'off' : ((lenta || att) ? 'att' : '');
+    s.title = off ? 'Nessuna connessione' : (lenta ? 'Connessione lenta' : (att ? 'Sincronizzazione in corso' : 'Connessione buona'));
+    var h = '<i></i><span class="hd-st-t">' + E(off ? 'Offline' : (lenta ? 'Lenta' : (att ? 'Sync…' : 'Online'))) + '</span>';
     if(s.innerHTML !== h) s.innerHTML = h;
   }
 
