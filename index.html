@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 30/10/2026 12:54</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 30/10/2026 12:54 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88760,6 +88760,135 @@ body.hd-num-spenti .hd-num{ display:none !important }
   if(typeof oN === 'function' && !oN._hd){ var f = function(){ var r = oN.apply(this, arguments); setTimeout(function(){ DF.voci = voci(); aggiorna(); }, 900); return r; }; f._hd = true; window.navigate = f; }
   var oS = window.gSalva;
   if(typeof oS === 'function' && !oS._hd){ var g = async function(){ var r = await oS.apply(this, arguments); setTimeout(function(){ salva(); DF.voci = voci(); aggiorna(); }, 400); return r; }; g._hd = true; window.gSalva = g; }
+})();
+</script>
+
+<style id="tck-visti-css">
+.tck-ok-btn{flex:0 0 auto;border:0;border-left:1px solid #fed7aa;background:#16a34a;color:#fff;padding:0 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.tck-ok-btn:hover{background:#15803d}
+.tck.ok .tck-main.tck-cliccabile{cursor:pointer}
+.tck-l li{padding-right:34px}
+.tck-li-ok{position:absolute;right:0;top:3px;width:26px;height:22px;border:1px solid #bbf7d0;border-radius:6px;background:#f0fdf4;color:#16a34a;font-weight:800;font-size:12px;cursor:pointer;line-height:1}
+.tck-li-ok:hover{background:#16a34a;color:#fff}
+.tck-conf{margin:0;padding:6px 14px 10px 28px;border-top:1px dashed #bbf7d0}
+.tck.ko .tck-conf{border-top-color:#fed7aa}
+.tck-conf-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:#166534;font-weight:600;padding:4px 0}
+.tck-conf-h button{border:0;background:transparent;color:#0f766e;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline}
+.tck-conf ul{list-style:none;margin:0;padding:0}
+.tck-conf li{font-size:12.5px;line-height:1.4;color:#64748b;padding:4px 70px 4px 0;position:relative;border-top:1px dashed #dcfce7}
+.tck-conf li:first-child{border-top:0}
+.tck-conf li::before{content:"✓";position:absolute;left:-16px;top:4px;color:#16a34a;font-weight:800;font-size:11px}
+.tck-conf li button{position:absolute;right:0;top:3px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;color:#475569;font:inherit;font-size:11.5px;padding:1px 8px;cursor:pointer}
+.tck-conf li button:hover{border-color:#ea580c;color:#c2410c}
+@media(max-width:640px){.tck-ok-btn{padding:0 10px;font-size:12px}.tck-ok-btn .tck-ok-lungo{display:none}}
+html[data-pi-tema="scuro"] .tck-conf-h{color:#86efac}
+html[data-pi-tema="scuro"] .tck-conf li{color:#94a3b8;border-top-color:#14532d}
+html[data-pi-tema="scuro"] .tck-conf li button,html[data-pi-tema="scuro"] .tck-li-ok{background:#0f172a;border-color:#334155}
+</style>
+<script id="tck-visti-js">
+/* ═══ CONTROLLO TURNI: «Ho visto, va bene così» ═══
+   Le anomalie confermate da Admin / RG / OLP non contano più (striscia verde, Home, campanella, avvisi).
+   Dati: sc.impostazioni.tckVisti { "data|testo": {il, da} } — si salva sul NAS insieme all'SCU.
+   Se compare un'anomalia nuova (testo diverso) torna arancione e mostra solo quella. */
+(function(){
+  if(typeof tckControlla !== 'function' || typeof scGetDb !== 'function') return;
+  var STAFF = ['Admin', 'Responsabile Generale', 'OLP'];
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  function ruolo(){ try{ var u = (typeof AUTH !== 'undefined' && AUTH) ? AUTH.currentUser : null; return u ? u.ruolo : ''; }catch(e){ return ''; } }
+  function staff(){ return STAFF.indexOf(ruolo()) >= 0; }
+  function vero(){ return (typeof window._dspScReale === 'function' ? window._dspScReale() : scGetDb()) || {}; }
+  function visti(){ var I = vero().impostazioni || {}; return I.tckVisti || {}; }
+  function chiave(p){ return String(p.ds || '') + '|' + String(p.testo || ''); }
+  function fmt(iso){ try{ var d = new Date(iso); return d.getDate() + '/' + (d.getMonth() + 1); }catch(e){ return ''; } }
+  var V = { aperti:false, lista:[] };
+  window._TCKV = V;
+
+  /* il controllo: le confermate escono dai problemi e vanno in «confermati» */
+  var oC = window.tckControlla;
+  if(!oC._visti){
+    var fC = function(){
+      var r = oC.apply(this, arguments);
+      try{
+        if(r && r.problemi && !(window._TCK && _TCK.tutti)){
+          var vv = visti(), resta = [], conf = [];
+          r.problemi.forEach(function(p){ var v = vv[chiave(p)]; if(v){ p.visto = v; conf.push(p); } else resta.push(p); });
+          r.problemi = resta; r.confermati = conf;
+        }
+      }catch(e){}
+      return r;
+    };
+    fC._visti = true; fC._tt = oC._tt; fC._dsp = oC._dsp; window.tckControlla = tckControlla = fC;
+  }
+
+  async function salva(){
+    try{ saveStorage(); }catch(e){}
+    try{ if(typeof gSalva === 'function') await gSalva(); }catch(e){ console.warn('[tck visti] salva', e); }
+    try{ _tckBar(); }catch(e){}
+    try{ if(typeof window._hdAggiorna === 'function') window._hdAggiorna(); }catch(e){}
+  }
+  function tabella(){
+    var sc = vero(); if(!sc.impostazioni) sc.impostazioni = {};
+    var t = sc.impostazioni.tckVisti = sc.impostazioni.tckVisti || {};
+    // pulizia: via le conferme di più di 60 giorni fa
+    var lim = new Date(); lim.setDate(lim.getDate() - 60); var ls = scDataLocale(lim);
+    Object.keys(t).forEach(function(k){ if(k.slice(0, 10) < ls) delete t[k]; });
+    return t;
+  }
+  function chi(){ try{ return (typeof _imzUtente === 'function') ? _imzUtente() : ruolo(); }catch(e){ return ruolo(); } }
+
+  window.tckVistoTutti = function(){
+    if(!staff()) return;
+    var t = tabella(), il = new Date().toISOString(), da = chi();
+    (V.lista || []).forEach(function(p){ t[chiave(p)] = { il:il, da:da }; });
+    salva();
+  };
+  window.tckVistoUno = function(i){
+    if(!staff()) return; var p = (V.lista || [])[i]; if(!p) return;
+    tabella()[chiave(p)] = { il:new Date().toISOString(), da:chi() };
+    salva();
+  };
+  window.tckRiapriUno = function(i){
+    if(!staff()) return; var p = (V.conf || [])[i]; if(!p) return;
+    delete tabella()[chiave(p)]; salva();
+  };
+  window.tckRiapriTutti = function(){
+    if(!staff()) return;
+    var t = tabella(); (V.conf || []).forEach(function(p){ delete t[chiave(p)]; });
+    V.aperti = false; if(window._TCK) _TCK.aperto = true; salva();
+  };
+
+  /* la striscia */
+  window._tckBar = _tckBar = function(){
+    var body = document.getElementById('sc-orari-body'); if(!body) return;
+    var vecchia = document.getElementById('tck-bar'); if(vecchia) vecchia.remove();
+    var giorni = _tckGiorniVista(); if(!giorni.length) return;
+    var r = tckControlla(giorni), n = r.problemi.length, conf = r.confermati || [], nc = conf.length, mese = _scOrariVista === 'mese', st = staff();
+    V.lista = r.problemi; V.conf = conf;
+    var el = document.createElement('div'); el.id = 'tck-bar'; el.className = 'tck' + (n ? ' ko' : (r.giorni ? ' ok' : ' vuoto'));
+    var titolo, sotto, dove = mese ? 'in questo mese' : 'in questa settimana';
+    var ultimo = conf.reduce(function(a, p){ return (!a || (p.visto.il > a.il)) ? p.visto : a; }, null);
+    var confTxt = nc ? (nc === 1 ? '1 anomalia confermata' : nc + ' anomalie confermate') + (ultimo ? ' da ' + (ultimo.da || '—') + ' il ' + fmt(ultimo.il) : '') : '';
+    if(!r.giorni){ titolo = 'Nessun turno da controllare'; sotto = dove; }
+    else if(!n && nc){ titolo = 'Tutto a posto'; sotto = confTxt; }
+    else if(!n){ titolo = 'Tutto coperto'; sotto = (r.regole ? r.regole + (r.regole === 1 ? ' regola controllata' : ' regole controllate') : 'Nessuna regola per questi turni: controllati sovrapposizioni e permessi') + ' su ' + r.giorni + (r.giorni === 1 ? ' giorno' : ' giorni'); }
+    else { titolo = (n === 1 ? '1 cosa da sistemare' : n + ' cose da sistemare') + (nc ? ' (nuove)' : ''); sotto = dove + (nc ? ' · ' + nc + ' già confermate' : ''); }
+    var clic = n ? 'onclick="_TCK.aperto=!_TCK.aperto;_tckBar()" aria-expanded="' + (_TCK.aperto ? 'true' : 'false') + '"'
+             : (nc ? 'class="tck-main tck-cliccabile" onclick="_TCKV.aperti=!_TCKV.aperti;_tckBar()" aria-expanded="' + (V.aperti ? 'true' : 'false') + '"' : 'tabindex="-1"');
+    var h = '<div class="tck-h"><button type="button" ' + (clic.indexOf('class=') === 0 ? '' : 'class="tck-main" ') + clic + '>'
+      + '<span class="tck-ico">' + (n ? '!' : (r.giorni ? '✓' : '–')) + '</span><span class="tck-t"><b>' + E(titolo) + '</b><small>' + E(sotto) + '</small></span>'
+      + (n ? '<span class="tck-fr">' + (_TCK.aperto ? 'Nascondi' : 'Vedi') + '</span>' : (nc ? '<span class="tck-fr" style="color:#15803d">' + (V.aperti ? 'Nascondi' : 'Vedi') + '</span>' : '')) + '</button>'
+      + (n && st ? '<button type="button" class="tck-ok-btn" onclick="tckVistoTutti()" title="Le anomalie restano scritte ma non contano più">✓ <span class="tck-ok-lungo">Ho visto, </span>va bene così</button>' : '')
+      + '<button type="button" class="tck-reg" onclick="tckRegole()" title="Regole del controllo">⚙️ Regole</button></div>';
+    if(n && _TCK.aperto) h += '<ul class="tck-l">' + r.problemi.map(function(p, i){
+      return '<li class="tck-' + p.tipo + '">' + E(p.testo) + (st ? '<button type="button" class="tck-li-ok" onclick="tckVistoUno(' + i + ')" title="Ho visto, va bene così">✓</button>' : '') + '</li>'; }).join('') + '</ul>';
+    var mostraConf = nc && ((!n && V.aperti) || (n && _TCK.aperto));
+    if(mostraConf) h += '<div class="tck-conf"><div class="tck-conf-h">✓ ' + E(confTxt) + (st ? ' <button type="button" onclick="tckRiapriTutti()">Riapri tutte</button>' : '') + '</div><ul>'
+      + conf.map(function(p, i){ return '<li>' + E(p.testo) + (st ? '<button type="button" onclick="tckRiapriUno(' + i + ')" title="Torna tra le cose da sistemare">Riapri</button>' : '') + '</li>'; }).join('') + '</ul></div>';
+    el.innerHTML = h;
+    var prima = document.getElementById('srq-strip');
+    body.parentNode.insertBefore(el, prima && prima.parentNode === body.parentNode ? prima : body);
+  };
+  try{ var b = document.getElementById('sc-orari-body'); if(b && b.offsetParent !== null) _tckBar(); }catch(e){}
 })();
 </script>
 
