@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 29/10/2026 12:04</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 29/10/2026 12:04 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88525,6 +88525,233 @@ document.addEventListener('change', function(ev){
     f.value = ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2);
   }catch(e){}
 }, true);
+</script>
+
+
+<style id="menu-pacchetto-a-2026">
+/* ═══ Menu e barra in alto — pacchetto A (ottobre 2026), solo grafica ═══ */
+/* 1. stato Online accanto a «Home» (computer); in alto resta più spazio per la ricerca */
+#hd-stato{ display:none }
+@media (min-width:717px){
+  html body #header #header-sync-badge, html body #header #online-users-pill{ display:none !important }
+  html body #btn-dashboard{ position:relative; justify-content:flex-start !important; padding-left:22px !important }
+  #hd-stato{ position:absolute; right:12px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:6px; white-space:nowrap; color:#c9d6ea; font:650 11.5px/1 var(--g-font,inherit); background:rgba(255,255,255,.08); border-radius:999px; padding:6px 10px; cursor:pointer; letter-spacing:0 }
+  #hd-stato i{ width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.2) }
+  #hd-stato.off i{ background:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.25) } #hd-stato.att i{ background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.25) }
+  #hd-stato:hover{ background:rgba(255,255,255,.16) }
+  /* 2. ricerca più larga */
+  html body #header #header-search-input{ width:300px !important }
+}
+/* 3. campanella */
+#hd-bell{ position:relative; width:44px; height:44px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; display:flex; align-items:center; justify-content:center; margin-right:8px; cursor:pointer; flex-shrink:0; padding:0 }
+#hd-bell svg{ width:20px; height:20px }
+#hd-bell b{ position:absolute; top:-5px; right:-5px; min-width:20px; height:20px; padding:0 5px; border-radius:999px; background:#ef4444; color:#fff; font:800 11px/16px var(--g-font,inherit); text-align:center; border:2px solid #17325e; box-sizing:border-box }
+#hd-bell b:empty{ display:none }
+@media (max-width:716px){ #hd-bell{ width:40px; height:40px; margin-right:6px } }
+#hd-npan{ position:fixed; top:66px; right:150px; width:400px; max-height:calc(100vh - 90px); overflow:auto; background:var(--g-card,#fff); color:var(--g-txt,#0f172a); border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.28); z-index:99990; font-family:var(--g-font,inherit) }
+#hd-npan h4{ margin:0; padding:14px 18px; font-size:15px; font-weight:800; border-bottom:1px solid var(--g-line,#eef1f5); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:inherit; z-index:1 }
+#hd-npan h4 button{ border:0; background:none; color:#2563eb; font:650 12.5px inherit; cursor:pointer; padding:0 }
+#hd-npan .g{ font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--g-ten,#94a3b8); padding:10px 18px 2px }
+#hd-npan .r{ display:flex; gap:12px; padding:11px 18px; border-bottom:1px solid var(--g-line,#f1f4f8); font-size:13.5px; cursor:pointer; align-items:flex-start }
+#hd-npan .r:hover{ background:var(--g-card2,#f4f6fa) }
+#hd-npan .r i{ width:10px; height:10px; border-radius:50%; margin-top:5px; flex-shrink:0 }
+#hd-npan .r b{ display:block; font-weight:700 } #hd-npan .r small{ color:var(--g-sub,#64748b); font-size:12.5px }
+#hd-npan .r.nuova{ background:color-mix(in srgb,#2563eb 6%,transparent) }
+#hd-npan .vuoto{ padding:28px 18px; text-align:center; color:var(--g-sub,#64748b); font-size:14px }
+#hd-nvelo{ position:fixed; inset:0; z-index:99989 }
+@media (max-width:716px){
+  #hd-npan{ top:auto; bottom:0; left:0; right:0; width:auto; max-height:80vh; border-radius:22px 22px 0 0 }
+  #hd-nvelo{ background:rgba(5,10,20,.4) }
+}
+/* 4. Salva: grigio quando è tutto salvato, arancione col numero quando ci sono modifiche */
+html body #btn-salva-globale.hd-ok{ background:rgba(255,255,255,.1) !important; color:#c9d6ea !important; border:1px solid rgba(255,255,255,.18) !important; box-shadow:none !important }
+html body #btn-salva-globale.hd-ok .db-icon-save{ opacity:.8 }
+#btn-salva-globale .hd-n{ display:inline-block; margin-left:6px; background:#17325e; color:#fff; border-radius:999px; padding:0 7px; font:800 11px/18px var(--g-font,inherit) }
+@media (max-width:716px){ #btn-salva-globale .hd-n{ position:absolute; top:-6px; right:-6px; margin:0; border:2px solid #17325e; background:#ef4444; min-width:18px; text-align:center; padding:0 4px; box-sizing:border-box } #btn-salva-globale{ position:relative } }
+/* 5. numerini nel menu e nella barra in basso */
+.hd-num{ margin-left:auto; min-width:20px; height:20px; padding:0 6px; border-radius:999px; font:800 11px/20px var(--g-font,inherit); text-align:center; background:#3b82f6; color:#fff; flex-shrink:0; box-sizing:border-box }
+.hd-num.rosso{ background:#ef4444 } .hd-num.giallo{ background:#f59e0b; color:#3d2a00 }
+#sidebar a.hd-con{ display:flex !important; align-items:center }
+.mob-nav-btn{ position:relative }
+.mob-nav-btn .hd-num{ position:absolute; top:2px; left:calc(50% + 6px); margin:0; min-width:17px; height:17px; font-size:10px; line-height:17px; padding:0 4px }
+body.hd-num-spenti .hd-num{ display:none !important }
+/* 6. menu stretto (solo computer) */
+#hd-stretto{ display:none }
+@media (min-width:717px){
+  #hd-stretto{ display:block; width:calc(100% - 24px); margin:14px 12px 90px; border:1px solid rgba(255,255,255,.15); background:transparent; color:#c9d6ea; border-radius:10px; padding:8px; font:600 12.5px var(--g-font,inherit); cursor:pointer }
+  #hd-stretto:hover{ background:rgba(255,255,255,.08) }
+  body.hd-stretto{ --sidebar-w:76px }
+  body.hd-stretto #btn-dashboard{ padding-left:0 !important; justify-content:center !important }
+  body.hd-stretto #btn-dashboard > :not(img):not(svg):not(#hd-stato){ display:none !important }
+  body.hd-stretto #hd-stato{ right:4px; top:8px; transform:none; padding:3px; font-size:0 !important; color:transparent !important; background:transparent; gap:0 !important; padding:0 !important; right:8px; top:10px }
+  body.hd-stretto #sidebar{ width:76px !important; overflow-x:hidden }
+  body.hd-stretto #main{ margin-left:76px !important }
+  html body.hd-stretto aside#sidebar a{ justify-content:center; padding:11px 0 !important; position:relative; display:flex !important; gap:0 !important }
+  html body.hd-stretto aside#sidebar a .hd-t{ display:none !important }
+  html body.hd-stretto aside#sidebar a svg{ width:22px; height:22px; margin:0 !important }
+  html body.hd-stretto aside#sidebar .hd-ini{ display:flex !important }
+  html body.hd-stretto aside#sidebar .sb-group-header{ font-size:0 !important; height:10px; padding:0 !important; margin:4px 12px !important; border-top:1px solid rgba(255,255,255,.12) }
+  html body.hd-stretto aside#sidebar .sb-group-header *{ display:none !important }
+  html body.hd-stretto aside#sidebar .hd-num{ position:absolute; top:3px; right:10px; min-width:16px; height:16px; font-size:10px; line-height:16px; padding:0 4px; margin:0 }
+  html body.hd-stretto #hd-stretto{ margin:14px 8px 90px; width:calc(100% - 16px); font-size:16px }
+  html body.hd-stretto aside#sidebar [class*="brand"], html body.hd-stretto aside#sidebar [class*="sb-foot"]{ display:none !important }
+}
+.hd-ini{ display:none; font-size:12px; font-weight:800; width:32px; height:32px; border-radius:9px; background:rgba(255,255,255,.12); align-items:center; justify-content:center; color:#fff }
+</style>
+<script id="menu-pacchetto-a-2026-js">
+(function(){
+  var LS = function(k, v){ try{ if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){ return null; } };
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  var I = function(d){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>'; };
+  function staff(){ try{ var u = (typeof AUTH !== 'undefined' && AUTH) ? AUTH.currentUser : null; return !!u && ['Genitore', 'Animatore', 'Caposquadra', 'Animatore Laboratorio', 'Educatore', 'Totem'].indexOf(u.ruolo) < 0; }catch(e){ return false; } }
+
+  /* ── 1. stato Online accanto a Home ── */
+  function stato(){
+    var d = document.getElementById('btn-dashboard'); if(!d) return;
+    var s = document.getElementById('hd-stato');
+    if(!s){ s = document.createElement('span'); s.id = 'hd-stato'; s.title = 'Chi è collegato';
+      s.addEventListener('click', function(ev){ ev.stopPropagation(); ev.preventDefault(); var p = document.getElementById('online-users-pill'); if(p && p.onclick) p.onclick(ev); else if(typeof window._toggleOnlinePanel === 'function') window._toggleOnlinePanel(); }, true);
+      d.appendChild(s); }
+    var txt = ((document.getElementById('sync-status-text') || {}).textContent || 'Online').trim();
+    var n = parseInt(((document.getElementById('online-count') || {}).textContent || '0'), 10) || 0;
+    var off = !navigator.onLine || /offline|errore|non raggiung/i.test(txt), att = /sincron|salv|attesa/i.test(txt);
+    s.className = off ? 'off' : (att ? 'att' : '');
+    var h = '<i></i>' + E(off ? 'Offline' : 'Online') + (n ? ' · ' + n : '');
+    if(s.innerHTML !== h) s.innerHTML = h;
+  }
+
+  /* ── il «Da fare» del gestionale (stesso della Home) ── */
+  var DF = { voci:[], letto:0, inCarica:false };
+  var AREA = { ist:'Istituto', scu:'Servizio Civile', grest:'GREST' };
+  function chiave(v){ return (v.a || '') + '|' + v.t; }
+  function voci(){ try{ return (typeof _hoDaFare === 'function') ? (_hoDaFare() || []) : []; }catch(e){ return []; } }
+  async function carica(forza){
+    if(!staff() || DF.inCarica) return;
+    if(!forza && Date.now() - DF.letto < 5 * 60000) { DF.voci = voci(); aggiorna(); return; }
+    DF.inCarica = true;
+    try{ if(typeof _hoCarica === 'function') await Promise.race([_hoCarica(), new Promise(function(ok){ setTimeout(ok, 15000); })]); }catch(e){}
+    DF.inCarica = false; DF.letto = Date.now(); DF.voci = voci(); aggiorna();
+  }
+  window._hdDaFare = function(){ return DF.voci; };
+  function visti(){ try{ return JSON.parse(LS('hd_visti') || '{}') || {}; }catch(e){ return {}; } }
+
+  /* ── 3. campanella ── */
+  function campanella(){
+    var sv = document.getElementById('btn-salva-globale'); if(!sv || !staff()) { var x = document.getElementById('hd-bell'); if(x) x.style.display = 'none'; return; }
+    var b = document.getElementById('hd-bell');
+    if(!b){ b = document.createElement('button'); b.type = 'button'; b.id = 'hd-bell'; b.title = 'Notifiche'; b.setAttribute('aria-label', 'Notifiche');
+      b.innerHTML = I('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>') + '<b></b>';
+      b.onclick = function(){ apri(); };
+      sv.parentNode.insertBefore(b, sv); }
+    b.style.display = '';
+    var V = visti(), n = DF.voci.filter(function(v){ return v.l !== 'blu' && !V[chiave(v)]; }).length;
+    var bb = b.querySelector('b'), t = n ? (n > 99 ? '99+' : String(n)) : '';
+    if(bb.textContent !== t) bb.textContent = t;
+  }
+  function chiudi(){ ['hd-npan', 'hd-nvelo'].forEach(function(id){ var x = document.getElementById(id); if(x) x.remove(); }); }
+  function apri(){
+    if(document.getElementById('hd-npan')){ chiudi(); return; }
+    var velo = document.createElement('div'); velo.id = 'hd-nvelo'; velo.onclick = chiudi; document.body.appendChild(velo);
+    var p = document.createElement('div'); p.id = 'hd-npan'; document.body.appendChild(p);
+    disegna(); carica(true).then(disegna);
+  }
+  function disegna(){
+    var p = document.getElementById('hd-npan'); if(!p) return;
+    var V = visti(), col = { rosso:'#ef4444', giallo:'#f59e0b', blu:'#3b82f6' }, per = {};
+    DF.voci.forEach(function(v){ (per[v.a || 'ist'] = per[v.a || 'ist'] || []).push(v); });
+    var h = '<h4>Notifiche e cose da fare <button type="button" onclick="hdLetteTutte()">Segna tutte lette</button></h4>';
+    if(!DF.voci.length) h += '<div class="vuoto">' + (DF.inCarica ? 'Carico…' : '✓ Niente da fare: è tutto a posto.') + '</div>';
+    ['ist', 'scu', 'grest'].forEach(function(a){ var L = per[a]; if(!L || !L.length) return;
+      h += '<div class="g">' + E(AREA[a]) + '</div>' + L.map(function(v, i){ var k = chiave(v);
+        return '<div class="r' + (V[k] ? '' : ' nuova') + '" data-k="' + E(k) + '" data-a="' + a + '" data-i="' + i + '"><i style="background:' + (col[v.l] || '#94a3b8') + '"></i><div><b>' + E(v.t) + '</b>' + (v.s ? '<small>' + E(v.s) + '</small>' : '') + '</div></div>'; }).join(''); });
+    p.innerHTML = h;
+    p.querySelectorAll('.r').forEach(function(r){ r.onclick = function(){
+      var v = per[r.getAttribute('data-a')][+r.getAttribute('data-i')], V2 = visti(); V2[r.getAttribute('data-k')] = Date.now(); LS('hd_visti', JSON.stringify(V2));
+      chiudi(); campanella();
+      try{ if(typeof v.c === 'function') v.c(); else if(v.c) (new Function(v.c))(); }catch(e){ console.warn('[campanella]', e); }
+    }; });
+  }
+  window.hdLetteTutte = function(){ var V = visti(); DF.voci.forEach(function(v){ V[chiave(v)] = Date.now(); }); LS('hd_visti', JSON.stringify(V)); disegna(); campanella(); };
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') chiudi(); });
+
+  /* ── 4. Salva ── */
+  function salva(){
+    var sv = document.getElementById('btn-salva-globale'); if(!sv) return;
+    var pend = false; try{ pend = (typeof gHaModifiche === 'function') ? gHaModifiche() : false; }catch(e){}
+    var n = 0; try{ n = (typeof orpModifiche === 'function') ? orpModifiche().length : 0; }catch(e){}
+    if(n) pend = true;
+    var lab = document.getElementById('salva-label'), sta = sv.classList.contains('saving') || sv.classList.contains('salvato') || sv.disabled;
+    if(sv.classList.contains('has-changes')) pend = true;
+    sv.classList.toggle('hd-ok', !pend && !sta);
+    if(lab && !sta){ var t = pend ? 'Salva' : '✓ Salvato'; if(lab.textContent !== t) lab.textContent = t; }
+    var c = sv.querySelector('.hd-n');
+    if(pend && n){ if(!c){ c = document.createElement('span'); c.className = 'hd-n'; sv.appendChild(c); } if(c.textContent !== String(n)) c.textContent = n; }
+    else if(c) c.remove();
+  }
+
+  /* ── 5. numerini ── */
+  function destinazione(v){
+    var c = typeof v.c === 'string' ? v.c : '';
+    var m = /navigate\('([a-z-]+)'/.exec(c); if(m) return m[1];
+    m = /scuVai\('([a-z]+)'/.exec(c); if(m) return 'sc:' + m[1];
+    if(/hoApriPresenze\('semi'/.test(c)) return 'ist-semi';
+    if(/hoApriPresenze/.test(c)) return 'ist-ospiti';
+    if(/hoApri(Arretrati|Pagamenti)/.test(c)) return 'ist-servizi';
+    return '';
+  }
+  function numerini(){
+    var spenti = LS('hd_numerini') === '0'; document.body.classList.toggle('hd-num-spenti', spenti);
+    var cnt = {}, ord = { rosso:3, giallo:2, blu:1 };
+    if(!spenti) DF.voci.forEach(function(v){ var d = destinazione(v); if(!d) return; var x = cnt[d] = cnt[d] || { n:0, l:'blu' }; x.n++; if((ord[v.l] || 0) > (ord[x.l] || 0)) x.l = v.l; });
+    var metti = function(el, key){
+      var x = cnt[key], b = el.querySelector(':scope > .hd-num');
+      if(!x){ if(b) b.remove(); return; }
+      if(!b){ b = document.createElement('span'); el.appendChild(b); }
+      b.className = 'hd-num ' + x.l; if(b.textContent !== String(x.n)) b.textContent = x.n;
+      if(el.tagName === 'A') el.classList.add('hd-con');
+    };
+    document.querySelectorAll('#sidebar a[data-view]').forEach(function(a){ metti(a, a.getAttribute('data-view')); });
+    document.querySelectorAll('#sidebar a[data-sctab]').forEach(function(a){ metti(a, 'sc:' + a.getAttribute('data-sctab')); });
+    document.querySelectorAll('.mob-nav-btn').forEach(function(b){ var m = /navigate\('([a-z-]+)'\)/.exec(b.getAttribute('onclick') || '') || /scuVai\('([a-z]+)'\)/.exec(b.getAttribute('onclick') || ''); if(!m) return; metti(b, /scuVai/.test(m[0]) ? 'sc:' + m[1] : m[1]); });
+  }
+  function aggiorna(){ try{ campanella(); }catch(e){} try{ numerini(); }catch(e){} try{ disegna(); }catch(e){} }
+
+  /* ── 6. menu stretto ── */
+  function prepara(){
+    var sb = document.getElementById('sidebar'); if(!sb) return;
+    sb.querySelectorAll('a:not([data-hd])').forEach(function(a){
+      a.setAttribute('data-hd', '1');
+      Array.prototype.slice.call(a.childNodes).forEach(function(n){ if(n.nodeType === 3 && n.textContent.trim()){ var s = document.createElement('span'); s.className = 'hd-t'; s.textContent = n.textContent; n.parentNode.replaceChild(s, n); } });
+      if(!a.querySelector('svg')){ var t = a.textContent.replace(/[^\p{L}\p{N} ]/gu, '').trim(), q = document.createElement('span'); q.className = 'hd-ini'; q.textContent = t.slice(0, 2); a.insertBefore(q, a.firstChild); }
+      if(!a.title) a.title = a.textContent.replace(/\d+$/, '').trim();
+    });
+    var b = document.getElementById('hd-stretto');
+    if(!b){ b = document.createElement('button'); b.type = 'button'; b.id = 'hd-stretto'; b.onclick = function(){ var on = !document.body.classList.contains('hd-stretto'); document.body.classList.toggle('hd-stretto', on); LS('hd_stretto', on ? '1' : null); b.textContent = on ? '»' : '« Riduci menu'; b.title = on ? 'Allarga il menu' : 'Riduci il menu'; }; sb.appendChild(b); }
+    else if(b.parentNode === sb && b !== sb.lastElementChild) sb.appendChild(b);
+    var on = LS('hd_stretto') === '1'; document.body.classList.toggle('hd-stretto', on); b.textContent = on ? '»' : '« Riduci menu';
+  }
+
+  /* ── impostazione: numerini acceso / spento ── */
+  function impostazione(){
+    var v = document.getElementById('view-impostazioni'); if(!v || !v.classList.contains('active') || document.getElementById('hd-imp')) return;
+    var dove = v.querySelector('.card'); if(!dove) return;
+    var c = document.createElement('div'); c.className = 'card'; c.id = 'hd-imp'; c.style.marginBottom = '16px';
+    var on = LS('hd_numerini') !== '0';
+    c.innerHTML = '<div style="display:flex;align-items:center;gap:14px"><div style="flex:1"><div style="font-weight:800;font-size:15px">Numerini nel menu</div><div style="font-size:13px;color:var(--text-muted)">Mostra accanto alle voci del menu quante cose ci sono da fare (scadenze, richieste, turni…). Vale per questo dispositivo.</div></div>'
+      + '<label style="display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0"><input type="checkbox" id="hd-imp-num"' + (on ? ' checked' : '') + ' style="width:22px;height:22px"> ' + (on ? 'Acceso' : 'Spento') + '</label></div>';
+    dove.parentNode.insertBefore(c, dove);
+    c.querySelector('#hd-imp-num').onchange = function(){ LS('hd_numerini', this.checked ? null : '0'); this.parentNode.lastChild.textContent = this.checked ? ' Acceso' : ' Spento'; numerini(); };
+  }
+
+  function giro(){ try{ stato(); }catch(e){} try{ salva(); }catch(e){} try{ prepara(); }catch(e){} try{ impostazione(); }catch(e){} try{ campanella(); numerini(); }catch(e){} }
+  setInterval(giro, 1500); giro();
+  setTimeout(function(){ carica(true); }, 6000);
+  setInterval(function(){ carica(true); }, 5 * 60000);
+  var oN = window.navigate;
+  if(typeof oN === 'function' && !oN._hd){ var f = function(){ var r = oN.apply(this, arguments); setTimeout(function(){ DF.voci = voci(); aggiorna(); }, 900); return r; }; f._hd = true; window.navigate = f; }
+  var oS = window.gSalva;
+  if(typeof oS === 'function' && !oS._hd){ var g = async function(){ var r = await oS.apply(this, arguments); setTimeout(function(){ salva(); DF.voci = voci(); aggiorna(); }, 400); return r; }; g._hd = true; window.gSalva = g; }
+})();
 </script>
 
 </body>
