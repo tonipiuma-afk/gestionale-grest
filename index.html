@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 31/10/2026 12:07</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 31/10/2026 12:07 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89383,7 +89383,7 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
 #ap-ov p, #ap-ov i, #ap-ov small{ line-height:1.4 }
 #ap-ov img{ max-width:none; display:block }
 #ap-ov.via{ animation:apVia .5s ease forwards }
-#ap-ov.ap-cover{ z-index:99990; cursor:default; animation:none }
+#ap-ov.ap-cover{ z-index:100000; cursor:default; animation:none }
 #ap-ov.ap-cover.via{ animation:apVia .5s ease forwards }
 @keyframes apVia{ to{ opacity:0; visibility:hidden } }
 @keyframes apAppare{ to{ opacity:1 } }
@@ -89398,12 +89398,12 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
 .ap-g .ap-rg{ position:relative; display:inline-block; max-width:100% }
 .ap-g h1{ margin:0; font-size:clamp(32px,6.6vw,74px); font-weight:800; letter-spacing:-1.5px; color:#13284a; white-space:nowrap; clip-path:inset(-20% 100% -20% 0); animation:apScrivi 1.7s .25s cubic-bezier(.55,0,.35,1) forwards }
 @keyframes apScrivi{ to{ clip-path:inset(-20% -2% -20% 0) } }
-.ap-g svg{ position:absolute; left:0; right:0; bottom:-18px; width:100%; height:30px; overflow:visible }
+.ap-g svg{ position:absolute; left:0; right:0; bottom:-34px; width:100%; height:30px; overflow:visible }
 .ap-g path{ fill:none; stroke:#e8a317; stroke-width:3; stroke-linecap:round; stroke-dasharray:1200; stroke-dashoffset:1200; animation:apTraccia 1.7s .25s cubic-bezier(.55,0,.35,1) forwards; filter:drop-shadow(0 0 5px rgba(232,163,23,.6)) }
 .ap-g .ap-pen{ position:absolute; width:58px; height:58px; left:-4%; top:-34px; filter:drop-shadow(0 6px 12px rgba(19,40,74,.35)) brightness(0) saturate(100%) invert(18%) sepia(30%) saturate(2000%) hue-rotate(200deg); animation:apPenna 1.7s .25s cubic-bezier(.55,0,.35,1) forwards, apViaPenna .4s 2.05s ease forwards }
 @keyframes apPenna{ 0%{ left:-4%; transform:rotate(-8deg) } 20%{ transform:rotate(9deg) translateY(-5px) } 40%{ transform:rotate(-7deg) translateY(3px) } 60%{ transform:rotate(8deg) translateY(-4px) } 80%{ transform:rotate(-6deg) } 100%{ left:100%; transform:rotate(4deg) } }
 @keyframes apViaPenna{ to{ opacity:0; transform:translate(30px,-30px) rotate(25deg) } }
-.ap-g p{ margin:26px 0 0; font-size:18px; color:#475569; opacity:0; animation:apAppare .6s 1.9s forwards }
+.ap-g p{ margin:52px 0 0; font-size:18px; color:#475569; opacity:0; animation:apAppare .6s 1.9s forwards }
 .ap-g i{ display:block; margin-top:14px; color:#64748b; font-size:15px; opacity:0; animation:apAppare .6s 2.2s forwards }
 .ap-g .ap-sole{ position:absolute; left:50%; top:-120px; width:66px; height:66px; margin-left:-33px; border-radius:50%; background:#fde68a; box-shadow:0 0 0 14px rgba(253,230,138,.35),0 0 60px 20px rgba(253,200,80,.35); opacity:0; animation:apSorge 1.2s 1.6s cubic-bezier(.2,.8,.2,1) forwards }
 .ap-g .ap-sole.ap-luna{ background:#e2e8f0; box-shadow:0 0 0 14px rgba(226,232,240,.35),0 0 60px 20px rgba(148,163,184,.3) }
@@ -89501,7 +89501,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     try{ var f = document.querySelector('.ho-frase'); if(f && f.textContent.trim()) fr = f.textContent.trim(); }catch(e){}
     var ov = crea('ap-g', '<div class="ap-bx"><div class="ap-sole' + (ora >= 19 || ora < 6 ? ' ap-luna' : '') + '"></div><div class="ap-rg"><h1>' + E(sal) + '</h1><svg viewBox="0 0 600 30" preserveAspectRatio="none"><path d="M4 18 C 80 6, 150 28, 230 16 S 380 8, 450 20 S 560 22, 596 12"/></svg>'
       + (piuma() ? '<img class="ap-pen" src="' + piuma() + '" alt="">' : '') + '</div><p>' + E(oggi()) + '</p><i>' + E(fr) + '</i></div>');
-    try{ var h1 = ov.querySelector('h1'), lim = window.innerWidth * .9; if(h1 && h1.scrollWidth > lim){ var fs = parseFloat(getComputedStyle(h1).fontSize); h1.style.fontSize = Math.max(20, Math.floor(fs * lim / h1.scrollWidth)) + 'px'; } }catch(e){}
+    try{ var h1 = ov.querySelector('h1'), bxx = ov.querySelector('.ap-bx'), lim = Math.min(window.innerWidth * .9, bxx ? bxx.clientWidth - 8 : 9999); if(h1 && h1.scrollWidth > lim){ var fs = parseFloat(getComputedStyle(h1).fontSize); h1.style.fontSize = Math.max(20, Math.floor(fs * lim / h1.scrollWidth)) + 'px'; } }catch(e){}
     dopo(3300, function(){ ov.classList.add('sale'); document.body.classList.add('ap-entra'); });
     dopo(4500, function(){ ov.remove(); T.forEach(clearTimeout); T = []; });
   }
@@ -89568,7 +89568,20 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     if(!u) return '';
     if(['Totem', 'Educatore', 'Caposquadra', 'Animatore Laboratorio'].indexOf(u.ruolo) >= 0) return '';
     if(u.ruolo === 'Genitore') return 'ap-r';
-    if(u.ruolo === 'Animatore'){ try{ var an = (typeof paGetAnimatore === 'function') ? paGetAnimatore() : null; return (typeof _scPortaleAttivo === 'function' && _scPortaleAttivo(an || u)) ? 'ap-s' : ''; }catch(e){ return ''; } }
+    if(u.ruolo === 'Animatore'){
+      try{
+        var an = null; try{ an = (typeof paGetAnimatore === 'function') ? paGetAnimatore() : null; }catch(e){}
+        if(!an && typeof scGetOperatori === 'function'){
+          var nn = function(x){ return String(x || '').toLowerCase().replace(/\s+/g, ' ').trim(); };
+          var op = (scGetOperatori() || []).filter(function(o){ return (u.animatoreId && o.id === u.animatoreId) || nn((o.nome || '') + ' ' + (o.cognome || '')) === nn(u.nome) || nn((o.cognome || '') + ' ' + (o.nome || '')) === nn(u.nome); })[0];
+          if(op) an = Object.assign({ servizioCivile:true }, op);
+        }
+        if(an && typeof _scPortaleAttivo === 'function') return _scPortaleAttivo(an) ? 'ap-s' : '';
+        var m = (typeof _scPortaleModo === 'function') ? _scPortaleModo() : 'auto';
+        if(m === 'sc') return 'ap-s'; if(m === 'grest') return '';
+        return (typeof _grestInCorso === 'function' && _grestInCorso() === true) ? '' : 'ap-s';
+      }catch(e){ return ''; }
+    }
     return 'ap-g';
   }
   function scopri(){ var ov = document.getElementById('ap-ov'); if(ov && ov.classList.contains('ap-cover')){ ov.classList.add('via'); setTimeout(function(){ if(ov.classList.contains('ap-cover')) ov.remove(); }, 520); } }
@@ -89582,6 +89595,25 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       ov._t = setTimeout(scopri, 15000);   // se per qualche motivo l'animazione non parte, il fondo se ne va da solo
     }catch(e){}
   }
+  /* l'istante esatto dell'accesso: quando viene impostato l'utente con la schermata d'accesso ancora aperta, copro subito
+     (prima che il gestionale disegni menu e pagina). Vale anche per uscire e rientrare. */
+  (function(){
+    try{
+      if(typeof AUTH === 'undefined' || !AUTH) return;
+      var val = AUTH.currentUser, d = Object.getOwnPropertyDescriptor(AUTH, 'currentUser');
+      if(d && !d.configurable) return;
+      Object.defineProperty(AUTH, 'currentUser', { configurable:true, enumerable:true,
+        get:function(){ return val; },
+        set:function(nuovo){
+          var prima = val; val = nuovo;
+          try{
+            if(!nuovo){ fatto = {}; attesa = 0; return; }
+            var nuovoAccesso = !prima || (prima.id || prima.username) !== (nuovo.id || nuovo.username);
+            if(nuovoAccesso && (vis('login-screen') || vis('splash-screen'))){ delete fatto[nuovo.id || nuovo.username]; attesa = 0; copri(); }
+          }catch(e){}
+        } });
+    }catch(e){ console.warn('[apertura] aggancio accesso', e); }
+  })();
   (function(){
     var ls = document.getElementById('login-screen'); if(!ls || !window.MutationObserver) return;
     var era = vis('login-screen');
@@ -89600,9 +89632,11 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       if(u.ruolo === 'Totem' || vis('portale-totem') || vis('portale-educatore')){ fatto[chi] = 1; scopri(); return; }
       if(vis('portale-genitore')){ attesa++; if(attesa < 3) return; fatto[chi] = 1; if(!famiglie()) scopri(); return; }
       if(vis('portale-animatore')){
-        attesa++; if(attesa < 3) return;     // aspetto che il portale scelga la modalità
+        var modoSc = document.getElementById('portale-animatore').classList.contains('pa-modo-sc');
+        attesa++;
+        if(attesa < 3 || (!modoSc && attesa < 20)) return;     // aspetto che il portale scelga la modalità (al massimo 3 secondi)
         fatto[chi] = 1;
-        if(!(document.getElementById('portale-animatore').classList.contains('pa-modo-sc') && servizioCivile())) scopri();
+        if(!(modoSc && servizioCivile())) scopri();
         return;
       }
       var m = document.getElementById('main');
