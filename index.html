@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 31/10/2026 12:24</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 31/10/2026 12:24 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89376,14 +89376,14 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
 
 <style id="aperture-2026">
 /* ═══ Animazioni di apertura (ottobre 2026): gestionale, portale Servizio Civile, portale GREST famiglie ═══ */
-#ap-ov{ position:fixed; inset:0; z-index:2147483200; overflow:hidden; cursor:pointer; font-family:var(--g-font,Inter,system-ui,sans-serif); animation:apIn .18s ease both }
+#ap-ov{ position:fixed; inset:0; z-index:100000; overflow:hidden; cursor:pointer; font-family:var(--g-font,Inter,system-ui,sans-serif) }
 @keyframes apIn{ from{ opacity:0 } }
 #ap-ov *, #ap-ov *::before, #ap-ov *::after{ box-sizing:border-box }
 #ap-ov h1, #ap-ov p, #ap-ov i, #ap-ov b, #ap-ov small{ text-transform:none !important; font-family:inherit !important; line-height:1.15 }
 #ap-ov p, #ap-ov i, #ap-ov small{ line-height:1.4 }
 #ap-ov img{ max-width:none; display:block }
 #ap-ov.via{ animation:apVia .5s ease forwards }
-#ap-ov.ap-cover{ z-index:100000; cursor:default; animation:none }
+#ap-ov.ap-cover{ animation:none }
 #ap-ov.ap-cover.via{ animation:apVia .5s ease forwards }
 @keyframes apVia{ to{ opacity:0; visibility:hidden } }
 @keyframes apAppare{ to{ opacity:1 } }
@@ -89468,33 +89468,35 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   function logo(a){ try{ return (typeof AREA_LOGHI !== 'undefined' && AREA_LOGHI[a]) || ''; }catch(e){ return ''; } }
   function piuma(){ var i = document.querySelector('.piuma-ico'); return i ? i.src : ''; }
   function oggi(){ return new Date().toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' }); }
-  var T = [], fatto = {};
+  var T = [], fatto = {}, tentativo = 0;
   function dopo(ms, f){ T.push(setTimeout(f, ms)); }
+  function fine(ov, ms){ dopo(ms, function(){ if(ov.parentNode) ov.remove(); T.forEach(clearTimeout); T = []; }); }
   function chiudi(){
     T.forEach(clearTimeout); T = [];
     var ov = document.getElementById('ap-ov'); if(!ov) return;
     ov.classList.add('via'); document.body.classList.add('ap-entra');
-    setTimeout(function(){ ov.remove(); }, 520);
+    setTimeout(function(){ if(ov.parentNode) ov.remove(); }, 520);
   }
   function crea(cls, html){
     var ov = document.getElementById('ap-ov');
-    if(ov && ov.classList.contains('ap-cover')){   // c'era già il fondo: continuo da lì, senza lampi
-      clearTimeout(ov._t); ov.style.animation = 'none'; ov.className = cls; ov.innerHTML = html;
-      requestAnimationFrame(function(){ requestAnimationFrame(function(){ ov.style.animation = ''; }); });
-    } else {
-      if(ov) ov.remove();
-      ov = document.createElement('div'); ov.id = 'ap-ov'; ov.className = cls; ov.innerHTML = html;
-      document.body.appendChild(ov);
-    }
+    if(ov){ T.forEach(clearTimeout); T = []; ov.className = cls; ov.innerHTML = html; }   // continuo dal fondo già presente, senza lampi
+    else { ov = document.createElement('div'); ov.id = 'ap-ov'; ov.className = cls + ' ap-nuovo'; ov.innerHTML = html; ov._nato = Date.now(); document.body.appendChild(ov); }
     ov.setAttribute('aria-hidden', 'true');
-    if(!ov._clic){ ov._clic = 1; ov.addEventListener('click', function(){ if(!ov.classList.contains('ap-cover')) chiudi(); }); }
-    dopo(6000, chiudi);   // sicurezza: mai più di 6 secondi
+    if(!ov._clic){ ov._clic = 1; ov.addEventListener('click', chiudi); }
+    dopo(15000, chiudi);   // sicurezza
     return ov;
   }
+  /* aspetta che la pagina sotto sia pronta prima di chiudere l'animazione (al massimo «max» ms) */
+  function aspetta(cond, poi, max){
+    var t0 = Date.now();
+    (function giro(){ var ok = false; try{ ok = cond(Date.now() - t0); }catch(e){} if(ok || Date.now() - t0 > max) poi(ok); else dopo(150, giro); })();
+  }
+  function caricando(){ return !!document.getElementById('anim-loading'); }
+  function prontoGestionale(){ var m = document.getElementById('main'); return !vis('login-screen') && !caricando() && !!m && m.getClientRects().length > 0 && !!document.querySelector('#main .view.active'); }
 
   /* ── 1. gestionale ── */
   function gestionale(){
-    var u = {}; try{ u = (typeof _areaUtente === 'function' ? _areaUtente() : AUTH.currentUser) || {}; }catch(e){}
+    var u = {}; try{ u = (typeof _areaUtente === 'function' ? _areaUtente() : null) || AUTH.currentUser || {}; }catch(e){ u = AUTH.currentUser || {}; }
     var nome = cap(u.nome || u.username), ora = new Date().getHours();
     var sal = (ora < 13 ? 'Buongiorno' : (ora < 18 ? 'Buon pomeriggio' : 'Buonasera')) + (nome ? ', ' + nome : '');
     var fr = '«La gioia è la più bella creatura uscita dalle mani di Dio» — Don Bosco';
@@ -89502,35 +89504,57 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var ov = crea('ap-g', '<div class="ap-bx"><div class="ap-sole' + (ora >= 19 || ora < 6 ? ' ap-luna' : '') + '"></div><div class="ap-rg"><h1>' + E(sal) + '</h1><svg viewBox="0 0 600 30" preserveAspectRatio="none"><path d="M4 18 C 80 6, 150 28, 230 16 S 380 8, 450 20 S 560 22, 596 12"/></svg>'
       + (piuma() ? '<img class="ap-pen" src="' + piuma() + '" alt="">' : '') + '</div><p>' + E(oggi()) + '</p><i>' + E(fr) + '</i></div>');
     try{ var h1 = ov.querySelector('h1'), bxx = ov.querySelector('.ap-bx'), lim = Math.min(window.innerWidth * .9, bxx ? bxx.clientWidth - 8 : 9999); if(h1 && h1.scrollWidth > lim){ var fs = parseFloat(getComputedStyle(h1).fontSize); h1.style.fontSize = Math.max(20, Math.floor(fs * lim / h1.scrollWidth)) + 'px'; } }catch(e){}
-    dopo(3300, function(){ ov.classList.add('sale'); document.body.classList.add('ap-entra'); });
-    dopo(4500, function(){ ov.remove(); T.forEach(clearTimeout); T = []; });
+    dopo(3300, function(){
+      aspetta(function(){ return prontoGestionale() || vis('splash-screen'); }, function(ok){
+        if(!ok || vis('splash-screen')){ chiudi(); return; }     // archivio da scegliere: lascio la scelta
+        ov.classList.add('sale'); document.body.classList.add('ap-entra'); fine(ov, 1200);
+      }, 10000);
+    });
+    return true;
   }
 
   /* ── 2. portale Servizio Civile ── */
-  function servizioCivile(){
-    var a = null; try{ a = paGetAnimatore(); }catch(e){}
-    if(!a) return false;
-    var testo = '';
+  function volontario(){
+    var u = AUTH.currentUser || {}, a = null;
+    try{ a = (typeof paGetAnimatore === 'function') ? paGetAnimatore() : null; }catch(e){}
+    if(!a){
+      try{
+        var nn = function(x){ return String(x || '').toLowerCase().replace(/\s+/g, ' ').trim(); };
+        a = (scGetOperatori() || []).filter(function(o){ return (u.animatoreId && o.id === u.animatoreId) || nn((o.nome || '') + ' ' + (o.cognome || '')) === nn(u.nome) || nn((o.cognome || '') + ' ' + (o.nome || '')) === nn(u.nome); })[0] || null;
+      }catch(e){}
+    }
+    if(!a){ var p = String(u.nome || u.username || '').trim().split(/\s+/); a = { id:u.animatoreId || '', nome:p[0] || '', cognome:p.slice(1).join(' '), foto:u.foto || '' }; }
+    return a;
+  }
+  function turnoDi(a){
     try{
+      if(!a || !a.id) return '';
       var sc = scGetDb() || {}, k = scDataLocale(new Date()) + '_' + a.id, o = (sc.orariCal || {})[k], g = (sc.giornate || {})[k];
-      if(g && g !== 'normale') testo = g === 'malattia' ? 'Oggi sei in malattia: riguardati' : 'Oggi sei in permesso';
-      else if(o){
-        var c = String((sc.compiti || {})[k] || '').split(/\s*·\s*/)[0];
-        testo = 'Oggi ' + String(o).split(',').map(function(x){ return x.replace(/^0/, '').replace(/-0?/, '–'); }).join(' e ') + (c ? ' · ' + c.slice(0, 40) : '');
-      } else testo = 'Oggi sei a riposo';
-    }catch(e){}
-    var nome = cap(a.nome), lg = logo('scu'), h = '';
+      if(g && g !== 'normale') return g === 'malattia' ? 'Oggi sei in malattia: riguardati' : 'Oggi sei in permesso';
+      if(o){ var c = String((sc.compiti || {})[k] || '').split(/\s*·\s*/)[0]; return 'Oggi ' + String(o).split(',').map(function(x){ return x.replace(/^0/, '').replace(/-0?/, '–'); }).join(' e ') + (c ? ' · ' + c.slice(0, 40) : ''); }
+      return 'Oggi sei a riposo';
+    }catch(e){ return ''; }
+  }
+  function servizioCivile(){
+    var a = volontario(), testo = turnoDi(a), nome = cap(a.nome), lg = logo('scu'), h = '';
     for(var i = 0; i < 12; i++){
       var an = i / 12 * Math.PI * 2, a0 = Math.random() * Math.PI * 2, d = 500 + Math.random() * 300;
       h += '<span class="ap-st" style="--x:' + (Math.cos(an) * 78).toFixed(0) + 'px;--y:' + (Math.sin(an) * 78).toFixed(0) + 'px;--x0:' + (Math.cos(a0) * d).toFixed(0) + 'px;--y0:' + (Math.sin(a0) * d).toFixed(0) + 'px;animation-delay:' + (i * .05).toFixed(2) + 's">★</span>';
     }
     var ini = ((a.nome || '?').charAt(0) + (a.cognome || '').charAt(0)).toUpperCase();
     var tess = '<div class="ap-tess"><div class="ap-ft">' + (a.foto ? '<img src="' + E(a.foto) + '" alt="">' : E(ini)) + '</div><div><b>' + E(capTutto((a.nome || '') + ' ' + (a.cognome || ''))) + '</b><small>' + (a.sesso === 'F' ? 'Volontaria' : 'Volontario') + ' · Servizio Civile</small></div>' + (lg ? '<img class="ap-lgp" src="' + lg + '" alt="">' : '') + '</div>';
-    h += (lg ? '<div class="ap-lg"><img src="' + lg + '" alt=""></div>' : '') + '<div class="ap-tx"><h1>Ciao ' + E(nome) + '</h1>' + (testo ? '<p>' + E(testo) + '</p>' : '') + '</div><div class="ap-card">' + tess + '</div>';
+    h += (lg ? '<div class="ap-lg"><img src="' + lg + '" alt=""></div>' : '') + '<div class="ap-tx"><h1>Ciao ' + E(nome) + '</h1><p' + (testo ? '' : ' style="display:none"') + '>' + E(testo) + '</p></div><div class="ap-card">' + tess + '</div>';
     var ov = crea('ap-s', h);
+    // il turno a volte arriva un attimo dopo l'accesso: lo riprovo prima che compaia
+    dopo(1700, function(){ try{ var t = turnoDi(volontario()), p = ov.querySelector('.ap-tx p'); if(t && p){ p.textContent = t; p.style.display = ''; } }catch(e){} });
     dopo(2800, function(){ ov.classList.add('tessera'); });
-    dopo(3700, function(){ ov.classList.add('posa'); document.body.classList.add('ap-entra'); });
-    dopo(4750, function(){ ov.remove(); T.forEach(clearTimeout); T = []; });
+    dopo(3700, function(){
+      aspetta(function(t){ var pa = document.getElementById('portale-animatore'); return vis('portale-animatore') && !caricando() && (pa.classList.contains('pa-modo-sc') || t > 3000); }, function(ok){
+        var pa = document.getElementById('portale-animatore');
+        if(!ok || !pa.classList.contains('pa-modo-sc')){ chiudi(); return; }
+        ov.classList.add('posa'); document.body.classList.add('ap-entra'); fine(ov, 1100);
+      }, 12000);
+    });
     return true;
   }
 
@@ -89559,7 +89583,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var ov = crea('ap-r', h);
     dopo(2900, function(){ ov.classList.add('apri'); });
     dopo(3400, function(){ document.body.classList.add('ap-entra'); });
-    dopo(4250, function(){ ov.remove(); T.forEach(clearTimeout); T = []; });
+    fine(ov, 4250);
     return true;
   }
 
@@ -89584,19 +89608,30 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     }
     return 'ap-g';
   }
-  function scopri(){ var ov = document.getElementById('ap-ov'); if(ov && ov.classList.contains('ap-cover')){ ov.classList.add('via'); setTimeout(function(){ if(ov.classList.contains('ap-cover')) ov.remove(); }, 520); } }
-  function copri(){
+  function scopri(){ var ov = document.getElementById('ap-ov'); if(ov && ov.classList.contains('ap-cover')){ ov.classList.add('via'); setTimeout(function(){ if(ov.parentNode && ov.classList.contains('ap-cover')) ov.remove(); }, 520); } }
+  /* all'accesso: gestionale e Servizio Civile partono subito; per le famiglie metto il fondo e aspetto il portale */
+  function avvia(){
     try{
       if(!attiva() || document.getElementById('ap-ov')) return;
       var u = (typeof AUTH !== 'undefined' && AUTH) ? AUTH.currentUser : null, cls = fondoPer(u);
-      if(!cls || fatto[u.id || u.username]) return;
-      var ov = document.createElement('div'); ov.id = 'ap-ov'; ov.className = cls + ' ap-cover'; ov.setAttribute('aria-hidden', 'true');
+      if(!cls) return;
+      var chi = u.id || u.username; if(fatto[chi]) return;
+      tentativo = 0; inizioAccesso = Date.now();
+      if(cls === 'ap-g'){ fatto[chi] = 1; gestionale(); return; }
+      if(cls === 'ap-s'){ fatto[chi] = 1; servizioCivile(); return; }
+      var ov = document.createElement('div'); ov.id = 'ap-ov'; ov.className = cls + ' ap-cover'; ov.setAttribute('aria-hidden', 'true'); ov._nato = Date.now();
+      ov.addEventListener('click', chiudi); ov._clic = 1;
       document.body.appendChild(ov);
-      ov._t = setTimeout(scopri, 15000);   // se per qualche motivo l'animazione non parte, il fondo se ne va da solo
-    }catch(e){}
+      setTimeout(function(){ if(ov.parentNode && ov.classList.contains('ap-cover')) scopri(); }, 15000);
+    }catch(e){ console.warn('[apertura]', e); }
   }
-  /* l'istante esatto dell'accesso: quando viene impostato l'utente con la schermata d'accesso ancora aperta, copro subito
-     (prima che il gestionale disegni menu e pagina). Vale anche per uscire e rientrare. */
+  /* solo un accesso vero (premuto Accedi / Invio sulla schermata d'accesso) fa partire l'animazione */
+  function segnaTentativo(ev){ try{ var ls = document.getElementById('login-screen'); if(ls && ev.target && ls.contains(ev.target) && vis('login-screen')) tentativo = Date.now(); }catch(e){} }
+  document.addEventListener('click', function(ev){ if(ev.target && ev.target.closest && ev.target.closest('button, [type=submit], .btn, [role=button]')) segnaTentativo(ev); }, true);
+  document.addEventListener('keydown', function(ev){ if(ev.key === 'Enter') segnaTentativo(ev); }, true);
+  document.addEventListener('submit', segnaTentativo, true);
+  var inizioAccesso = 0;
+  function recente(){ return Date.now() - tentativo < 12000; }
   (function(){
     try{
       if(typeof AUTH === 'undefined' || !AUTH) return;
@@ -89607,9 +89642,9 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
         set:function(nuovo){
           var prima = val; val = nuovo;
           try{
-            if(!nuovo){ fatto = {}; attesa = 0; return; }
+            if(!nuovo){ fatto = {}; attesa = 0; tentativo = 0; return; }
             var nuovoAccesso = !prima || (prima.id || prima.username) !== (nuovo.id || nuovo.username);
-            if(nuovoAccesso && (vis('login-screen') || vis('splash-screen'))){ delete fatto[nuovo.id || nuovo.username]; attesa = 0; copri(); }
+            if(nuovoAccesso && recente() && vis('login-screen')){ delete fatto[nuovo.id || nuovo.username]; attesa = 0; avvia(); }
           }catch(e){}
         } });
     }catch(e){ console.warn('[apertura] aggancio accesso', e); }
@@ -89617,40 +89652,46 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   (function(){
     var ls = document.getElementById('login-screen'); if(!ls || !window.MutationObserver) return;
     var era = vis('login-screen');
-    new MutationObserver(function(){ var ora = vis('login-screen'); if(era && !ora) copri(); era = ora; }).observe(ls, { attributes:true, attributeFilter:['class', 'style'] });
+    new MutationObserver(function(){ var ora = vis('login-screen'); if(era && !ora && recente()) avvia(); era = ora; }).observe(ls, { attributes:true, attributeFilter:['class', 'style'] });
   })();
+  /* sicurezza: mai coprire la schermata d'accesso (es. dopo un'uscita) */
+  setInterval(function(){
+    try{
+      var ov = document.getElementById('ap-ov'); if(!ov) return;
+      if(vis('login-screen') && Date.now() - inizioAccesso > 6000){ T.forEach(clearTimeout); T = []; ov.remove(); }
+    }catch(e){}
+  }, 400);
 
-  /* ── quando parte: appena dopo l'accesso (o all'apertura con l'accesso già fatto), una volta per persona ── */
-  var inizio = Date.now(), attesa = 0;
+  /* ── se l'accesso non è passato dalla schermata (o per le famiglie): parto quando la pagina è pronta ── */
+  var attesa = 0;
   function controlla(){
     try{
       if(!attiva()) return;
       var gia = document.getElementById('ap-ov'); if(gia && !gia.classList.contains('ap-cover')) return;
       var u = (typeof AUTH !== 'undefined' && AUTH) ? AUTH.currentUser : null; if(!u) { attesa = 0; return; }
       var chi = u.id || u.username; if(fatto[chi]) return;
-      if(document.getElementById('anim-loading') || vis('login-screen') || vis('login-overlay')) return;
+      if(caricando() || vis('login-screen') || vis('login-overlay')) return;
       if(u.ruolo === 'Totem' || vis('portale-totem') || vis('portale-educatore')){ fatto[chi] = 1; scopri(); return; }
       if(vis('portale-genitore')){ attesa++; if(attesa < 3) return; fatto[chi] = 1; if(!famiglie()) scopri(); return; }
       if(vis('portale-animatore')){
         var modoSc = document.getElementById('portale-animatore').classList.contains('pa-modo-sc');
         attesa++;
-        if(attesa < 3 || (!modoSc && attesa < 20)) return;     // aspetto che il portale scelga la modalità (al massimo 3 secondi)
+        if(attesa < 3 || (!modoSc && attesa < 20)) return;
         fatto[chi] = 1;
         if(!(modoSc && servizioCivile())) scopri();
         return;
       }
-      var m = document.getElementById('main');
-      if(m && m.offsetParent !== null && document.querySelector('#main .view.active')){
+      if(prontoGestionale()){
         if(['Genitore', 'Animatore', 'Caposquadra', 'Animatore Laboratorio', 'Educatore'].indexOf(u.ruolo) >= 0) return;
-        if(vis('splash-screen')){ scopri(); return; }   // prima va scelto l'archivio: l'animazione parte dopo «Entra»
+        if(vis('splash-screen')){ scopri(); return; }
         attesa++; if(attesa < 2) return;
         fatto[chi] = 1; gestionale();
       }
     }catch(e){ console.warn('[apertura]', e); }
   }
-  var giri = 0, iv = setInterval(function(){ controlla(); if(++giri > 600 && !Object.keys(fatto).length){ clearInterval(iv); } }, 150);
+  setInterval(controlla, 150);
   // dopo un'uscita, al prossimo accesso riparte
-  setInterval(function(){ try{ if(typeof AUTH !== 'undefined' && AUTH && !AUTH.currentUser){ fatto = {}; attesa = 0; if(giri > 600){ giri = 0; } } }catch(e){} }, 1000);
+  setInterval(function(){ try{ if(typeof AUTH !== 'undefined' && AUTH && !AUTH.currentUser){ fatto = {}; attesa = 0; } }catch(e){} }, 1000);
   /* la classe d'entrata resta finché non si cambia pagina: toglierla prima farebbe ripartire l'animazione della pagina */
   (function(){ var oN = window.navigate; if(typeof oN !== 'function' || oN._ap) return; var f = function(){ document.body.classList.remove('ap-entra'); return oN.apply(this, arguments); }; f._ap = true; f._hd = oN._hd; f._pb = oN._pb; f._pk = oN._pk; window.navigate = f; })();
   window.apAnteprima = function(q){ T.forEach(clearTimeout); T = []; document.body.classList.remove('ap-entra'); try{ var uu = AUTH.currentUser; if(uu) fatto[uu.id || uu.username] = 1; }catch(e){} if(q === 'scu') servizioCivile(); else if(q === 'grest') famiglie(); else gestionale(); };
@@ -89658,7 +89699,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   /* ── impostazione: acceso / spento (vale per il dispositivo) ── */
   function impostazione(){
     var v = document.getElementById('view-impostazioni'); if(!v || !v.classList.contains('active') || document.getElementById('ap-imp')) return;
-    var dove = document.getElementById('hd-imp') || v.querySelector('.ap-card'); if(!dove) return;
+    var dove = document.getElementById('hd-imp') || v.querySelector('.card'); if(!dove) return;
     var c = document.createElement('div'); c.className = 'card'; c.id = 'ap-imp'; c.style.marginBottom = '16px';
     var on = attiva();
     c.innerHTML = '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="flex:1;min-width:220px"><div style="font-weight:800;font-size:15px">Animazione all\'apertura</div><div style="font-size:13px;color:var(--text-muted)">La piuma che scrive il saluto quando entri. Un tocco la salta. Vale per questo dispositivo.</div></div>'
