@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 31/10/2026 10:54</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 31/10/2026 10:54 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89125,14 +89125,20 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
 .pk-hint{ position:absolute; right:10px; top:50%; transform:translateY(-50%); font:600 10.5px/1 var(--g-font,inherit); color:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.2); border-radius:5px; padding:3px 5px; pointer-events:none }
 @media (max-width:716px){ .pk-hint{ display:none } }
 
-/* «Da fare» della Home: subito sotto il saluto, diviso per area */
+/* «Da fare» della Home: in fondo, chiuso a tendina, diviso per area */
+.ho-box.pk-df .ho-box-h{ cursor:pointer; user-select:none; display:flex; align-items:center }
+.ho-box.pk-df .pk-fr{ font-style:normal; margin-left:auto; font-size:20px; line-height:1; color:#94a3b8; transform:rotate(90deg); transition:transform .25s }
+.ho-box.pk-df.pk-chiuso .pk-fr{ transform:rotate(0deg) }
+.ho-box.pk-df .pk-corpo{ display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s ease }
+.ho-box.pk-df .pk-corpo > *{ min-height:0 }
+.ho-box.pk-df.pk-chiuso .pk-corpo{ display:none }
 .ho-box.pk-df .ho-box-h span{ background:#fdecec; color:#b42318; border-radius:999px; padding:2px 9px; font-size:12px; font-weight:800; margin-left:8px }
 .ho-box.pk-df .pk-g{ display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#94a3b8; padding:12px 16px 4px; border-top:1px solid var(--border,#eef1f5) }
 .ho-box.pk-df .pk-g .area-logo{ width:18px; height:18px }
 .ho-box.pk-df .pk-g img, .ho-box.pk-df .pk-g svg{ width:18px; height:18px }
 .ho-box.pk-df .ho-row{ border-top:0 }
 .ho-box.pk-df .ho-row > .area-logo, .ho-box.pk-df .ho-row > img:first-child, .ho-box.pk-df .ho-row .ho-area{ display:none }
-.ho-box.pk-df .pk-piu{ display:block; width:100%; border:0; border-top:1px solid var(--border,#eef1f5); background:transparent; padding:10px 16px; font:inherit; font-size:13px; font-weight:700; color:#1f4580; cursor:pointer; text-align:left }
+/* (vecchio «mostra altre», non usato) */ .ho-box.pk-df .pk-piu{ display:block; width:100%; border:0; border-top:1px solid var(--border,#eef1f5); background:transparent; padding:10px 16px; font:inherit; font-size:13px; font-weight:700; color:#1f4580; cursor:pointer; text-align:left }
 </style>
 <script id="menu-pacchetto-c-2026-js">
 (function(){
@@ -89322,40 +89328,41 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
   }
   setInterval(aggancia, 2000); aggancia();
 
-  /* ═══ «Da fare» della Home: sotto il saluto, diviso per area ═══ */
+  /* ═══ «Da fare» della Home: resta in fondo, chiuso a tendina, diviso per area ═══ */
   var GR = [['ist', 'Istituto'], ['scu', 'Servizio Civile'], ['grest', 'GREST']];
-  var MAX = 4, aperte = {};
+  function aperto(v){ try{ if(v === undefined) return localStorage.getItem('ho_dafare_aperto') === '1'; localStorage.setItem('ho_dafare_aperto', v ? '1' : '0'); }catch(e){ return false; } }
   function sistemaDaFare(){
     var w = document.getElementById('hub-wrap'); if(!w) return;
     var box = [].slice.call(w.querySelectorAll('.ho-box')).filter(function(b){ var h = b.querySelector('.ho-box-h'); return h && /^\s*Da fare/.test(h.textContent); })[0];
-    if(!box) return;
-    if(!box.classList.contains('pk-df')) raggruppa(box);
-    // subito sotto il saluto (prima dei numeri)
-    var dopo0 = w.querySelector('.gv-fascia') || w.querySelector('.ho-frase') || w.querySelector('.ho-date');
-    if(dopo0 && dopo0.parentNode && box.previousElementSibling !== dopo0) dopo0.parentNode.insertBefore(box, dopo0.nextSibling);
-  }
-  function raggruppa(box){
+    if(!box || box.classList.contains('pk-df')) return;
     var todo = []; try{ todo = _hoDaFare() || []; }catch(e){}
     var righe = [].slice.call(box.querySelectorAll('.ho-row'));
     box.classList.add('pk-df');
     var hd = box.querySelector('.ho-box-h'), sp = hd && hd.querySelector('span');
     if(sp) sp.textContent = todo.length ? String(todo.length) : '';
+    var corpo = document.createElement('div'); corpo.className = 'pk-corpo';
+    [].slice.call(box.children).forEach(function(c){ if(c !== hd) corpo.appendChild(c); });
+    box.appendChild(corpo);
     if(righe.length && righe.length === todo.length){
       var per = {}; righe.forEach(function(r, i){ var a = todo[i].a || 'ist'; (per[a] = per[a] || []).push(r); });
       righe.forEach(function(r){ r.remove(); });
-      var vuoto = box.querySelector('.ho-vuoto');
+      var vuoto = corpo.querySelector('.ho-vuoto');
       GR.forEach(function(g){
         var l = per[g[0]]; if(!l || !l.length) return;
         var t = document.createElement('div'); t.className = 'pk-g';
         t.innerHTML = (typeof _hoLogo === 'function' ? _hoLogo(g[0]) : '') + E(g[1]) + ' · ' + l.length;
-        box.insertBefore(t, vuoto);
-        l.forEach(function(r, i){ if(i >= MAX && !aperte[g[0]]) r.style.display = 'none'; box.insertBefore(r, vuoto); });
-        if(l.length > MAX && !aperte[g[0]]){
-          var piu = document.createElement('button'); piu.type = 'button'; piu.className = 'pk-piu'; piu.textContent = 'Mostra altre ' + (l.length - MAX) + ' ›';
-          piu.addEventListener('click', function(){ aperte[g[0]] = 1; l.forEach(function(r){ r.style.display = ''; }); piu.remove(); });
-          box.insertBefore(piu, vuoto);
-        }
+        corpo.insertBefore(t, vuoto);
+        l.forEach(function(r){ corpo.insertBefore(r, vuoto); });
       });
+    }
+    if(hd){
+      hd.setAttribute('role', 'button'); hd.setAttribute('tabindex', '0');
+      var fr = document.createElement('i'); fr.className = 'pk-fr'; fr.textContent = '›'; hd.appendChild(fr);
+      var metti = function(on){ box.classList.toggle('pk-chiuso', !on); hd.setAttribute('aria-expanded', on ? 'true' : 'false'); };
+      metti(aperto());
+      var gira = function(){ var on = box.classList.contains('pk-chiuso'); aperto(on); metti(on); };
+      hd.addEventListener('click', gira);
+      hd.addEventListener('keydown', function(ev){ if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); gira(); } });
     }
   }
   var oR = window.renderHub;
@@ -89363,7 +89370,7 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
     var fR = function(){ var r = oR.apply(this, arguments); try{ sistemaDaFare(); }catch(e){ console.warn('[da fare]', e); } return r; };
     fR._pk = true; window.renderHub = fR;
   }
-  setInterval(function(){ try{ var v = document.getElementById('view-hub'); if(v && v.classList.contains('active')){ var w = document.getElementById('hub-wrap'), b = w && w.querySelector('.ho-box.pk-df'), d = w && (w.querySelector('.gv-fascia') || w.querySelector('.ho-frase') || w.querySelector('.ho-date')); if(!b || (d && b.previousElementSibling !== d)) sistemaDaFare(); } }catch(e){} }, 1000);
+  setInterval(function(){ try{ var v = document.getElementById('view-hub'); if(v && v.classList.contains('active')) sistemaDaFare(); }catch(e){} }, 1000);
 })();
 </script>
 
