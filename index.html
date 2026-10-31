@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 30/10/2026 13:31</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 30/10/2026 13:31 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88889,6 +88889,211 @@ html[data-pi-tema="scuro"] .tck-conf li button,html[data-pi-tema="scuro"] .tck-l
     body.parentNode.insertBefore(el, prima && prima.parentNode === body.parentNode ? prima : body);
   };
   try{ var b = document.getElementById('sc-orari-body'); if(b && b.offsetParent !== null) _tckBar(); }catch(e){}
+})();
+</script>
+
+<style id="menu-pacchetto-b-2026">
+/* ═══ Menu — pacchetto B (ottobre 2026), solo grafica ═══ */
+/* 1. intestazione unica: via il percorso «Home › …», la riga dorata e la scritta piccola */
+html body #area-bar{ display:none !important }
+html body #main .view > .breadcrumb{ display:none !important }
+.pb-nasc{ display:none !important }
+.pb-head{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 16px }
+.pb-head > .page-title{ margin:0 !important; flex:1 1 auto; min-width:0 }
+.pb-az{ margin-left:auto; display:flex; gap:8px; align-items:center; position:relative; flex-wrap:wrap; justify-content:flex-end }
+.pb-dots{ width:38px; height:38px; flex:0 0 auto; border-radius:12px; border:1.5px solid #e2e8f0; background:#fff; color:#0f172a; font-size:20px; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0 0 4px }
+.pb-dots:hover,.pb-dots[aria-expanded="true"]{ background:#f1f5f9; border-color:#cbd5e1 }
+.pb-wrap{ position:relative; display:inline-flex }
+.pb-menu{ position:absolute; right:0; top:calc(100% + 6px); min-width:240px; max-width:min(320px,calc(100vw - 32px)); background:#fff; border-radius:14px; box-shadow:0 18px 50px rgba(15,23,42,.22),0 0 0 1px rgba(15,23,42,.06); padding:6px; z-index:600; display:none }
+.pb-menu.on{ display:block }
+.pb-menu button{ display:flex; width:100%; align-items:center; gap:10px; padding:10px 12px; border:0; border-radius:10px; background:transparent; font:inherit; font-size:14px; font-weight:600; color:#0f172a; cursor:pointer; text-align:left; white-space:nowrap }
+.pb-menu button:hover{ background:#f1f5f9 }
+.pb-menu button svg{ width:17px; height:17px; color:#64748b; flex:0 0 auto }
+html[data-pi-tema="scuro"] .pb-dots{ background:#1e293b; border-color:#334155; color:#e2e8f0 }
+html[data-pi-tema="scuro"] .pb-menu{ background:#1e293b; box-shadow:0 18px 50px rgba(0,0,0,.5),0 0 0 1px #334155 }
+html[data-pi-tema="scuro"] .pb-menu button{ color:#e2e8f0 }
+html[data-pi-tema="scuro"] .pb-menu button:hover{ background:#334155 }
+
+/* 3. linguette tutte uguali, su una riga sola (scorrono di lato se non ci stanno) */
+html body #main .imz-tabs{ display:flex !important; flex-wrap:nowrap !important; overflow-x:auto !important; overflow-y:hidden; gap:2px !important; border-bottom:1px solid #e2e8f0 !important; scrollbar-width:none; min-width:0 }
+html body #main .imz-tabs::-webkit-scrollbar{ display:none }
+html body #main .imz-tabs.pb-scorre{ -webkit-mask-image:linear-gradient(90deg,#000 85%,transparent); mask-image:linear-gradient(90deg,#000 85%,transparent) }
+html body #main .imz-tabs.pb-scorre.pb-fine{ -webkit-mask-image:linear-gradient(90deg,transparent,#000 15%); mask-image:linear-gradient(90deg,transparent,#000 15%) }
+html body #main .imz-tabs > button, html body #main .imz-tabs > a{ flex:0 0 auto !important; white-space:nowrap !important; text-transform:none !important; letter-spacing:0 !important; font-size:14px !important; font-weight:650 !important; padding:10px 12px !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; border:0 !important; border-bottom:3px solid transparent !important; margin-bottom:-1px !important; color:#64748b !important }
+html body #main .imz-tabs > .on, html body #main .imz-tabs > .active{ color:#1f4580 !important; border-bottom-color:#e8a317 !important }
+html[data-pi-tema="scuro"] body #main .imz-tabs{ border-bottom-color:#334155 !important }
+html[data-pi-tema="scuro"] body #main .imz-tabs > .on, html[data-pi-tema="scuro"] body #main .imz-tabs > .active{ color:#93c5fd !important }
+
+/* 4. tabelle: filtri a pillola e intestazione ferma */
+.pb-pills{ display:flex; gap:6px; flex-wrap:wrap; align-items:center }
+.pb-pills button{ padding:6px 12px; border-radius:999px; background:#fff; border:1.5px solid #e2e8f0; font:inherit; font-size:13px; font-weight:650; color:#334155; cursor:pointer; white-space:nowrap; line-height:1.2 }
+.pb-pills button:hover{ border-color:#94a3b8 }
+.pb-pills button.on{ background:#1f4580; border-color:#1f4580; color:#fff }
+html[data-pi-tema="scuro"] .pb-pills button{ background:#1e293b; border-color:#334155; color:#e2e8f0 }
+html[data-pi-tema="scuro"] .pb-pills button.on{ background:#2563eb; border-color:#2563eb }
+html body #main .view table.pb-ferma > thead th{ position:sticky !important; top:0; z-index:3; box-shadow:0 1px 0 #e2e8f0 }
+html body #main .pb-clip{ overflow:clip !important }
+html body #main .pb-alta{ max-height:calc(100vh - 190px); overflow:auto !important }
+@media (max-width:716px){
+  .pb-head{ margin-bottom:12px }
+  .pb-pills{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; max-width:100% }
+  .pb-pills::-webkit-scrollbar{ display:none }
+  .pb-az .btn{ padding:8px 12px }
+  html body #main .imz-tabs > button, html body #main .imz-tabs > a{ font-size:13.5px !important; padding:10px 10px !important }
+}
+</style>
+<script id="menu-pacchetto-b-2026-js">
+(function(){
+  /* ── che cosa va nell'intestazione: contenitori dei pulsanti e pulsante principale ── */
+  var CONF = {
+    'ist-sanita':  [{ trova:/Carica un documento/, prim:/Carica un documento/ }],
+    'anagrafica':  [{ trova:/Nuovo iscritto/, prim:/Nuovo iscritto/ }],
+    'preiscritti': [{ sel:'.page-actions', prim:/Aggiungi manuale/ }]
+  };
+  var GENERICI = '.imz-actions, .page-actions';
+  var PX = {};   // id vista → { orig:[], firma }
+  function testo(b){ return (b.textContent || '').replace(/\s+/g, ' ').trim(); }
+  function visibile(b){ if(b.classList.contains('pb-nasc')) return b.dataset.pb === '1'; return getComputedStyle(b).display !== 'none' && !b.disabled; }
+  function bottoni(cont){ return [].slice.call(cont.querySelectorAll('button, a.btn')).filter(function(b){ return !b.closest('.pb-az,.pb-orari,.pb-pills,.pb-menu,.imz-modal,table') && (b.classList.contains('btn') || b.tagName === 'BUTTON') && testo(b) && visibile(b); }); }
+  function chiudiMenu(){ [].forEach.call(document.querySelectorAll('.pb-menu.on'), function(m){ m.classList.remove('on'); var d = m.parentNode.querySelector('.pb-dots'); if(d) d.setAttribute('aria-expanded', 'false'); }); }
+  document.addEventListener('click', function(ev){ if(!ev.target.closest('.pb-wrap')) chiudiMenu(); }, true);
+  document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape') chiudiMenu(); });
+
+  function copia(o, cls){
+    var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.innerHTML = o.innerHTML;
+    if(o.title) b.title = o.title;
+    b.addEventListener('click', function(ev){ ev.preventDefault(); chiudiMenu(); o.click(); });
+    return b;
+  }
+  function puntini(lista){
+    var w = document.createElement('span'); w.className = 'pb-wrap';
+    var d = document.createElement('button'); d.type = 'button'; d.className = 'pb-dots'; d.title = 'Altre azioni'; d.setAttribute('aria-expanded', 'false'); d.setAttribute('aria-haspopup', 'true'); d.textContent = '⋯';
+    var m = document.createElement('div'); m.className = 'pb-menu'; m.setAttribute('role', 'menu');
+    lista.forEach(function(o){ var c = copia(o, ''); if(!c.querySelector('svg,img')) c.insertAdjacentHTML('afterbegin', '<span style="width:17px;flex:0 0 17px"></span>'); m.appendChild(c); });
+    d.addEventListener('click', function(ev){ ev.stopPropagation(); var on = !m.classList.contains('on'); chiudiMenu(); if(on){ m.classList.add('on'); d.setAttribute('aria-expanded', 'true'); } });
+    w.appendChild(d); w.appendChild(m); return w;
+  }
+
+  /* ── 1+2. intestazione unica con pulsante principale e ⋯ ── */
+  function intestazione(v){
+    var t = null; for(var i = 0; i < v.children.length; i++) if(v.children[i].classList.contains('page-title')){ t = v.children[i]; break; }
+    var head = v.querySelector(':scope > .pb-head');
+    if(!t && head) t = head.querySelector('.page-title');
+    if(!t) return;
+    if(window.innerWidth <= 716){   // telefono: le azioni le gestisce già il menu del telefono (⋯ e pulsante in basso)
+      var st0 = PX[v.id]; if(st0){ st0.orig.forEach(function(b){ b.classList.remove('pb-nasc'); delete b.dataset.pb; }); delete PX[v.id]; }
+      var az0 = head && head.querySelector('.pb-az'); if(az0) az0.remove();
+      return;
+    }
+    if(!head){ head = document.createElement('div'); head.className = 'pb-head'; t.parentNode.insertBefore(head, t); head.appendChild(t); }
+    // i pulsanti da portare su
+    var regole = CONF[v.id.replace(/^view-/, '')], orig = [], prim = null;
+    if(regole){
+      regole.forEach(function(r){
+        var cont = null;
+        if(r.sel) cont = v.querySelector(r.sel);
+        else if(r.trova){ var b = [].slice.call(v.querySelectorAll('button.btn')).filter(function(x){ return r.trova.test(testo(x)) && !x.closest('.pb-az,.pb-menu'); })[0]; cont = b && b.parentElement; }
+        if(!cont) return;
+        bottoni(cont).forEach(function(b){ orig.push(b); if(!prim && r.prim && r.prim.test(testo(b))) prim = b; });
+      });
+    } else {
+      [].forEach.call(v.querySelectorAll(GENERICI), function(cont){ if(cont.closest('.imz-modal')) return; bottoni(cont).forEach(function(b){ orig.push(b); }); });
+    }
+    if(!prim) prim = orig.filter(function(b){ return b.classList.contains('btn-teal'); })[0] || orig[0] || null;
+    var firma = orig.map(testo).join('|');
+    var st = PX[v.id], az = head.querySelector('.pb-az');
+    var ok = st && az && st.firma === firma && st.orig.length === orig.length && st.orig.every(function(b, i){ return b === orig[i] && b.isConnected; });
+    if(ok) return;
+    if(az) az.remove();
+    if(st) st.orig.forEach(function(b){ if(orig.indexOf(b) < 0){ b.classList.remove('pb-nasc'); delete b.dataset.pb; } });
+    PX[v.id] = { orig:orig, firma:firma };
+    if(!orig.length) return;
+    az = document.createElement('div'); az.className = 'pb-az';
+    var resto = orig.filter(function(b){ return b !== prim; });
+    if(orig.length <= 2){ orig.forEach(function(b){ az.appendChild(copia(b, b.className.replace(/\bpb-nasc\b/, '').trim())); }); }
+    else { az.appendChild(copia(prim, prim.className.replace(/\bpb-nasc\b/, '').trim())); az.appendChild(puntini(resto)); }
+    orig.forEach(function(b){ b.classList.add('pb-nasc'); b.dataset.pb = '1'; });
+    head.appendChild(az);
+  }
+
+  /* ── 2. barra degli orari SCU: Importa Excel + Invia + ⋯ ── */
+  var ORARI = { firma:'' };
+  function barraOrari(){
+    var v = document.getElementById('view-servizio-civile'); if(!v || !v.classList.contains('active')) return;
+    var esp = [].slice.call(v.querySelectorAll('button')).filter(function(b){ return /Esporta Excel/.test(testo(b)) && !b.closest('.pb-menu'); })[0];
+    var bar = esp && esp.parentElement; if(!bar || bar.offsetParent === null) return;
+    var tutti = bottoni(bar), imp = tutti.filter(function(b){ return /Importa Excel/.test(testo(b)); })[0];
+    var resto = tutti.filter(function(b){ return b !== imp; });
+    var inv = document.querySelector('#bz-bar .bz-invia');
+    var firma = tutti.map(testo).join('|') + (inv ? '|inv' : '');
+    var mio = bar.querySelector('.pb-orari');
+    if(mio && ORARI.firma === firma && ORARI.orig.every(function(b){ return b.isConnected; })) return;
+    if(mio) mio.remove();
+    ORARI = { firma:firma, orig:tutti };
+    var w = document.createElement('span'); w.className = 'pb-orari'; w.style.cssText = 'display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap';
+    if(imp) w.appendChild(copia(imp, imp.className.replace(/\bpb-nasc\b/, '').trim()));
+    if(inv) w.appendChild(copia(inv, 'btn btn-outline btn-sm'));
+    if(resto.length) w.appendChild(puntini(resto));
+    tutti.forEach(function(b){ b.classList.add('pb-nasc'); b.dataset.pb = '1'; });
+    bar.appendChild(w);
+  }
+
+  /* ── 3. linguette: sfumatura quando non ci stanno ── */
+  function linguette(v){
+    [].forEach.call(v.querySelectorAll('.imz-tabs'), function(t){
+      var scorre = t.scrollWidth > t.clientWidth + 4;
+      t.classList.toggle('pb-scorre', scorre);
+      t.classList.toggle('pb-fine', scorre && t.scrollLeft + t.clientWidth >= t.scrollWidth - 4);
+      if(!t._pb){ t._pb = 1; t.addEventListener('scroll', function(){ linguette(v); }, { passive:true });
+        var on = t.querySelector('.on,.active'); if(on && scorre) try{ on.scrollIntoView({ block:'nearest', inline:'nearest' }); }catch(e){} }
+    });
+  }
+
+  /* ── 4. filtri a pillola (tendine corte dei filtri) e intestazione delle tabelle ferma ── */
+  function pillole(v){
+    [].forEach.call(v.querySelectorAll('.imz-filtri select, .pi-coll select'), function(s){
+      if(s.closest('.imz-modal,form,table') || s.multiple) return;
+      var n = s.options.length; if(n < 2 || n > 5) return;
+      if(!s.classList.contains('pb-nasc') && s.offsetParent === null) return;
+      var p = s.nextElementSibling && s.nextElementSibling.classList.contains('pb-pills') ? s.nextElementSibling : null;
+      var firma = [].map.call(s.options, function(o){ return o.value + ':' + o.text; }).join('|');
+      if(!p || p._firma !== firma){
+        if(p) p.remove();
+        p = document.createElement('div'); p.className = 'pb-pills'; p._firma = firma; p.setAttribute('role', 'group');
+        [].forEach.call(s.options, function(o){
+          var b = document.createElement('button'); b.type = 'button'; var tx = o.text.replace(/^Ordina per /i, ''); b.textContent = tx.charAt(0).toUpperCase() + tx.slice(1); b.dataset.v = o.value;
+          if(/^Ordina per /i.test(o.text)) b.title = o.text;
+          b.addEventListener('click', function(){ if(s.value === o.value) return; s.value = o.value; s.dispatchEvent(new Event('input', { bubbles:true })); s.dispatchEvent(new Event('change', { bubbles:true })); pillole(v); });
+          p.appendChild(b);
+        });
+        s.parentNode.insertBefore(p, s.nextSibling); s.classList.add('pb-nasc');
+      }
+      [].forEach.call(p.children, function(b){ b.classList.toggle('on', b.dataset.v === s.value); });
+    });
+    [].forEach.call(v.querySelectorAll('table'), function(t){
+      if(t.classList.contains('pb-ferma') || !t.tHead || t.closest('.imz-modal') || t.offsetParent === null) return;
+      if(t.querySelectorAll('tbody tr').length < 8) return;
+      t.classList.add('pb-ferma');
+      var e = t.parentElement, main = document.getElementById('main');
+      while(e && e !== main && e !== document.body){
+        var cs = getComputedStyle(e);
+        if(cs.overflowY === 'hidden' && cs.overflowX === 'hidden') e.classList.add('pb-clip');
+        else if(/auto|scroll/.test(cs.overflowX + cs.overflowY)){ e.classList.add('pb-alta'); break; }
+        e = e.parentElement;
+      }
+    });
+  }
+
+  function giro(){
+    try{
+      var v = document.querySelector('#main .view.active'); if(!v) return;
+      intestazione(v); barraOrari(); linguette(v); pillole(v);
+    }catch(e){ console.warn('[menu B]', e); }
+  }
+  setInterval(giro, 700);
+  var oN = window.navigate;
+  if(typeof oN === 'function' && !oN._pb){ var f = function(){ var r = oN.apply(this, arguments); setTimeout(giro, 60); setTimeout(giro, 400); return r; }; f._pb = true; f._hd = oN._hd; window.navigate = f; }
+  setTimeout(giro, 300);
 })();
 </script>
 
