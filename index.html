@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 31/10/2026 12:52</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 31/10/2026 12:52 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89390,8 +89390,10 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
 #ap-ov ~ #anim-loading{ display:none !important }
 @keyframes apAppare{ to{ opacity:1 } }
 @keyframes apTraccia{ to{ stroke-dashoffset:0 } }
-body.ap-entra #main .view.active{ animation:apSu .6s cubic-bezier(.2,.8,.2,1) both }
-body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apSu .6s cubic-bezier(.2,.8,.2,1) both }
+/* «backwards»: finita l'entrata l'animazione non resta attiva (se restasse, menu e barre fisse si sposterebbero scorrendo) */
+body.ap-entra #main .view.active{ animation:apSu .6s cubic-bezier(.2,.8,.2,1) backwards }
+body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apSfuma .6s ease backwards }
+@keyframes apSfuma{ from{ opacity:0 } to{ opacity:1 } }
 @keyframes apSu{ from{ opacity:0; transform:translateY(22px) } to{ opacity:1; transform:none } }
 
 /* 1 · gestionale: la piuma che scrive il saluto */
