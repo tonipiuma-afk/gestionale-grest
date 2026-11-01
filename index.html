@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 00:15</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 00:15 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89474,18 +89474,19 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   function oggi(){ return new Date().toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' }); }
   var T = [], fatto = {}, tentativo = 0;
   function dopo(ms, f){ T.push(setTimeout(f, ms)); }
-  function fine(ov, ms){ dopo(ms, function(){ if(ov.parentNode) ov.remove(); T.forEach(clearTimeout); T = []; }); }
+  function rimettiBarra(){ try{ var mt = document.querySelector('meta[name="theme-color"]'); if(mt && !vis('portale-animatore') && !vis('portale-genitore')) mt.setAttribute('content', '#17325e'); if(typeof window._piPortali === 'function') window._piPortali(); }catch(e){} }
+  function fine(ov, ms){ dopo(ms, function(){ if(ov.parentNode) ov.remove(); T.forEach(clearTimeout); T = []; rimettiBarra(); }); }
   function chiudi(){
     T.forEach(clearTimeout); T = [];
     var ov = document.getElementById('ap-ov'); if(!ov) return;
     ov.classList.add('via'); document.body.classList.add('ap-entra');
-    setTimeout(function(){ if(ov.parentNode) ov.remove(); }, 520);
+    setTimeout(function(){ if(ov.parentNode) ov.remove(); rimettiBarra(); }, 520);
   }
   function crea(cls, html){
     var ov = document.getElementById('ap-ov');
     if(ov){ T.forEach(clearTimeout); T = []; ov.className = cls; ov.innerHTML = html; }   // continuo dal fondo già presente, senza lampi
     else { ov = document.createElement('div'); ov.id = 'ap-ov'; ov.className = cls + ' ap-nuovo'; ov.innerHTML = html; ov._nato = Date.now(); document.body.appendChild(ov); }
-    ov.setAttribute('aria-hidden', 'true');
+    ov.setAttribute('aria-hidden', 'true'); coloreBarra();
     if(!ov._clic){ ov._clic = 1; ov.addEventListener('click', chiudi); }
     dopo(15000, chiudi);   // sicurezza
     return ov;
@@ -89495,6 +89496,20 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var t0 = Date.now();
     (function giro(){ var ok = false; try{ ok = cond(Date.now() - t0); }catch(e){} if(ok || Date.now() - t0 > max) poi(ok); else dopo(150, giro); })();
   }
+  /* colore della barra del telefono (in alto): durante l'animazione è quello dell'animazione, non quello del portale che si sta caricando sotto */
+  var BARRA = { 'ap-g':'#fbf6ec', 'ap-s':'#0d3270', 'ap-r':'#f59100' };
+  function coloreBarra(){
+    try{
+      var ov = document.getElementById('ap-ov'), mt = document.querySelector('meta[name="theme-color"]'); if(!ov || !mt) return;
+      var k = ['ap-g', 'ap-s', 'ap-r'].filter(function(c){ return ov.classList.contains(c); })[0], c = BARRA[k];
+      if(c && mt.getAttribute('content') !== c) mt.setAttribute('content', c);
+    }catch(e){}
+  }
+  (function(){
+    var mt = document.querySelector('meta[name="theme-color"]'); if(!mt || !window.MutationObserver) return;
+    new MutationObserver(function(){ if(document.getElementById('ap-ov')) coloreBarra(); }).observe(mt, { attributes:true, attributeFilter:['content'] });
+    new MutationObserver(function(){ coloreBarra(); }).observe(document.body, { childList:true });
+  })();
   function caricando(){ return !!document.getElementById('anim-loading'); }
   /* dati freschi dal NAS: archivio GREST sincronizzato e archivio del Servizio Civile letto (o non raggiungibile) */
   function grestFresco(){ try{ return typeof _startupNasSyncDone !== 'undefined' && !!_startupNasSyncDone; }catch(e){ return false; } }
