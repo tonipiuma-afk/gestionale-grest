@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 00:24</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 00:24 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88292,9 +88292,11 @@ body{ background:var(--g-bg) !important }
     try{   // riquadro nella panoramica
       if(root && (_IOS.sVista || 'home') === 'home'){
         var g = root.querySelector('.ist-mod-grid'), primo = g && g.querySelector('.ist-mod');
-        if(g && primo && !g.querySelector('[data-mdl]')){
+        var gia = g && [].slice.call(g.querySelectorAll('.ist-mod')).filter(function(x){ return /isaVai\('moduli'\)/.test(x.getAttribute('onclick') || ''); })[0];
+        if(gia){ var gs = gia.querySelector('.im-sub'); if(gs && !gs.textContent.trim()) gs.textContent = 'Scelta del medico ed esenzione F02 già compilate'; }
+        if(g && primo && !gia && !g.querySelector('[data-mdl]')){
           var c = primo.cloneNode(true); c.setAttribute('data-mdl', '1'); c.setAttribute('onclick', "isaVai('moduli')");
-          var tit = c.querySelector('.ist-mod-t, h3, b'), sub = c.querySelector('.ist-mod-s, small, p');
+          var tit = c.querySelector('.im-tit, .ist-mod-t, h3, b'), sub = c.querySelector('.im-sub, .ist-mod-s, small, p'); var bd = c.querySelector('.im-badge'); if(bd) bd.remove();
           if(tit) tit.textContent = 'Modulistica'; if(sub) sub.textContent = 'Scelta del medico ed esenzione F02 già compilate';
           var ic = c.querySelector('.ist-mod-i, .ist-mod-ico, svg'); if(ic && ic.tagName !== 'svg') ic.textContent = '📄';
           g.appendChild(c);
@@ -89104,6 +89106,24 @@ html body #main .pb-alta{ max-height:calc(100vh - 190px); overflow:auto !importa
 #pk-ov .pk-in{ display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid #eef1f5 }
 #pk-ov .pk-in svg{ width:20px; height:20px; color:#64748b; flex:0 0 auto }
 #pk-ov .pk-in input{ border:0 !important; box-shadow:none !important; outline:0 !important; flex:1; min-width:0; border:0; outline:0; font:inherit; font-size:18px; font-weight:500; color:#0f172a; background:transparent; padding:4px 0 }
+#pk-ov .pk-mic{ flex:0 0 auto; width:38px; height:38px; border-radius:50%; border:0; background:#eef3fb; color:#1f4580; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0 }
+#pk-ov .pk-mic svg{ width:19px; height:19px }
+#pk-ov .pk-mic:hover{ background:#dbe6f7 }
+#pk-ov .pk-mic.on{ background:#dc2626; color:#fff; animation:pkMic 1.2s ease-in-out infinite }
+@keyframes pkMic{ 0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.45) } 50%{ box-shadow:0 0 0 10px rgba(220,38,38,0) } }
+@media (max-width:716px){ #pk-ov .pk-esc{ display:none } }
+#pk-tasti{ position:fixed; inset:0; z-index:2147483000; background:rgba(5,10,20,.45); display:flex; align-items:center; justify-content:center; padding:16px; font-family:var(--g-font,inherit) }
+#pk-tasti .pkt-bx{ width:440px; max-width:100%; background:#fff; border-radius:20px; box-shadow:0 30px 80px rgba(0,0,0,.35); overflow:hidden }
+#pk-tasti .pkt-h{ display:flex; align-items:center; padding:16px 20px; border-bottom:1px solid #eef1f5; font-size:17px }
+#pk-tasti .pkt-h button{ margin-left:auto; border:0; background:#f1f5f9; border-radius:10px; width:34px; height:34px; cursor:pointer; font-size:14px }
+#pk-tasti .pkt-l{ padding:8px 20px; max-height:65vh; overflow:auto }
+#pk-tasti .pkt-r{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px dashed #eef1f5; font-size:14.5px; color:#0f172a }
+#pk-tasti .pkt-r:last-child{ border-bottom:0 }
+#pk-tasti kbd{ font:700 12.5px/1 ui-monospace,Menlo,Consolas,monospace; color:#1f4580; background:#eef3fb; border:1px solid #d6e0f0; border-bottom-width:3px; border-radius:8px; padding:6px 9px; min-width:30px; text-align:center }
+#pk-tasti .pkt-f{ padding:12px 20px; border-top:1px solid #eef1f5; font-size:12.5px; color:#64748b }
+html[data-pi-tema="scuro"] #pk-tasti .pkt-bx{ background:#0f172a } html[data-pi-tema="scuro"] #pk-tasti .pkt-r{ color:#e2e8f0; border-color:#1e293b }
+.pk-mob-mic{ border:none; background:var(--bg); color:var(--text-muted); width:46px; height:46px; border-radius:12px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center }
+.pk-mob-mic svg{ width:20px; height:20px }
 #pk-ov kbd{ font:600 11px/1 inherit; color:#64748b; background:#f1f5f9; border-radius:6px; padding:4px 7px; white-space:nowrap }
 #pk-ov .pk-l{ overflow-y:auto; padding:4px 0 8px }
 #pk-ov .pk-sez{ font-size:11.5px; font-weight:800; letter-spacing:.06em; color:#94a3b8; padding:12px 18px 4px; text-transform:uppercase }
@@ -89274,9 +89294,48 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
       if(az.length) sez.push(['Azioni', az.slice(0, 6).map(function(a){ return { ic:a[1], bg:'#eaf0ff', t:a[2], s:a[3], f:a[4] }; })]);
       var pg = PAGINE.filter(function(p){ return (!p[0] || acc(p[0])) && trova(norm(p[2] + ' ' + NOMI[p[0]])); });
       if(pg.length) sez.push(['Pagine', pg.slice(0, 6).map(function(p){ return { ic:p[1], t:p[2], s:NOMI[p[0]], f:function(){ apriPagina(p); } }; })]);
+      if(!sez.length && parti.length > 1) sez = cercaFrase(parti);
     }
     return sez;
   }
+  /* frasi come «programma visita Marino» o «turni di giovedì»: conto quante parole tornano */
+  var VUOTE = ['di','del','della','dello','dei','degli','delle','il','lo','la','i','gli','le','un','uno','una','a','al','alla','alle','ai','per','con','e','da','in','su','mi','fammi','vai','apri','mostra','voglio'];
+  function cercaFrase(parti){
+    var w = parti.filter(function(x){ return x.length >= 3 && VUOTE.indexOf(x) < 0; }); if(!w.length) return [];
+    var sez = [], usate = [];
+    var pp = persone().map(function(p){ var nomi = p.h.split(/\s+/); var m = w.filter(function(x){ return nomi.some(function(n){ return n.indexOf(x) === 0; }); }); return { p:p, n:m.length, m:m }; })
+      .filter(function(x){ return x.n; }).sort(function(a, b){ return b.n - a.n || a.p.ord - b.p.ord || a.p.t.localeCompare(b.p.t); });
+    if(pp.length){
+      var best = pp[0], resto = w.filter(function(x){ return best.m.indexOf(x) < 0; });
+      var ap = azioniPersona(best.p).map(function(a){ return { a:a, n:resto.filter(function(x){ return norm(a.t).indexOf(x) >= 0; }).length }; }).sort(function(x, y){ return y.n - x.n; });
+      if(ap.length && ap[0].n) sez.push(['Azioni per ' + best.p.t, ap.filter(function(x){ return x.n; }).map(function(x){ return x.a; })]);
+      sez.push(['Persone', pp.slice(0, 5).map(function(x){ var p = x.p; return { ic:p.ic, bg:p.bg, t:p.t, s:p.s, f:function(){ apriPersona(p); } }; })]);
+      if(ap.length && !ap[0].n) sez.push(['Azioni per ' + best.p.t, ap.map(function(x){ return x.a; })]);
+      usate = best.m;
+    }
+    var w2 = w.filter(function(x){ return usate.indexOf(x) < 0; });
+    if(w2.length){
+      var c2 = function(h){ return w2.filter(function(x){ return h.indexOf(x) >= 0; }).length; };
+      var az = AZIONI.filter(function(a){ return !a[0] || acc(a[0]); }).map(function(a){ return { a:a, n:c2(norm(a[2] + ' ' + a[3] + ' ' + a[5])) }; }).filter(function(x){ return x.n; }).sort(function(x, y){ return y.n - x.n; });
+      if(az.length) sez.push(['Azioni', az.slice(0, 5).map(function(x){ var a = x.a; return { ic:a[1], bg:'#eaf0ff', t:a[2], s:a[3], f:a[4] }; })]);
+      var pg = PAGINE.filter(function(p){ return !p[0] || acc(p[0]); }).map(function(p){ return { p:p, n:c2(norm(p[2] + ' ' + NOMI[p[0]])) }; }).filter(function(x){ return x.n; }).sort(function(x, y){ return y.n - x.n; });
+      if(pg.length) sez.push(['Pagine', pg.slice(0, 5).map(function(x){ var p = x.p; return { ic:p[1], t:p[2], s:NOMI[p[0]], f:function(){ apriPagina(p); } }; })]);
+    }
+    return sez;
+  }
+  /* ── voce ── */
+  var Riconosci = window.SpeechRecognition || window.webkitSpeechRecognition, ascolto = null;
+  function voce(inp, btn){
+    if(!Riconosci) return;
+    if(ascolto){ try{ ascolto.stop(); }catch(e){} return; }
+    var r = new Riconosci(); r.lang = 'it-IT'; r.interimResults = true; r.maxAlternatives = 1; r.continuous = false;
+    ascolto = r; btn.classList.add('on'); inp.placeholder = 'Ti ascolto… parla pure';
+    r.onresult = function(ev){ var t = ''; for(var i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; inp.value = t.replace(/[.!?]+$/, ''); K.sel = 0; disegna(); };
+    r.onerror = function(ev){ if(ev && ev.error === 'not-allowed') showToast('Per la ricerca a voce consenti l\'uso del microfono', 'warning'); else if(ev && ev.error !== 'no-speech' && ev.error !== 'aborted') showToast('Non ho capito, riprova', 'info'); };
+    r.onend = function(){ ascolto = null; btn.classList.remove('on'); inp.placeholder = 'Cerca una persona, una pagina o cosa vuoi fare…'; try{ inp.focus(); }catch(e){} };
+    try{ r.start(); }catch(e){ ascolto = null; btn.classList.remove('on'); }
+  }
+  window.pkVoce = function(){ apri('', true); };
   function disegna(){
     var ov = document.getElementById('pk-ov'); if(!ov) return;
     var q = ov.querySelector('input').value, sez = cerca(q), h = '', i = 0;
@@ -89288,8 +89347,8 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
     var hl = l.querySelector('.pk-r.h'); if(hl) try{ hl.scrollIntoView({ block:'nearest' }); }catch(e){}
   }
   function esegui(i){ var x = K.voci[i]; if(!x) return; chiudi(); setTimeout(function(){ try{ x.f(); }catch(e){ console.warn('[cerca]', e); } }, 30); }
-  function chiudi(){ var ov = document.getElementById('pk-ov'); if(ov) ov.remove(); K.aperta = false; }
-  function apri(testo){
+  function chiudi(){ if(ascolto){ try{ ascolto.abort(); }catch(e){} ascolto = null; } var ov = document.getElementById('pk-ov'); if(ov) ov.remove(); K.aperta = false; }
+  function apri(testo, conVoce){
     try{ if(!(typeof AUTH !== 'undefined' && AUTH && AUTH.currentUser)) return; }catch(e){ return; }
     try{ var r = AUTH.currentUser.ruolo; if(['Genitore', 'Animatore', 'Caposquadra', 'Animatore Laboratorio', 'Totem'].indexOf(r) >= 0) return; }catch(e){}
     if(document.getElementById('portale-animatore') && document.getElementById('portale-animatore').offsetParent) return;
@@ -89298,8 +89357,10 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
     try{ if(acc('ist') && typeof edCarica === 'function' && !(window._edLista && window._edLista(true).length)) Promise.resolve(edCarica()).then(function(){ if(K.aperta) disegna(); }); }catch(e){}
     var ov = document.createElement('div'); ov.id = 'pk-ov';
     ov.innerHTML = '<div class="pk-bx" role="dialog" aria-label="Cerca"><div class="pk-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>'
-      + '<input type="text" placeholder="Cerca una persona, una pagina o cosa vuoi fare…" autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div><div class="pk-l"></div>'
-      + '<div class="pk-ft"><span>↑↓ scegli</span><span>↵ apri</span><span>Esc chiudi</span><span style="margin-left:auto">Ctrl K da qualsiasi pagina</span></div></div>';
+      + '<input type="text" placeholder="Cerca una persona, una pagina o cosa vuoi fare…" autocomplete="off" spellcheck="false">'
+      + (Riconosci ? '<button type="button" class="pk-mic" title="Cerca a voce" aria-label="Cerca a voce"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>' : '')
+      + '<kbd class="pk-esc">Esc</kbd></div><div class="pk-l"></div>'
+      + '<div class="pk-ft"><span>↑↓ scegli</span><span>↵ apri</span><span>Esc chiudi</span>' + (Riconosci ? '<span>🎤 a voce</span>' : '') + '<span style="margin-left:auto">Ctrl K da qualsiasi pagina · ? scorciatoie</span></div></div>';
     document.body.appendChild(ov);
     var inp = ov.querySelector('input'); inp.value = testo || '';
     ov.addEventListener('mousedown', function(ev){ if(ev.target === ov) chiudi(); });
@@ -89312,12 +89373,74 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
       else if(ev.key === 'Enter'){ ev.preventDefault(); esegui(K.sel); }
       else if(ev.key === 'Escape'){ ev.preventDefault(); chiudi(); }
     });
+    var mic = ov.querySelector('.pk-mic'); if(mic){ mic.addEventListener('click', function(){ voce(inp, mic); }); if(conVoce) setTimeout(function(){ voce(inp, mic); }, 150); }
+    else if(conVoce) showToast('La ricerca a voce non è disponibile su questo browser', 'info');
     disegna(); setTimeout(function(){ inp.focus(); var l = inp.value.length; try{ inp.setSelectionRange(l, l); }catch(e){} }, 10);
   }
   window.pkApri = apri; window.pkChiudi = chiudi;
   document.addEventListener('keydown', function(ev){
     if((ev.ctrlKey || ev.metaKey) && !ev.altKey && (ev.key === 'k' || ev.key === 'K')){ ev.preventDefault(); if(K.aperta) chiudi(); else apri(''); }
   }, true);
+  /* microfono anche nella ricerca del telefono: apre la stessa finestra e ascolta */
+  function micTelefono(){
+    var inp = document.getElementById('mob-search-input'); if(!inp || !Riconosci || document.getElementById('pk-mob-mic')) return;
+    var riga = inp.parentNode && inp.parentNode.parentNode; if(!riga) return;
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'pk-mob-mic'; b.className = 'pk-mob-mic'; b.setAttribute('aria-label', 'Cerca a voce');
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+    b.addEventListener('click', function(){ try{ closeMobileSearch(); }catch(e){} setTimeout(function(){ apri('', true); }, 250); });
+    riga.insertBefore(b, inp.parentNode.nextSibling);
+  }
+  setInterval(micTelefono, 2500); micTelefono();
+
+  /* ═══ SCORCIATOIE DA TASTIERA (computer) ═══ */
+  var SC = [
+    ['/', 'Cerca (come Ctrl K)', function(){ apri(''); }],
+    ['?', 'Mostra queste scorciatoie', function(){ aiutoTasti(); }],
+    ['S', 'Salva', function(){ try{ gSalva(); }catch(e){} }],
+    ['H', 'Home', function(){ navigate('hub'); }],
+    ['I', 'Istituto', function(){ if(acc('ist')) areaApri('ist'); }, 'ist'],
+    ['V', 'Servizio Civile (volontari)', function(){ if(acc('scu')) areaApri('scu'); }, 'scu'],
+    ['G', 'GREST', function(){ if(acc('grest')) areaApri('grest'); }, 'grest'],
+    ['T', 'Turni del Servizio Civile', function(){ if(acc('scu')) scu('orari'); }, 'scu'],
+    ['C', 'Calendario dell\'Istituto', function(){ if(acc('ist')) navigate('ist-cal'); }, 'ist'],
+    ['N', 'Nuovo impegno', function(){ if(acc('ist')){ navigate('ist-cal'); premi(/Nuovo impegno/); } }, 'ist'],
+    ['M', 'Sanità (medico, visite)', function(){ if(acc('ist')) navigate('ist-sanita'); }, 'ist'],
+    ['← →', 'Negli Orari: settimana prima / dopo', null]
+  ];
+  function scrivendo(t){ if(!t) return false; if(!t.getClientRects || !t.getClientRects().length) return false; if(t.isContentEditable) return true; if(/^(TEXTAREA|SELECT)$/.test(t.tagName)) return true; if(t.tagName === 'INPUT') return !t.readOnly && !/^(checkbox|radio|button|submit|range|color|file)$/i.test(t.type || ''); return false; }
+  function finestraAperta(){ return !!document.querySelector('#pk-ov, #pk-tasti, #ap-ov') || [].some.call(document.querySelectorAll('.imz-modal-ov, .imz-modal, .modal.active, .modal-overlay.active, #np-ov'), function(e){ return e.offsetParent !== null || getComputedStyle(e).position === 'fixed' && getComputedStyle(e).display !== 'none'; }); }
+  function staff(){ try{ var r = AUTH.currentUser && AUTH.currentUser.ruolo; return !!r && ['Genitore', 'Animatore', 'Caposquadra', 'Animatore Laboratorio', 'Totem', 'Educatore'].indexOf(r) < 0; }catch(e){ return false; } }
+  function aiutoTasti(){
+    var v = document.getElementById('pk-tasti'); if(v){ v.remove(); return; }
+    var d = document.createElement('div'); d.id = 'pk-tasti';
+    d.innerHTML = '<div class="pkt-bx" role="dialog" aria-label="Scorciatoie da tastiera"><div class="pkt-h"><b>Scorciatoie da tastiera</b><button type="button" aria-label="Chiudi">✕</button></div><div class="pkt-l">'
+      + SC.filter(function(x){ return !x[3] || acc(x[3]); }).map(function(x){ return '<div class="pkt-r"><span>' + E(x[1]) + '</span><kbd>' + E(x[0]) + '</kbd></div>'; }).join('')
+      + '<div class="pkt-r"><span>Cerca da qualsiasi punto</span><kbd>Ctrl K</kbd></div></div><div class="pkt-f">Funzionano quando non stai scrivendo in una casella.</div></div>';
+    d.addEventListener('mousedown', function(ev){ if(ev.target === d || ev.target.closest('.pkt-h button')) d.remove(); });
+    document.body.appendChild(d);
+  }
+  document.addEventListener('keydown', function(ev){
+    try{
+      if(ev.ctrlKey || ev.metaKey || ev.altKey || ev.defaultPrevented) return;
+      if(ev.key === 'Escape'){ var t0 = document.getElementById('pk-tasti'); if(t0){ t0.remove(); ev.preventDefault(); } return; }
+      if(scrivendo(ev.target) || !staff()) return;
+      var vv = function(id){ var e = document.getElementById(id); return !!(e && e.getClientRects().length && getComputedStyle(e).display !== 'none' && !e.classList.contains('hidden')); };
+      if(vv('login-screen') || vv('splash-screen')) return;
+      if(document.getElementById('pk-tasti') && ev.key !== '?') return;
+      if(finestraAperta() && ev.key !== '?') return;
+      var k = ev.key;
+      if(k === 'ArrowLeft' || k === 'ArrowRight'){
+        var v = document.getElementById('view-servizio-civile'), b = document.getElementById('sc-orari-body');
+        if(v && v.classList.contains('active') && b && b.offsetParent !== null && typeof scCalMese === 'function'){ ev.preventDefault(); scCalMese(k === 'ArrowLeft' ? -1 : 1); }
+        return;
+      }
+      var x = SC.filter(function(s){ return s[2] && (s[0] === k || s[0] === k.toUpperCase()) && k.length === 1; })[0];
+      if(!x) return;
+      ev.preventDefault(); x[2]();
+    }catch(e){ console.warn('[scorciatoie]', e); }
+  });
+  window.pkScorciatoie = aiutoTasti;
+
   /* la casella «Cerca…» in alto apre la stessa finestra (computer) */
   function aggancia(){
     var inp = document.getElementById('header-search-input'); if(!inp || inp._pk) return;
@@ -89738,6 +89861,153 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     c.querySelector('#ap-imp-on').onchange = function(){ LS('piuma_apertura', this.checked ? null : '0'); this.parentNode.lastChild.textContent = this.checked ? ' Accesa' : ' Spenta'; };
   }
   setInterval(function(){ try{ impostazione(); }catch(e){} }, 1500);
+})();
+</script>
+
+<script id="turni-immagine-js">
+/* ═══ SERVIZIO CIVILE › ORARI: TURNI COME IMMAGINE (da condividere su WhatsApp) ═══
+   Disegna la settimana che stai guardando in una «locandina» PNG: un riquadro per giorno, una riga per persona. */
+(function(){
+  if(typeof scGetDb !== 'function') return;
+  var GG = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  var MM = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  var ETI = { malattia:'Malattia', perm_ord:'Permesso', perm_str:'Permesso' };
+  var COL = ['#2563eb','#db2777','#059669','#d97706','#7c3aed','#0891b2','#dc2626','#4f46e5','#65a30d','#c026d3','#0d9488','#ea580c'];
+  var F = 'Inter, "Segoe UI", Roboto, system-ui, -apple-system, sans-serif';
+  function cap(s){ return String(s || '').trim().toLowerCase().replace(/(^|[\s'’])\S/g, function(x){ return x.toUpperCase(); }); }
+  function ora(o){ return String(o || '').replace(/(\d{1,2}):(\d{2})/g, function(m, h, mi){ return (+h) + '.' + mi; }).replace(/-/g, '–').replace(/\s*[+,]\s*/g, '  e  '); }
+  function colore(i){ return COL[i % COL.length]; }
+  function caricaImg(src){ return new Promise(function(ok){ if(!src) return ok(null); var i = new Image(); i.onload = function(){ ok(i); }; i.onerror = function(){ ok(null); }; i.src = src; }); }
+  function righe(ctx, testo, larg, maxR){
+    var parole = String(testo || '').split(/\s+/).filter(Boolean), out = [], r = '';
+    parole.forEach(function(p){ var t = r ? r + ' ' + p : p; if(ctx.measureText(t).width > larg && r){ out.push(r); r = p; } else r = t; });
+    if(r) out.push(r);
+    if(out.length > maxR){ out = out.slice(0, maxR); var u = out[maxR - 1]; while(u.length > 1 && ctx.measureText(u + '…').width > larg) u = u.slice(0, -1); out[maxR - 1] = u + '…'; }
+    return out;
+  }
+  function rett(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+  /* i dati della settimana che si sta guardando */
+  function dati(){
+    var sc = scGetDb() || {}, ops = []; try{ ops = scGetOperatori(); }catch(e){}
+    var g = scGetSettimana(_scSettOffset), giorni = [];
+    g.forEach(function(d){
+      var ds = scDataLocale(d), voci = [];
+      ops.forEach(function(op, i){
+        var k = ds + '_' + op.id, tg = (sc.giornate || {})[k] || 'normale', o = (sc.orariCal || {})[k], c = String((sc.compiti || {})[k] || '').trim();
+        var nome = cap(op.nome) + ' ' + cap(op.cognome), ini = ((op.nome || '?').charAt(0) + (op.cognome || '').charAt(0)).toUpperCase();
+        if(ETI[tg]) voci.push({ nome:nome, ini:ini, col:colore(i), ora:'', comp:'', tag:ETI[tg] });
+        else if(o) voci.push({ nome:nome, ini:ini, col:colore(i), ora:ora(o), comp:c.replace(/\s*·\s*/g, ' · '), min:(String(o).match(/(\d{1,2}):(\d{2})/) || [0, 99, 0]) });
+      });
+      voci.sort(function(a, b){ if(a.tag && !b.tag) return 1; if(b.tag && !a.tag) return -1; var x = (+((a.min || [])[1]) || 99) * 60 + (+((a.min || [])[2]) || 0), y = (+((b.min || [])[1]) || 99) * 60 + (+((b.min || [])[2]) || 0); return x - y || a.nome.localeCompare(b.nome); });
+      giorni.push({ d:d, voci:voci });
+    });
+    return { g:g, giorni:giorni };
+  }
+
+  async function disegna(){
+    var D = dati(), W = 1080, M = 44, IN = 30, cw = W - M * 2;
+    var cv = document.createElement('canvas'), ctx = cv.getContext('2d');
+    // 1° giro: misuro le altezze
+    var misura = function(){
+      var y = 0, blocchi = [];
+      D.giorni.forEach(function(gg){
+        var h = 92;
+        if(!gg.voci.length) h += 64;
+        gg.voci.forEach(function(v){
+          ctx.font = '500 25px ' + F; v._r = v.comp ? righe(ctx, v.comp, cw - IN * 2 - 92, 3) : [];
+          v._h = 70 + v._r.length * 34 + 14; h += v._h;
+        });
+        blocchi.push(h + 16); y += h + 16 + 22;
+      });
+      return { blocchi:blocchi, tot:y };
+    };
+    var mis = misura(), HEAD = 300, FOOT = 110, H = HEAD + mis.tot + FOOT;
+    cv.width = W; cv.height = H;
+    // sfondo
+    var bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#eef3fb'); bg.addColorStop(1, '#f7f9fc'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    // testata
+    var hd = ctx.createLinearGradient(0, 0, W, HEAD); hd.addColorStop(0, '#0b3a7a'); hd.addColorStop(.6, '#1565c0'); hd.addColorStop(1, '#1e88e5');
+    ctx.fillStyle = hd; rett(ctx, 0, -40, W, HEAD + 40, 46); ctx.fill();
+    ctx.globalAlpha = .08; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(W - 120, 60, 210, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(W - 40, 250, 120, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+    var lg = await caricaImg((typeof AREA_LOGHI !== 'undefined' && AREA_LOGHI.scu) || '');
+    if(lg){ ctx.save(); ctx.beginPath(); ctx.arc(M + 62, 112, 62, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.clip(); ctx.drawImage(lg, M + 4, 54, 116, 116); ctx.restore(); }
+    var tx = lg ? M + 150 : M;
+    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '700 24px ' + F; ctx.fillText('SERVIZIO CIVILE' + (function(){ try{ var p = (typeof _scProgrammaNome === 'function') ? _scProgrammaNome() : ''; return p ? ' · ' + String(p).toUpperCase() : ''; }catch(e){ return ''; } })(), tx, 84);
+    ctx.fillStyle = '#fff'; ctx.font = '800 58px ' + F; ctx.fillText('Turni della settimana', tx, 148);
+    var g0 = D.g[0], g5 = D.g[D.g.length - 1];
+    var per = 'dal ' + GG[g0.getDay()].toLowerCase() + ' ' + g0.getDate() + (g0.getMonth() !== g5.getMonth() ? ' ' + MM[g0.getMonth()] : '') + ' al ' + GG[g5.getDay()].toLowerCase() + ' ' + g5.getDate() + ' ' + MM[g5.getMonth()] + ' ' + g5.getFullYear();
+    ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.font = '600 30px ' + F; ctx.fillText(per, tx, 198);
+    // giorni
+    var y = HEAD + 34, oggi = scDataLocale(new Date());
+    D.giorni.forEach(function(gg, bi){
+      var h = mis.blocchi[bi], eOggi = scDataLocale(gg.d) === oggi;
+      ctx.save(); ctx.shadowColor = 'rgba(15,40,90,.10)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 6; ctx.fillStyle = '#fff'; rett(ctx, M, y, cw, h, 30); ctx.fill(); ctx.restore();
+      ctx.fillStyle = eOggi ? '#1565c0' : '#e8eef8'; rett(ctx, M + IN, y + 26, 22, 22, 6); ctx.fill();
+      ctx.fillStyle = '#0f172a'; ctx.font = '800 36px ' + F; ctx.fillText(GG[gg.d.getDay()] + ' ' + gg.d.getDate() + ' ' + MM[gg.d.getMonth()], M + IN + 40, y + 50);
+      var n = gg.voci.filter(function(v){ return !v.tag; }).length;
+      ctx.font = '700 22px ' + F; var lab = n ? (n === 1 ? '1 in turno' : n + ' in turno') : '', lw = ctx.measureText(lab).width;
+      if(lab){ ctx.fillStyle = '#eef3fb'; rett(ctx, M + cw - IN - lw - 32, y + 22, lw + 32, 40, 20); ctx.fill(); ctx.fillStyle = '#1e4f9c'; ctx.fillText(lab, M + cw - IN - lw - 16, y + 50); }
+      var yy = y + 84;
+      if(!gg.voci.length){ ctx.fillStyle = '#94a3b8'; ctx.font = 'italic 500 26px ' + F; ctx.fillText('Nessun turno', M + IN, yy + 36); }
+      gg.voci.forEach(function(v, vi){
+        if(vi){ ctx.strokeStyle = '#eef1f6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(M + IN + 80, yy); ctx.lineTo(M + cw - IN, yy); ctx.stroke(); }
+        ctx.fillStyle = v.tag ? '#cbd5e1' : v.col; ctx.beginPath(); ctx.arc(M + IN + 30, yy + 44, 30, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '800 22px ' + F; var iw = ctx.measureText(v.ini).width; ctx.fillText(v.ini, M + IN + 30 - iw / 2, yy + 52);
+        var x = M + IN + 80;
+        ctx.fillStyle = v.tag ? '#64748b' : '#0f172a'; ctx.font = '700 30px ' + F; ctx.fillText(v.nome, x, yy + 42);
+        if(v.tag){
+          ctx.font = '800 22px ' + F; var tw = ctx.measureText(v.tag).width; ctx.fillStyle = v.tag === 'Malattia' ? '#fdecec' : '#fef3c7'; rett(ctx, M + cw - IN - tw - 32, yy + 16, tw + 32, 40, 20); ctx.fill();
+          ctx.fillStyle = v.tag === 'Malattia' ? '#b42318' : '#92400e'; ctx.fillText(v.tag, M + cw - IN - tw - 16, yy + 44);
+        } else {
+          ctx.font = '800 30px ' + F; var ow = ctx.measureText(v.ora).width; ctx.fillStyle = '#1565c0'; ctx.fillText(v.ora, M + cw - IN - ow, yy + 42);
+          ctx.fillStyle = '#475569'; ctx.font = '500 25px ' + F;
+          v._r.forEach(function(r, ri){ ctx.fillText(r, x, yy + 80 + ri * 34); });
+        }
+        yy += v._h;
+      });
+      y += h + 22;
+    });
+    // piede
+    ctx.fillStyle = '#94a3b8'; ctx.font = '600 22px ' + F; var pie = 'Piuma · creato il ' + new Date().toLocaleDateString('it-IT', { day:'numeric', month:'long' }) + ' alle ' + new Date().toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+    ctx.fillText(pie, (W - ctx.measureText(pie).width) / 2, H - 46);
+    return cv;
+  }
+
+  var ULTIMA = null;
+  window.scTurniImmagine = async function(){
+    try{
+      var cv = await disegna();
+      var blob = await new Promise(function(ok){ cv.toBlob(ok, 'image/png'); });
+      var g = scGetSettimana(_scSettOffset), pad = function(n){ return (n < 10 ? '0' : '') + n; };
+      var nome = 'Turni_SCU_' + pad(g[0].getDate()) + '-' + pad(g[0].getMonth() + 1) + '_' + pad(g[5].getDate()) + '-' + pad(g[5].getMonth() + 1) + '.png';
+      if(ULTIMA && ULTIMA.url) try{ URL.revokeObjectURL(ULTIMA.url); }catch(e){}
+      ULTIMA = { blob:blob, nome:nome, url:URL.createObjectURL(blob) };
+      var puoCondividere = false; try{ puoCondividere = !!(navigator.canShare && navigator.canShare({ files:[new File([blob], nome, { type:'image/png' })] })); }catch(e){}
+      var corpo = '<div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px">Turni della settimana che stai guardando negli Orari. ' + (puoCondividere ? 'Con «Condividi» scegli WhatsApp e il gruppo dei volontari.' : 'Scaricala e mandala nel gruppo WhatsApp dei volontari.') + '</div>'
+        + '<div style="max-height:62vh;overflow:auto;border-radius:14px;background:#e9eef6;padding:10px;text-align:center"><img src="' + ULTIMA.url + '" alt="Turni della settimana" style="width:100%;max-width:520px;border-radius:10px;box-shadow:0 6px 20px rgba(15,40,90,.15)"></div>';
+      var piede = '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Chiudi</button>'
+        + '<button type="button" class="btn btn-outline btn-sm" onclick="scTurniImmagineScarica()">⬇️ Scarica</button>'
+        + (puoCondividere ? '<button type="button" class="btn btn-teal btn-sm" onclick="scTurniImmagineCondividi()">📤 Condividi</button>' : '');
+      _imzModal('🖼️ Immagine dei turni', corpo, piede);
+    }catch(e){ console.error(e); showToast('⚠️ Immagine non riuscita: ' + (e && e.message || e), 'error'); }
+  };
+  window.scTurniImmagineScarica = function(){ if(!ULTIMA) return; var a = document.createElement('a'); a.href = ULTIMA.url; a.download = ULTIMA.nome; document.body.appendChild(a); a.click(); a.remove(); showToast('Immagine scaricata', 'success'); };
+  window.scTurniImmagineCondividi = async function(){
+    if(!ULTIMA) return;
+    try{ await navigator.share({ files:[new File([ULTIMA.blob], ULTIMA.nome, { type:'image/png' })], title:'Turni della settimana' }); }
+    catch(e){ if(e && e.name !== 'AbortError') scTurniImmagineScarica(); }
+  };
+  window._scTurniImmagineCanvas = disegna;   // per le prove
+
+  /* pulsante accanto a «Messaggio WhatsApp» (con il menu ⋯ finisce lì dentro) */
+  function pulsante(){
+    var wa = [].slice.call(document.querySelectorAll('button[onclick="scMessaggioTurni()"]')).filter(function(b){ return !b.closest('.pb-menu,.pb-orari'); })[0];
+    if(!wa || wa.parentNode.querySelector('[data-timg]')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-outline btn-sm'; b.setAttribute('data-timg', '1'); b.setAttribute('onclick', 'scTurniImmagine()'); b.textContent = '🖼️ Immagine turni';
+    wa.parentNode.insertBefore(b, wa.nextSibling);
+  }
+  setInterval(function(){ try{ pulsante(); }catch(e){} }, 1500); pulsante();
 })();
 </script>
 
