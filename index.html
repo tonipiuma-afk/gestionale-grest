@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 12:17</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57452,7 +57452,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 12:17 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -90172,6 +90172,21 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var c = cfg(), P = piani(), acc = righe(opId), cur = (c.dal && c.dal > ini.slice(0,7)) ? c.dal : ini.slice(0,7), end = fine.slice(0,7);
     for(var k=0; k<60 && cur <= end; k++){ if(!P[opId+'|'+cur]){ var p = pianifica(opId, cur, acc, mod, true); if(p) acc = acc.concat(p); } cur = meseDopo(cur); }
     return somma(magazzino(opId, acc)); }
+  /* Andamento del credito mese per mese fino a fine progetto: mesi salvati come sono, gli altri simulati col ritmo.
+     credito di un mese = ore prima del servizio − ore già spostate su giorni fino alla fine di quel mese */
+  function andamento(opId, mod){ var D = dateOp(opId), ini = D.ini, fine = D.fine; if(!ini || !fine) return null;
+    var c = cfg(), P = piani(), acc = righe(opId), start = (c.dal && c.dal > ini.slice(0,7)) ? c.dal : ini.slice(0,7), end = fine.slice(0,7), cur = start, mesi = [];
+    var tot = somma(magazzino(opId, [])); if(tot < 0.01) return {tot:0, mesi:[], zero:null, resto:0};
+    for(var k=0; k<60 && cur <= end; k++){ var sal = !!P[opId+'|'+cur]; if(!sal){ var p = pianifica(opId, cur, acc, mod, true); if(p) acc = acc.concat(p); } mesi.push({ym:cur, sal:sal}); cur = meseDopo(cur); }
+    var zero = null, oggiYm = scDataLocale(new Date()).slice(0,7);
+    mesi.forEach(function(m){ var lim = m.ym+'-31', usate = 0; acc.forEach(function(r){ if(r.a <= lim) usate += r.ore; }); m.cred = Math.max(0, tot - usate); m.fut = m.ym >= oggiYm; if(zero === null && m.cred < 0.01) zero = m.ym; });
+    return {tot:tot, mesi:mesi, zero:zero, resto:mesi.length ? mesi[mesi.length-1].cred : tot}; }
+  function andHtml(a){ if(!a || !a.mesi.length) return '';
+    var mx = a.tot || 1, h = '<div style="margin-top:12px"><div class="rc-fl" style="justify-content:space-between"><b style="font-size:13px">📉 Andamento del credito</b><span class="rc-sub" style="margin:0">'+(a.zero ? 'si azzera a <b style="color:#16a34a">'+nomeMeseAnno(a.zero).toLowerCase()+'</b>' : '<b style="color:#dc2626">non si azzera entro fine servizio: restano '+fh(a.resto)+'h</b>')+'</span></div>'
+      + '<div class="rc-andm"><div class="rc-andb"><div class="rc-andw"><div class="rc-andc" style="height:100%;background:#94a3b8" title="Credito iniziale: '+fh(a.tot)+'h"><span>'+fh(a.tot)+'h</span></div></div><small>inizio</small></div>';
+    a.mesi.forEach(function(m){ var col = m.sal ? 'var(--teal,#2563eb)' : (m.fut ? '#bfd3f7' : '#fbbf24'), z = a.zero === m.ym;
+      h += '<div class="rc-andb'+(z ? ' z' : '')+'" title="'+nomeMeseAnno(m.ym)+': '+fh(m.cred)+'h in credito'+(m.sal ? ' (salvato)' : (m.fut ? ' (stima)' : ' (da salvare)'))+'"><div class="rc-andw"><div class="rc-andc" style="height:'+Math.max(m.cred > 0.01 ? 3 : 0, m.cred / mx * 100)+'%;background:'+col+'"><span>'+(m.cred > 0.01 ? fh(m.cred) : (z ? '0' : ''))+'</span></div></div><small>'+MESI[+m.ym.slice(5,7)-1].slice(0,3)+(m.ym.slice(5,7) === '01' || m === a.mesi[0] ? ' '+m.ym.slice(2,4) : '')+'</small></div>'; });
+    return h + '</div><div class="rc-sub" style="font-size:11px"><span style="color:var(--teal,#2563eb);font-weight:700">■</span> salvato · <span style="color:#fbbf24;font-weight:700">■</span> passato, da salvare · <span style="color:#bfd3f7;font-weight:700">■</span> stima (giornate normali + recupero col ritmo scelto) · <span style="color:#16a34a;font-weight:700">│</span> azzeramento</div></div>'; }
   function modOp(opId){ var sc = scGetDb(), o = ((sc.recupero||{}).ops||{})[opId]; return (o && o.mod) || cfg().mod; }
   function delta(sc, opId, ds){ var P = (sc.recupero||{}).piani; if(!P) return 0; var d = 0;
     Object.keys(P).forEach(function(k){ if(k.split('|')[0] !== opId) return; P[k].forEach(function(r){ if(r.a === ds) d += r.ore; if(r.da === ds) d -= r.ore; }); }); return d; }
@@ -90310,6 +90325,10 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     + '#sc-tab-recupero .rc-l.add span{color:var(--teal,#2563eb) !important;font-weight:700}#sc-tab-recupero .rc-l.sub span{color:#c2410c !important;font-weight:700}'
     + '#sc-tab-recupero .rc-l.fog{border-top:1px dashed var(--border,#e2e8f0);margin-top:2px;padding-top:2px;font-weight:700}#sc-tab-recupero .rc-l.fog span:first-child{color:var(--text,#1e293b)}'
     + '#sc-tab-recupero .rc-short{display:none}#sc-tab-recupero .rc-gd{display:none}#sc-tab-recupero .rc-d{min-height:64px}'
+    + '#sc-tab-recupero .rc-andm{display:flex;align-items:flex-end;gap:4px;height:130px;margin:8px 0 4px}'
+    + '#sc-tab-recupero .rc-andb{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center}#sc-tab-recupero .rc-andw{flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-top:14px}'
+    + '#sc-tab-recupero .rc-andc{width:100%;max-width:34px;border-radius:4px 4px 0 0;position:relative}#sc-tab-recupero .rc-andc span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:9.5px;color:var(--text-muted,#64748b);white-space:nowrap;padding-bottom:1px}'
+    + '#sc-tab-recupero .rc-andb small{font-size:9.5px;color:var(--text-muted,#64748b);margin-top:3px;white-space:nowrap}#sc-tab-recupero .rc-andb.z{border-right:2px solid #16a34a}'
     + '#sc-tab-recupero .rc-sw{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px}#sc-tab-recupero .rc-sw i{width:34px;height:19px;background:#cbd5e1;border-radius:12px;position:relative;display:inline-block;transition:.15s}'
     + '#sc-tab-recupero .rc-sw i:after{content:"";position:absolute;left:2px;top:2px;width:15px;height:15px;background:#fff;border-radius:50%;transition:.15s}#sc-tab-recupero .rc-sw.on i{background:var(--teal,#2563eb)}#sc-tab-recupero .rc-sw.on i:after{left:17px}'
     + '#sc-tab-recupero .rc-fl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}#sc-tab-recupero .rc-warn{font-size:12px;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 10px;margin-top:10px}'
@@ -90318,22 +90337,24 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     + '@media(max-width:760px){#sc-tab-recupero .rc-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}#sc-tab-recupero .rc-head{display:none !important}'
     + '#sc-tab-recupero .rc-row{grid-template-columns:1fr 1fr;border:1px solid var(--border,#e2e8f0);border-radius:10px;margin-bottom:8px}#sc-tab-recupero .rc-row.sel{margin-bottom:0}#sc-tab-recupero .rc-row .x{display:none}'
     + '#sc-tab-recupero .rc-row .nm{grid-column:1/-1}#sc-tab-recupero .rc-row .av{grid-column:1/-1}#sc-tab-recupero .lbl{display:block}#sc-tab-recupero .rc-d{min-height:46px;font-size:9.5px;padding:2px 3px;cursor:pointer}#sc-tab-recupero .rc-full{display:none}#sc-tab-recupero .rc-short{display:block}'
-    + '#sc-tab-recupero .rc-gd:not(:empty){display:block;margin-top:8px;padding:8px 10px;border:1px solid var(--border,#e2e8f0);border-radius:8px;background:var(--card,#fff)}#sc-tab-recupero .rc-gd .rc-l{font-size:12px}#sc-tab-recupero .rc-mese input{width:165px;font-size:15px}}'
+    + '#sc-tab-recupero .rc-gd:not(:empty){display:block;margin-top:8px;padding:8px 10px;border:1px solid var(--border,#e2e8f0);border-radius:8px;background:var(--card,#fff)}#sc-tab-recupero .rc-gd .rc-l{font-size:12px}#sc-tab-recupero .rc-mese input{width:165px;font-size:15px}#sc-tab-recupero .rc-andm{gap:2px}#sc-tab-recupero .rc-andb small,#sc-tab-recupero .rc-andc span{font-size:7.5px}}'
     + '</style>'; }
 
   /* dati di un volontario per il mese: stato, ore del mese, avanzamento, stima */
   function info(op, ym){ var id = op.id, P = piani(), saved = P[id+'|'+ym], R = righe(id), fatte = somma(R), da = somma(magazzino(id, R)), tot = fatte + da, mod = modOp(id), pb = problemi(id);
     var prev = saved ? null : (pianifica(id, ym, righe(id, ym), mod) || []), oreMese = saved ? somma(saved) : somma(prev || []);
+    var an = tot > 0.01 ? andamento(id, mod) : null;
     var st = pb[ym] ? 'wa' : (saved ? 'ok' : (prev && prev.length ? 'da' : 'no'));
     var corte = settimaneCorte(id, ym);
-    return {corte:corte, id:id, op:op, nome:((op.cognome||'')+' '+(op.nome||'')).trim(), saved:saved, prev:prev, oreMese:oreMese, fatte:fatte, da:da, tot:tot, mod:mod, pb:pb, st:st, stima:tot > 0.01 ? stima(id, mod) : 0}; }
+    return {corte:corte, id:id, op:op, nome:((op.cognome||'')+' '+(op.nome||'')).trim(), saved:saved, prev:prev, oreMese:oreMese, fatte:fatte, da:da, tot:tot, mod:mod, pb:pb, st:st, stima:an ? an.resto : (tot > 0.01 ? null : 0), and:an}; }
   function chip(x, ym){ var nm = nomeMese(ym);
     if(x.st === 'wa') return '<span class="rc-chip c-wa">⚠️ Da ricalcolare</span>';
     if(x.st === 'ok') return '<span class="rc-chip c-ok">Salvato</span>';
     if(x.st === 'da') return '<span class="rc-chip c-da">Da salvare</span>';
     return '<span class="rc-chip c-no">'+(x.tot < 0.01 ? 'Nessuna ora in credito' : (x.da < 0.01 ? 'Completato' : 'Niente a '+nm))+'</span>'; }
-  function fineHtml(x){ if(x.tot < 0.01) return '<span class="text-muted">—</span>'; if(x.stima === null) return '<span class="text-muted">date progetto?</span>';
-    if(x.da < 0.01) return '<b style="color:#16a34a">✓ completato</b>'; return x.stima > 0.01 ? '<b style="color:#dc2626">restano '+fh(x.stima)+'h in credito</b>' : '<b style="color:#16a34a">✓ tutte</b>'; }
+  function fineHtml(x){ if(x.tot < 0.01) return '<span class="text-muted">—</span>'; if(!x.and) return '<span class="text-muted">date progetto?</span>';
+    if(x.da < 0.01) return '<b style="color:#16a34a">✓ già azzerato</b>';
+    return x.and.zero ? '<b style="color:#16a34a">'+cap1(nomeMeseAnno(x.and.zero).toLowerCase())+'</b>' : '<b style="color:#dc2626">non entro fine servizio</b><br><span style="font-size:11px;color:#dc2626">restano '+fh(x.and.resto)+'h</span>'; }
 
   /* durata leggibile: 15 min, 30 min, 1h, 1h 30 min */
   function fmtMin(m){ m = Math.round(m); var h = Math.floor(m/60), r = m % 60; return h ? h+'h'+(r ? ' '+r+' min' : '') : r+' min'; }
@@ -90386,6 +90407,9 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var pk = Object.keys(x.pb).sort(); if(pk.length) h += '<div class="rc-warn">'+pk.map(function(m){ return '<div style="margin:2px 0">⚠️ <b>'+nomeMeseAnno(m)+'</b>: '+x.pb[m].map(escapeHtml).join('; ')+' <button type="button" class="rc-btn o" style="padding:3px 9px;font-size:11px;margin-left:4px" onclick="rcRicalcola(\''+id+'\',\''+m+'\')">🔄 Ricalcola da qui</button></div>'; }).join('')+'</div>';
     if(x.corte.length) h += '<div class="rc-warn" style="color:#b45309;background:#fffbeb;border-color:#fde68a">📅 Nel foglio di '+nm+' ci sono settimane con meno di '+minGg()+' giorni di servizio: <b>'+x.corte.map(fmtSett).join(', ')+'</b>'+(x.da > 0.01 ? '. Se ci sono giorni feriali vuoti, il recupero li riempie per primi (salva o ricalcola il mese).' : '.')+'</div>';
     if(ym >= scDataLocale(new Date()).slice(0,7)) h += '<div class="rc-sub" style="margin-top:8px;color:#1d4ed8">ℹ️ '+cap1(nm)+' non è ancora finito: si recuperano solo i giorni fino a ieri. A fine mese usa "Ricalcola" per completarlo.</div>';
+    if(x.and){ h += andHtml(x.and);
+      var cf = ['veloce','media','lenta'].map(function(m){ var a = m === x.mod ? x.and : andamento(id, m); return '<span'+(m === x.mod ? ' style="font-weight:700;color:var(--text,#1e293b)"' : '')+'>'+cap1(m)+': '+(a && a.zero ? nomeMeseAnno(a.zero).toLowerCase() : '<span style="color:#dc2626">restano '+fh(a ? a.resto : x.da)+'h</span>')+'</span>'; }).join(' · ');
+      h += '<div class="rc-sub" style="margin-top:4px">Azzeramento per ritmo: '+cf+'</div>'; }
     h += calHtml(id, ym, x.saved || x.prev || []);   // righe() esclude il mese: qui va aggiunto il piano del mese (salvato o anteprima)
     h += '<div class="rc-fl" style="justify-content:space-between;margin-top:12px;border-top:1px solid var(--border,#e2e8f0);padding-top:12px"><div class="rc-fl"><b>Foglio firme '+nm+'</b>'
       + '<span class="rc-sw'+(_conRec ? ' on' : '')+'" onclick="rcConRec()"><i></i>con ore recuperate</span>'
@@ -90424,12 +90448,12 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var nCorte = X.filter(function(x){ return x.corte.length; }).length;
     if(nCorte) h += '<div class="rc-warn" style="margin:0 0 12px;color:#b45309;background:#fffbeb;border-color:#fde68a">📅 <b>'+nCorte+(nCorte === 1 ? ' volontario ha' : ' volontari hanno')+'</b> settimane di '+nm+' con meno di '+minGg()+' giorni di servizio nel foglio firme (icona 📅 nella tabella).</div>';
     // tabella
-    h += '<div class="rc-card" style="padding:6px 12px 14px"><div class="rc-row rc-head"><div>Volontario</div><div>Avanzamento</div><div>'+cap1(nm)+'</div><div>Ore del mese</div><div>Fine progetto</div><div></div></div>';
+    h += '<div class="rc-card" style="padding:6px 12px 14px"><div class="rc-row rc-head"><div>Volontario</div><div>Avanzamento</div><div>'+cap1(nm)+'</div><div>Ore del mese</div><div>Azzeramento credito</div><div></div></div>';
     if(!X.length) h += '<div class="rc-sub" style="padding:14px 8px">Nessun volontario in questo programma.</div>';
     X.forEach(function(x){ var pc = x.tot > 0.01 ? Math.round(x.fatte / x.tot * 100) : 0, sel = _sel === x.id;
       h += '<div class="rc-row'+(sel ? ' sel' : '')+'" onclick="rcSel(\''+x.id+'\')"><div class="nm"><b>'+escapeHtml(x.nome)+'</b>'+(Object.keys(x.pb).length && x.st !== 'wa' ? ' <span title="Altri mesi da ricalcolare">⚠️</span>' : '')+(x.corte.length ? ' <span title="Settimane sotto i '+minGg()+' giorni: '+x.corte.map(fmtSett).join(', ')+'">📅</span>' : '')+'</div>'
         + '<div class="av" style="display:flex;align-items:center;gap:8px">'+(x.tot > 0.01 ? '<span class="rc-bar"><i style="width:'+pc+'%'+(x.da < 0.01 ? ';background:#16a34a' : '')+'"></i></span><span style="white-space:nowrap">'+fh(x.fatte)+' / '+fh(x.tot)+'h</span>' : '<span class="text-muted">—</span>')+'</div>'
-        + '<div>'+chip(x, ym)+'</div><div><span class="lbl">Ore del mese</span>'+(x.oreMese > 0.01 ? '+'+fh(x.oreMese)+'h' : '<span class="text-muted">—</span>')+'</div><div><span class="lbl">Fine progetto</span>'+fineHtml(x)+'</div><div class="x" style="color:var(--teal,#2563eb)">'+(sel ? '▾' : '▸')+'</div></div>';
+        + '<div>'+chip(x, ym)+'</div><div><span class="lbl">Ore del mese</span>'+(x.oreMese > 0.01 ? '+'+fh(x.oreMese)+'h' : '<span class="text-muted">—</span>')+'</div><div><span class="lbl">Azzeramento credito</span>'+fineHtml(x)+'</div><div class="x" style="color:var(--teal,#2563eb)">'+(sel ? '▾' : '▸')+'</div></div>';
       if(sel) h += detHtml(x, ym); });
     h += '<div class="rc-fl" style="justify-content:flex-end;margin-top:14px"><button type="button" class="rc-btn o" onclick="rcFoglioTutti(false)">🖨️ Stampa tutti</button><button type="button" class="rc-btn o" onclick="rcFoglioTutti(true)">⬇️ Scarica i fogli firma di tutti</button><button type="button" class="rc-btn"'+(nDa ? '' : ' disabled')+' onclick="rcApplicaTutti()">✅ Salva '+nm+' per tutti'+(nDa ? ' ('+nDa+')' : '')+'</button></div></div>';
     el.innerHTML = h; };
