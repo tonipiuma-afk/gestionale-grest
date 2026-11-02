@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 11:46</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57452,7 +57452,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 11:46 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -81281,6 +81281,12 @@ window.arcRender = async function(){
     l.push({ nome:'Cose da fare', ok: BC.homeFatto });
     return l;
   }
+  /* stato del caricamento per l'animazione di apertura: finché l'animazione è a schermo la barra non compare */
+  window._bcStato = function(){
+    try{ var u = (typeof AUTH !== 'undefined' && AUTH.currentUser) || null; if(!u || !nelGestionale(u)) return { pct:100, mancano:[] };
+      var l = passi(), f = l.filter(function(p){ return p.ok; }).length;
+      return { pct: Math.round(f / l.length * 100), mancano: l.filter(function(p){ return !p.ok; }).map(function(p){ return p.nome; }) };
+    }catch(e){ return { pct:100, mancano:[] }; } };
   function disegna(l){
     var fatti = l.filter(function(p){ return p.ok; }).length, pct = Math.round(fatti / l.length * 100);
     var b = document.getElementById('bc-box');
@@ -81314,6 +81320,7 @@ window.arcRender = async function(){
       if((BC.homeVisto && !hc) || (!BC.homeVisto && Date.now() - BC.t0 > 5000)) BC.homeFatto = true;
       // archivio SCU non ancora letto in questa sessione: lo leggo subito invece di aspettare il giro dei 60 s
       try{ if(!BC.scuSpinta && puoScu() && getDb() && window.SCA2 && !SCA2.ultimoPull && typeof scaArchivioSync === 'function'){ BC.scuSpinta = true; scaArchivioSync(); } }catch(e){}
+      if(document.getElementById('ap-ov')){ var st = window._bcStato(); if(st.pct === 100) BC.finito = true; return; }   // c'è l'animazione: la barra resta nascosta
       var pct = disegna(passi());
       if(pct === 100){ BC.finito = true; setTimeout(nascondi, 2200); }
     }catch(e){}
@@ -89560,6 +89567,8 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
 @keyframes apPenna{ 0%{ left:-4%; transform:rotate(-8deg) } 20%{ transform:rotate(9deg) translateY(-5px) } 40%{ transform:rotate(-7deg) translateY(3px) } 60%{ transform:rotate(8deg) translateY(-4px) } 80%{ transform:rotate(-6deg) } 100%{ left:100%; transform:rotate(4deg) } }
 @keyframes apViaPenna{ to{ opacity:0; transform:translate(30px,-30px) rotate(25deg) } }
 .ap-g p{ margin:52px 0 0; font-size:18px; color:#475569; opacity:0; animation:apAppare .6s 1.9s forwards }
+.ap-g .ap-load{ width:min(240px,60vw); height:3px; margin:28px auto 0; background:rgba(19,40,74,.10); border-radius:3px; overflow:hidden; opacity:0; animation:apAppare .6s 2.5s forwards }
+.ap-g .ap-load span{ display:block; height:100%; width:0; background:#e8a317; border-radius:3px; transition:width .5s ease; box-shadow:0 0 6px rgba(232,163,23,.6) }
 .ap-g i{ display:block; margin-top:14px; color:#64748b; font-size:15px; opacity:0; animation:apAppare .6s 2.2s forwards }
 .ap-g .ap-sole{ position:absolute; left:50%; top:-120px; width:66px; height:66px; margin-left:-33px; border-radius:50%; background:#fde68a; box-shadow:0 0 0 14px rgba(253,230,138,.35),0 0 60px 20px rgba(253,200,80,.35); opacity:0; animation:apSorge 1.2s 1.6s cubic-bezier(.2,.8,.2,1) forwards }
 .ap-g .ap-sole.ap-luna{ background:#e2e8f0; box-shadow:0 0 0 14px rgba(226,232,240,.35),0 0 60px 20px rgba(148,163,184,.3) }
@@ -89641,13 +89650,13 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     ov.classList.add('via'); document.body.classList.add('ap-entra');
     setTimeout(function(){ if(ov.parentNode) ov.remove(); rimettiBarra(); }, 520);
   }
-  function crea(cls, html){
+  function crea(cls, html, sic){
     var ov = document.getElementById('ap-ov');
     if(ov){ T.forEach(clearTimeout); T = []; ov.className = cls; ov.innerHTML = html; }   // continuo dal fondo già presente, senza lampi
     else { ov = document.createElement('div'); ov.id = 'ap-ov'; ov.className = cls + ' ap-nuovo'; ov.innerHTML = html; ov._nato = Date.now(); document.body.appendChild(ov); }
     ov.setAttribute('aria-hidden', 'true'); coloreBarra();
     if(!ov._clic){ ov._clic = 1; ov.addEventListener('click', chiudi); }
-    dopo(15000, chiudi);   // sicurezza
+    dopo(sic || 15000, chiudi);   // sicurezza
     return ov;
   }
   /* aspetta che la pagina sotto sia pronta prima di chiudere l'animazione (al massimo «max» ms) */
@@ -89688,13 +89697,18 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var fr = '«La gioia è la più bella creatura uscita dalle mani di Dio» — Don Bosco';
     try{ var f = document.querySelector('.ho-frase'); if(f && f.textContent.trim()) fr = f.textContent.trim(); }catch(e){}
     var ov = crea('ap-g', '<div class="ap-bx"><div class="ap-sole' + (ora >= 19 || ora < 6 ? ' ap-luna' : '') + '"></div><div class="ap-rg"><h1>' + E(sal) + '</h1><svg viewBox="0 0 600 30" preserveAspectRatio="none"><path d="M4 18 C 80 6, 150 28, 230 16 S 380 8, 450 20 S 560 22, 596 12"/></svg>'
-      + (piuma() ? '<img class="ap-pen" src="' + piuma() + '" alt="">' : '') + '</div><p>' + E(oggi()) + '</p><i>' + E(fr) + '</i></div>');
+      + (piuma() ? '<img class="ap-pen" src="' + piuma() + '" alt="">' : '') + '</div><p>' + E(oggi()) + '</p><i>' + E(fr) + '</i><div class="ap-load"><span></span></div></div>', 32000);
     try{ var h1 = ov.querySelector('h1'), bxx = ov.querySelector('.ap-bx'), lim = Math.min(window.innerWidth * .9, bxx ? bxx.clientWidth - 8 : 9999); if(h1 && h1.scrollWidth > lim){ var fs = parseFloat(getComputedStyle(h1).fontSize); h1.style.fontSize = Math.max(20, Math.floor(fs * lim / h1.scrollWidth)) + 'px'; } }catch(e){}
-    dopo(4300, function(){
-      aspetta(function(){ return prontoGestionale() || vis('splash-screen'); }, function(ok){
-        if(!ok || vis('splash-screen')){ chiudi(); return; }     // archivio da scegliere: lascio la scelta
-        ov.classList.add('sale'); document.body.classList.add('ap-entra'); fine(ov, 1200);
-      }, 10000);
+    /* niente durata fissa: dopo il saluto scritto (circa 3 s) l'animazione resta finché il caricamento è al 100%
+       (gli stessi controlli della barra di caricamento); al massimo 30 s, poi si chiude e compare la barra con ciò che manca */
+    var ln = ov.querySelector('.ap-load span');
+    function stato(){ try{ return typeof window._bcStato === 'function' ? window._bcStato() : { pct:100 }; }catch(e){ return { pct:100 }; } }
+    dopo(2900, function(){
+      aspetta(function(){ var s = stato(); if(ln) ln.style.width = Math.max(6, s.pct) + '%'; return vis('splash-screen') || (prontoGestionale() && s.pct === 100); }, function(ok){
+        if(vis('splash-screen') || !prontoGestionale()){ chiudi(); return; }     // archivio da scegliere o pagina non pronta: lascio la pagina
+        if(ln) ln.style.width = '100%';
+        dopo(ok ? 450 : 0, function(){ ov.classList.add('sale'); document.body.classList.add('ap-entra'); fine(ov, 1200); });
+      }, 27100);
     });
     return true;
   }
