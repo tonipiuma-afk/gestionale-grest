@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 00:45</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57438,7 +57438,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 00:45 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89122,6 +89122,12 @@ html body #main .pb-alta{ max-height:calc(100vh - 190px); overflow:auto !importa
 #pk-tasti kbd{ font:700 12.5px/1 ui-monospace,Menlo,Consolas,monospace; color:#1f4580; background:#eef3fb; border:1px solid #d6e0f0; border-bottom-width:3px; border-radius:8px; padding:6px 9px; min-width:30px; text-align:center }
 #pk-tasti .pkt-f{ padding:12px 20px; border-top:1px solid #eef1f5; font-size:12.5px; color:#64748b }
 html[data-pi-tema="scuro"] #pk-tasti .pkt-bx{ background:#0f172a } html[data-pi-tema="scuro"] #pk-tasti .pkt-r{ color:#e2e8f0; border-color:#1e293b }
+#pk-mob-cerca{ display:none }
+@media (max-width:716px){
+  #pk-mob-cerca{ display:flex; align-items:center; justify-content:center; width:40px; height:40px; margin-right:6px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; cursor:pointer; padding:0; flex:0 0 auto }
+  #pk-mob-cerca svg{ width:20px; height:20px }
+  #pk-ov .pk-in{ padding-top:max(14px, env(safe-area-inset-top)) }
+}
 .pk-mob-mic{ border:none; background:var(--bg); color:var(--text-muted); width:46px; height:46px; border-radius:12px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center }
 .pk-mob-mic svg{ width:20px; height:20px }
 #pk-ov kbd{ font:600 11px/1 inherit; color:#64748b; background:#f1f5f9; border-radius:6px; padding:4px 7px; white-space:nowrap }
@@ -89391,6 +89397,15 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
     riga.insertBefore(b, inp.parentNode.nextSibling);
   }
   setInterval(micTelefono, 2500); micTelefono();
+  /* sul telefono: lente in alto (accanto alla campanella) che apre la ricerca completa, con il microfono */
+  function lenteTelefono(){
+    var bell = document.getElementById('hd-bell'); if(!bell || document.getElementById('pk-mob-cerca')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'pk-mob-cerca'; b.setAttribute('aria-label', 'Cerca'); b.title = 'Cerca';
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+    b.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); apri(''); });
+    bell.parentNode.insertBefore(b, bell);
+  }
+  setInterval(lenteTelefono, 2000); lenteTelefono();
 
   /* ═══ SCORCIATOIE DA TASTIERA (computer) ═══ */
   var SC = [
@@ -89597,7 +89612,14 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   function oggi(){ return new Date().toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' }); }
   var T = [], fatto = {}, tentativo = 0;
   function dopo(ms, f){ T.push(setTimeout(f, ms)); }
-  function rimettiBarra(){ try{ var mt = document.querySelector('meta[name="theme-color"]'); if(mt && !vis('portale-animatore') && !vis('portale-genitore')) mt.setAttribute('content', '#17325e'); if(typeof window._piPortali === 'function') window._piPortali(); }catch(e){} }
+  function rimettiBarra(){
+    try{
+      if(document.getElementById('ap-ov')) return;
+      var p = barraInAttesa; barraInAttesa = null;
+      if(vis('portale-animatore') || vis('portale-genitore')){ if(typeof window._piPortali === 'function') window._piPortali(); }   // il portale rimette il suo colore (già quello giusto)
+      else if(scriviMeta) scriviMeta(p || '#17325e');
+    }catch(e){}
+  }
   function fine(ov, ms){ dopo(ms, function(){ if(ov.parentNode) ov.remove(); T.forEach(clearTimeout); T = []; rimettiBarra(); }); }
   function chiudi(){
     T.forEach(clearTimeout); T = [];
@@ -89619,20 +89641,23 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var t0 = Date.now();
     (function giro(){ var ok = false; try{ ok = cond(Date.now() - t0); }catch(e){} if(ok || Date.now() - t0 > max) poi(ok); else dopo(150, giro); })();
   }
-  /* colore della barra del telefono (in alto): durante l'animazione è quello dell'animazione, non quello del portale che si sta caricando sotto */
-  var BARRA = { 'ap-g':'#fbf6ec', 'ap-s':'#0d3270', 'ap-r':'#f59100' };
+  /* colore della barra del telefono (in alto): durante l'animazione lo decide l'animazione.
+     Le richieste di cambio colore che arrivano intanto dal gestionale o dal portale vengono messe da parte
+     (niente «tira e molla» = niente sfarfallio) e applicate alla fine. */
+  var BARRA = { 'ap-g':'#17325e', 'ap-s':'#0d3270', 'ap-r':'#f59100' }, barraInAttesa = null, scriviMeta = null;
+  (function(){
+    var mt = document.querySelector('meta[name="theme-color"]'); if(!mt) return;
+    var orig = mt.setAttribute.bind(mt); scriviMeta = function(v){ if(mt.getAttribute('content') !== v) orig('content', v); };
+    mt.setAttribute = function(n, v){ if(String(n).toLowerCase() === 'content' && document.getElementById('ap-ov')){ barraInAttesa = v; return; } return orig(n, v); };
+  })();
   function coloreBarra(){
     try{
-      var ov = document.getElementById('ap-ov'), mt = document.querySelector('meta[name="theme-color"]'); if(!ov || !mt) return;
-      var k = ['ap-g', 'ap-s', 'ap-r'].filter(function(c){ return ov.classList.contains(c); })[0], c = BARRA[k];
-      if(c && mt.getAttribute('content') !== c) mt.setAttribute('content', c);
+      var ov = document.getElementById('ap-ov'); if(!ov || !scriviMeta) return;
+      var k = ['ap-g', 'ap-s', 'ap-r'].filter(function(c){ return ov.classList.contains(c); })[0];
+      if(BARRA[k]) scriviMeta(BARRA[k]);
     }catch(e){}
   }
-  (function(){
-    var mt = document.querySelector('meta[name="theme-color"]'); if(!mt || !window.MutationObserver) return;
-    new MutationObserver(function(){ if(document.getElementById('ap-ov')) coloreBarra(); }).observe(mt, { attributes:true, attributeFilter:['content'] });
-    new MutationObserver(function(){ coloreBarra(); }).observe(document.body, { childList:true });
-  })();
+  (function(){ if(window.MutationObserver) new MutationObserver(function(){ coloreBarra(); }).observe(document.body, { childList:true }); })();
   function caricando(){ return !!document.getElementById('anim-loading'); }
   /* dati freschi dal NAS: archivio GREST sincronizzato e archivio del Servizio Civile letto (o non raggiungibile) */
   function grestFresco(){ try{ return typeof _startupNasSyncDone !== 'undefined' && !!_startupNasSyncDone; }catch(e){ return false; } }
@@ -89698,7 +89723,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     dopo(3300, function(){ ov.classList.add('tessera'); });
     dopo(4700, function(){
       // resto sulla tessera finché non arrivano i dati aggiornati (al massimo 10 secondi), poi ridisegno il portale con quelli
-      aspetta(function(t){ return vis('portale-animatore') && !caricando() && ((grestFresco() && scuFresco()) || t > 8000); }, function(){
+      aspetta(function(t){ var pa = document.getElementById('portale-animatore'); return vis('portale-animatore') && !caricando() && ((grestFresco() && scuFresco()) || (pa.classList.contains('pa-modo-sc') && t > 600) || t > 8000); }, function(){
         ridisegnaPortale();
         aspetta(function(t){ var pa = document.getElementById('portale-animatore'); return vis('portale-animatore') && (pa.classList.contains('pa-modo-sc') || t > 1500); }, function(){
           var pa = document.getElementById('portale-animatore');
@@ -89760,7 +89785,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     }
     return 'ap-g';
   }
-  function scopri(){ var ov = document.getElementById('ap-ov'); if(ov && ov.classList.contains('ap-cover')){ ov.classList.add('via'); setTimeout(function(){ if(ov.parentNode && ov.classList.contains('ap-cover')) ov.remove(); }, 520); } }
+  function scopri(){ var ov = document.getElementById('ap-ov'); if(ov && ov.classList.contains('ap-cover')){ ov.classList.add('via'); setTimeout(function(){ if(ov.parentNode && ov.classList.contains('ap-cover')) ov.remove(); rimettiBarra(); }, 520); } }
   /* all'accesso: gestionale e Servizio Civile partono subito; per le famiglie metto il fondo e aspetto il portale */
   function avvia(){
     try{
@@ -89810,7 +89835,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   setInterval(function(){
     try{
       var ov = document.getElementById('ap-ov'); if(!ov) return;
-      if(vis('login-screen') && Date.now() - inizioAccesso > 6000){ T.forEach(clearTimeout); T = []; ov.remove(); }
+      if(vis('login-screen') && Date.now() - inizioAccesso > 6000){ T.forEach(clearTimeout); T = []; ov.remove(); rimettiBarra(); }
     }catch(e){}
   }, 400);
 
