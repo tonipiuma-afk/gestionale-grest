@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 11:59</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -9785,7 +9785,7 @@ table tbody tr:hover{
     <div class="sb-group-items" id="sbgi-scu-conf">
       <a onclick="scuVai('recupero')" data-sctab="recupero" id="sb-scu-recupero" style="display:none !important">
         <svg class="sico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
-        ORE RECUPERATE
+        GESTIONE ORE
       </a>
       <a onclick="scuVai('impostazioni')" data-sctab="impostazioni">
         <svg class="sico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -12970,7 +12970,7 @@ table tbody tr:hover{
     </button>
     <button type="button" class="sc-tab" id="sc-tab-btn-recupero" style="display:none !important" onclick="scSwitchTab('recupero',this)">
       <span style="font-size:18px">♻️</span>
-      <span class="sc-tab-label">Ore recuperate</span>
+      <span class="sc-tab-label">Gestione ore</span>
     </button>
     <button type="button" class="sc-tab" id="sc-tab-btn-impostazioni" onclick="scSwitchTab('impostazioni',this)">
       <span style="font-size:18px">⚙️</span>
@@ -57452,7 +57452,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 11:59 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -90256,7 +90256,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var p = pianifica(opId, ym, righe(opId, ym), modOp(opId)); if(p === null){ showToast('Imposta prima Inizio e Fine progetto','warning'); return; }
     if(!p.length){ showToast('Niente da spalmare in questo mese','info'); return; } piani()[opId+'|'+ym] = p; saveStorage(); showToast('✅ Spalmatura del mese salvata','success'); window.rcRender(); };
   window.rcElimina = function(opId){ if(!puo()) return; var ym = ymDi(opId), k = opId+'|'+ym; if(!piani()[k]){ showToast('Nessuna spalmatura salvata per questo mese','info'); return; }
-    if(!confirm('Eliminare la spalmatura di '+fmtYm(ym)+'? Le ore tornano da recuperare. Le timbrature non cambiano.')) return; delete piani()[k]; saveStorage(); showToast('Spalmatura eliminata','success'); window.rcRender(); };
+    if(!confirm('Eliminare la spalmatura di '+fmtYm(ym)+'? Le ore tornano in credito. Le timbrature non cambiano.')) return; delete piani()[k]; saveStorage(); showToast('Spalmatura eliminata','success'); window.rcRender(); };
   /* Ricalcola il mese indicato e tutti i mesi salvati dopo, in ordine (i mesi prima restano come sono) */
   window.rcRicalcola = function(opId, ym){ if(!puo()) return; reset(); var P = piani(), mesi = mesiSalvati(opId).filter(function(m){ return m >= ym; }), mod = modOp(opId);
     if(!mesi.length) return; if(!confirm('Ricalcolare la spalmatura di '+mesi.map(fmtYm).join(', ')+' con i dati e i parametri di oggi?\nLe timbrature non cambiano. Se hai già consegnato quei fogli firma, ristampali.')) return;
@@ -90331,9 +90331,9 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     if(x.st === 'wa') return '<span class="rc-chip c-wa">⚠️ Da ricalcolare</span>';
     if(x.st === 'ok') return '<span class="rc-chip c-ok">Salvato</span>';
     if(x.st === 'da') return '<span class="rc-chip c-da">Da salvare</span>';
-    return '<span class="rc-chip c-no">'+(x.tot < 0.01 ? 'Nessuna ora da recuperare' : (x.da < 0.01 ? 'Completato' : 'Niente a '+nm))+'</span>'; }
+    return '<span class="rc-chip c-no">'+(x.tot < 0.01 ? 'Nessuna ora in credito' : (x.da < 0.01 ? 'Completato' : 'Niente a '+nm))+'</span>'; }
   function fineHtml(x){ if(x.tot < 0.01) return '<span class="text-muted">—</span>'; if(x.stima === null) return '<span class="text-muted">date progetto?</span>';
-    if(x.da < 0.01) return '<b style="color:#16a34a">✓ completato</b>'; return x.stima > 0.01 ? '<b style="color:#dc2626">restano '+fh(x.stima)+'h</b>' : '<b style="color:#16a34a">✓ tutte</b>'; }
+    if(x.da < 0.01) return '<b style="color:#16a34a">✓ completato</b>'; return x.stima > 0.01 ? '<b style="color:#dc2626">restano '+fh(x.stima)+'h in credito</b>' : '<b style="color:#16a34a">✓ tutte</b>'; }
 
   /* durata leggibile: 15 min, 30 min, 1h, 1h 30 min */
   function fmtMin(m){ m = Math.round(m); var h = Math.floor(m/60), r = m % 60; return h ? h+'h'+(r ? ' '+r+' min' : '') : r+' min'; }
@@ -90368,7 +90368,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       var dt = tg === 'normale' ? giornoDett(sc, opId, ds, add, sub) : {html:'', corto:''};
       var cls = 'rc-d'+(ro ? ' r' : '')+(add > 0.01 ? ' add' : '')+(pre && real > 0.01 ? ' pre' : '')+(post ? ' post' : '');
       h += '<div class="'+cls+'" onclick="rcGiorno(this)"><b>'+g+'</b>'+(tg !== 'normale' ? '<div>🩺 '+(tg === 'malattia' ? 'malattia' : 'permesso')+'</div>' : '')
-        + '<div class="rc-full">'+dt.html+(pre && real > 0.01 && sub < 0.01 ? '<div class="rc-l sub"><span>da recuperare</span></div>' : '')+'</div>'
+        + '<div class="rc-full">'+dt.html+(pre && real > 0.01 && sub < 0.01 ? '<div class="rc-l sub"><span>in credito</span></div>' : '')+'</div>'
         + '<div class="rc-short">'+(dt.corto ? '<div class="'+(sub > 0.01 ? 'm' : 'p')+'">'+dt.corto+'</div>' : (real > 0.01 ? '<div>'+fh(real)+'h</div>' : ''))+'</div></div>'; }
     return h + '</div><div class="rc-gd" id="rc-gd-'+opId+'"></div><div class="rc-sub" style="font-size:11px;margin-top:6px"><b>Timbrato</b> = orario vero · <span style="color:var(--teal,#2563eb);font-weight:700">+ entrata / uscita</span> = ore recuperate aggiunte · <span style="color:#c2410c;font-weight:700">− tolte</span> = ore spostate su altri mesi · <b>Foglio</b> = orario che esce sul foglio firme · giorni rossi esclusi</div>'; }
   /* su telefono: tocco un giorno e il dettaglio completo compare sotto il calendario */
@@ -90381,7 +90381,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       : (x.saved ? '<button type="button" class="rc-btn'+(x.st === 'wa' ? '' : ' o')+'" onclick="event.stopPropagation();rcRicalcola(\''+id+'\',\''+ym+'\')">🔄 Ricalcola '+nm+'</button>' : '');
     var stato = x.saved ? 'salvate' : (x.prev && x.prev.length ? 'in anteprima, non ancora salvate' : '');
     var h = '<div class="rc-det" onclick="event.stopPropagation()"><div class="rc-top" style="margin-bottom:4px"><div><b style="font-size:15px">'+escapeHtml(x.nome)+'</b> '+chip(x, ym)
-      + '<div class="rc-sub">'+(x.oreMese > 0.01 ? cap1(nm)+': <b>+'+fh(x.oreMese)+'h</b> recuperate su '+Object.keys(giorni).length+' giorni ('+stato+') · ' : '')+(dateOp(id).pers ? 'servizio personale '+dateOp(id).ini.split('-').reverse().join('/')+' → '+(dateOp(id).fine||'?').split('-').reverse().join('/')+' · ' : '')+(x.tot > 0.01 ? 'ne restano <b>'+fh(dopo)+'h</b> da recuperare nei mesi dopo' : 'nessuna ora fatta prima del progetto')+'</div></div>'
+      + '<div class="rc-sub">'+(x.oreMese > 0.01 ? cap1(nm)+': <b>+'+fh(x.oreMese)+'h</b> recuperate su '+Object.keys(giorni).length+' giorni ('+stato+') · ' : '')+(dateOp(id).pers ? 'servizio personale '+dateOp(id).ini.split('-').reverse().join('/')+' → '+(dateOp(id).fine||'?').split('-').reverse().join('/')+' · ' : '')+(x.tot > 0.01 ? 'ne restano <b>'+fh(dopo)+'h</b> in credito per i mesi dopo' : 'nessuna ora fatta prima del progetto')+'</div></div>'
       + '<div class="rc-fl"><span class="rc-sub" style="margin:0">Ritmo</span><select class="form-control" style="max-width:190px" onchange="rcModOp(\''+id+'\',this.value)"><option value="">Predefinito ('+cap1(cfg().mod)+')</option>'+['veloce','media','lenta'].map(function(m){ var om = (((scGetDb().recupero||{}).ops||{})[id]||{}).mod; return '<option value="'+m+'"'+(om === m ? ' selected' : '')+'>'+cap1(m)+'</option>'; }).join('')+'</select>'+btn+'</div></div>';
     var pk = Object.keys(x.pb).sort(); if(pk.length) h += '<div class="rc-warn">'+pk.map(function(m){ return '<div style="margin:2px 0">⚠️ <b>'+nomeMeseAnno(m)+'</b>: '+x.pb[m].map(escapeHtml).join('; ')+' <button type="button" class="rc-btn o" style="padding:3px 9px;font-size:11px;margin-left:4px" onclick="rcRicalcola(\''+id+'\',\''+m+'\')">🔄 Ricalcola da qui</button></div>'; }).join('')+'</div>';
     if(x.corte.length) h += '<div class="rc-warn" style="color:#b45309;background:#fffbeb;border-color:#fde68a">📅 Nel foglio di '+nm+' ci sono settimane con meno di '+minGg()+' giorni di servizio: <b>'+x.corte.map(fmtSett).join(', ')+'</b>'+(x.da > 0.01 ? '. Se ci sono giorni feriali vuoti, il recupero li riempie per primi (salva o ricalcola il mese).' : '.')+'</div>';
@@ -90403,7 +90403,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var X = ops.map(function(op){ return info(op, ym); }).sort(function(a,b){ return (b.tot > 0.01) - (a.tot > 0.01) || a.nome.localeCompare(b.nome); });
     var nCon = X.filter(function(x){ return x.tot > 0.01; }).length, nOk = X.filter(function(x){ return x.st === 'ok'; }).length, nDa = X.filter(function(x){ return x.st === 'da'; }).length, nWa = X.filter(function(x){ return Object.keys(x.pb).length; }).length;
     var vName = (VERSI.filter(function(v){ return v[0] === c.verso; })[0] || VERSI[0])[1];
-    var h = css() + '<div class="rc-top"><div><div class="rc-h1">Ore recuperate</div><div class="rc-sub">Le ore fatte prima dell\'inizio progetto ('+(imp.progettoInizio ? imp.progettoInizio.split('-').reverse().join('/') : '<b style="color:#dc2626">inizio non impostato</b>')+') vengono riportate sui fogli firma dei mesi successivi. Le timbrature non cambiano.</div></div>'
+    var h = css() + '<div class="rc-top"><div><div class="rc-h1">Gestione ore</div><div class="rc-sub">Le ore fatte prima dell\'inizio progetto ('+(imp.progettoInizio ? imp.progettoInizio.split('-').reverse().join('/') : '<b style="color:#dc2626">inizio non impostato</b>')+') vengono riportate sui fogli firma dei mesi successivi. Le timbrature non cambiano.</div></div>'
       + '<div class="rc-mese"><button type="button" class="rc-arr" onclick="rcMeseSposta(-1)">◀</button><input type="month" value="'+ym+'" onchange="rcMeseTutti(this.value)" title="Scegli il mese"><button type="button" class="rc-arr" onclick="rcMeseSposta(1)">▶</button></div></div>';
     if(!imp.progettoInizio || !imp.progettoFine) h += '<div class="rc-warn" style="margin:0 0 12px">Imposta Inizio e Fine progetto in Servizio Civile › Impostazioni: senza le date non si può calcolare niente.</div>';
 
@@ -90419,7 +90419,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
 
     if(ym >= scDataLocale(new Date()).slice(0,7)) h += '<div class="rc-sub" style="margin:-4px 0 12px;color:#1d4ed8">ℹ️ '+cap1(nm)+' è in corso o futuro: si recuperano solo i giorni già passati. Salva o ricalcola a fine mese.</div>';
     // numeri del mese
-    h += '<div class="rc-kpi"><div class="rc-k"><b>'+nCon+'</b><span>Volontari con ore da recuperare</span></div><div class="rc-k"><b style="color:#16a34a">'+nOk+'</b><span>'+cap1(nm)+' salvato</span></div><div class="rc-k"><b style="color:#b45309">'+nDa+'</b><span>'+cap1(nm)+' da salvare</span></div><div class="rc-k"><b style="color:'+(nWa ? '#dc2626' : 'inherit')+'">'+nWa+'</b><span>Da ricalcolare</span></div></div>';
+    h += '<div class="rc-kpi"><div class="rc-k"><b>'+nCon+'</b><span>Volontari con ore in credito</span></div><div class="rc-k"><b style="color:#16a34a">'+nOk+'</b><span>'+cap1(nm)+' salvato</span></div><div class="rc-k"><b style="color:#b45309">'+nDa+'</b><span>'+cap1(nm)+' da salvare</span></div><div class="rc-k"><b style="color:'+(nWa ? '#dc2626' : 'inherit')+'">'+nWa+'</b><span>Da ricalcolare</span></div></div>';
 
     var nCorte = X.filter(function(x){ return x.corte.length; }).length;
     if(nCorte) h += '<div class="rc-warn" style="margin:0 0 12px;color:#b45309;background:#fffbeb;border-color:#fde68a">📅 <b>'+nCorte+(nCorte === 1 ? ' volontario ha' : ' volontari hanno')+'</b> settimane di '+nm+' con meno di '+minGg()+' giorni di servizio nel foglio firme (icona 📅 nella tabella).</div>';
@@ -90441,8 +90441,8 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var mesi = Object.keys(s.mesi).sort(), dove = mesi.map(function(m){ return MESI[+m.slice(5,7)-1].slice(0,3)+' '+fh(s.mesi[m])+'h'; }).join(', '), apri = mesi[0] || '';
     if(s.pre && s.real > 0.01){ var resta = Math.max(0, s.real - s.spost);
       if(resta < 0.01) return {ym:apri, html:'<div style="'+st+';background:#f0fdf4;color:#15803d">♻️ '+fh(s.real)+'h tutte spostate ('+dove+')</div>'};
-      if(s.spost > 0.01) return {ym:apri, html:'<div style="'+st+';background:#fffbeb;color:#b45309">♻️ '+fh(s.spost)+'h spostate su '+fh(s.real)+'h ('+dove+'), restano '+fh(resta)+'h</div>'};
-      return {ym:'', html:'<div style="'+st+';background:#fef2f2;color:#b91c1c">♻️ '+fh(s.real)+'h ancora da recuperare</div>'}; }
+      if(s.spost > 0.01) return {ym:apri, html:'<div style="'+st+';background:#fffbeb;color:#b45309">♻️ '+fh(s.spost)+'h spostate su '+fh(s.real)+'h ('+dove+'), restano '+fh(resta)+'h in credito</div>'};
+      return {ym:'', html:'<div style="'+st+';background:#fef2f2;color:#b91c1c">♻️ '+fh(s.real)+'h in credito</div>'}; }
     if(!s.pre && s.agg > 0.01 && giornata(sc, opId, ds) === 'normale'){ var L = giornoFoglio(sc, opId, ds, s.agg), or = L && L.length ? ' · foglio: '+L.filter(function(x){ return !x.inc; }).map(function(x){ return hm(x.e)+'–'+hm(x.u); }).join(', ') : '';
       return {ym:ds.slice(0,7), html:'<div style="'+st+';background:#eff6ff;color:#1d4ed8">♻️ +'+fh(s.agg)+'h recuperate sul foglio firme'+or+'</div>'}; }
     return null; }
@@ -90452,7 +90452,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   if(typeof origPres === 'function'){ var fp = function(){ var r = origPres.apply(this, arguments);
       try{ if(puo()){ reset(); var ds = (document.getElementById('sc-pres-data')||{}).value || scDataLocale(new Date());
         document.querySelectorAll('#sc-presenze-body .scp-card').forEach(function(card){ var b = card.querySelector('.scp-btn.in'), m = b && /scTimbraManuale\('([^']+)'/.exec(b.getAttribute('onclick')||''); if(!m) return;
-          var x = rigaGiorno(m[1], ds); if(!x) return; var d = document.createElement('div'); d.innerHTML = x.html; var el = d.firstChild; el.title = 'Apri Ore recuperate';
+          var x = rigaGiorno(m[1], ds); if(!x) return; var d = document.createElement('div'); d.innerHTML = x.html; var el = d.firstChild; el.title = 'Apri Gestione ore';
           el.onclick = function(){ window.rcApriVolontario(m[1], x.ym || ds.slice(0,7)); }; card.appendChild(el); }); } }catch(e){ console.warn('[recupero]', e); }
       return r; };
     for(var k in origPres) fp[k] = origPres[k]; window.scRenderPresenze = fp; }
@@ -90462,7 +90462,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       var sel = document.getElementById('sc-storico-mese-'+opId), mese = sel ? sel.value : '', tot = 0, sp = 0, R = righe(opId);
       giorniPre(sc, opId, ini).forEach(function(ds){ if(mese && !ds.startsWith(mese)) return; var o = oreReali(sc, opId, ds); tot += o; R.forEach(function(r){ if(r.da === ds) sp += r.ore; }); });
       if(tot < 0.01) return h; sp = Math.min(sp, tot); var resta = tot - sp, col = resta < 0.01 ? ['#f0fdf4','#15803d'] : (sp > 0.01 ? ['#fffbeb','#b45309'] : ['#fef2f2','#b91c1c']);
-      return '<div onclick="rcApriVolontario(\''+opId+'\')" title="Apri Ore recuperate" style="cursor:pointer;background:'+col[0]+';color:'+col[1]+';border-radius:10px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:8px">♻️ '+(mese ? cap1(MESI[+mese.slice(5,7)-1])+' (prima del progetto)' : 'Ore prima del progetto')+': '+fh(tot)+'h timbrate · '+fh(sp)+'h spostate sui fogli dei mesi dopo · '+(resta < 0.01 ? 'tutte recuperate' : fh(resta)+'h da recuperare')+'</div>' + h;
+      return '<div onclick="rcApriVolontario(\''+opId+'\')" title="Apri Gestione ore" style="cursor:pointer;background:'+col[0]+';color:'+col[1]+';border-radius:10px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:8px">♻️ '+(mese ? cap1(MESI[+mese.slice(5,7)-1])+' (prima del progetto)' : 'Ore prima del progetto')+': '+fh(tot)+'h timbrate · '+fh(sp)+'h spostate sui fogli dei mesi dopo · '+(resta < 0.01 ? 'tutte spostate' : fh(resta)+'h in credito')+'</div>' + h;
     }catch(e){ return h; } };
 
   /* ── avvisi "settimane sotto il minimo": Fogli firma, scarico/stampa, impostazione generale ── */
