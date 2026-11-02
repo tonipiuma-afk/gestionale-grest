@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 10:47</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57447,7 +57447,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 10:47 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -90049,10 +90049,10 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
 /* ═══ RECUPERO ORE SCU — spalmatura delle ore pre-progetto sui fogli firma (solo Admin / Resp. Generale)
    Le timbrature NON vengono mai modificate: gli spostamenti stanno in sc.recupero.piani['opId|YYYY-MM'] = [{da,a,ore}]. ═══ */
 (function(){
-  var _mese = {};
+  var _mese = {}, _calOn = {};
   function puo(){ try{ var r = (typeof AUTH!=='undefined' && AUTH && AUTH.currentUser && AUTH.currentUser.ruolo) || (typeof currentRole!=='undefined' ? currentRole : ''); return ['Admin','Responsabile Generale'].indexOf(r) >= 0; }catch(e){ return false; } }
   function cfg(){ var sc = scGetDb(); sc.recupero = sc.recupero || {}; var c = sc.recupero.cfg = sc.recupero.cfg || {};
-    var d = {dal:'', maxGiorno:6, maxSett:30, maxGg:5, mod:'media', qMedia:1, qLenta:0.5}; for(var k in d) if(c[k] === undefined) c[k] = d[k]; return c; }
+    var d = {dal:'', maxGiorno:6, maxSett:30, maxGg:5, mod:'media', qMedia:1, qLenta:0.5, oraDa:'07:30', oraA:'19:30'}; for(var k in d) if(c[k] === undefined) c[k] = d[k]; return c; }
   function piani(){ var sc = scGetDb(); sc.recupero = sc.recupero || {}; return sc.recupero.piani = sc.recupero.piani || {}; }
   function righe(opId, skip){ var P = piani(), out = []; Object.keys(P).forEach(function(k){ var p = k.split('|'); if(p[0] === opId && p[1] !== skip) out = out.concat(P[k]); }); return out; }
   function oreReali(sc, opId, ds){ if(((sc.giornate||{})[ds+'_'+opId]||'normale') !== 'normale') return 0;
@@ -90075,7 +90075,9 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       if(typeof _iprFestivo === 'function' && _iprFestivo(ds)) continue;                           // festivi
       if(((sc.giornate||{})[ds+'_'+opId]||'normale') !== 'normale') continue;                      // malattia/permessi
       var e = eff(ds), W = wk(lun(ds)); if(e < 0.01 && W.g >= c.maxGg) continue;
-      var cap = Math.floor(Math.min(c.maxGiorno - e, c.maxSett - W.o, q) * 4) / 4; if(cap < 0.25) continue;
+      var fg = fineGiorno(sc, opId, ds); if(fg === -1) continue;                                   // sessione ancora aperta
+      var aggi = e - oreReali(sc, opId, ds), capW = (minDi(c.oraA,1170) - (fg === null ? minDi(c.oraDa,450) : fg))/60 - aggi;   // finestra oraria
+      var cap = Math.floor(Math.min(c.maxGiorno - e, c.maxSett - W.o, q, capW) * 4) / 4; if(cap < 0.25) continue;
       var need = cap; while(need > 0.001 && mag.length){ var s = mag[0], t = Math.min(need, s.ore); out.push({da:s.ds, a:ds, ore:t}); s.ore -= t; need -= t; if(s.ore < 0.01) mag.shift(); }
       var dato = cap - need; if(dato > 0){ if(e < 0.01) W.g++; W.o += dato; }
     }
@@ -90090,16 +90092,18 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   function entrataTipica(sc, opId){ var prima = {}, cnt = {}, best = 480, bn = 0;
     (sc.timbrature[opId]||[]).forEach(function(t){ var ds = String(t.ts).slice(0,10); if(!prima[ds] || t.ts < prima[ds]) prima[ds] = t.ts; });
     Object.keys(prima).forEach(function(ds){ var d = scIstante(prima[ds]), m = Math.round((d.getHours()*60+d.getMinutes())/5)*5; cnt[m] = (cnt[m]||0)+1; if(cnt[m] > bn){ bn = cnt[m]; best = m; } }); return best; }
+  function minDi(t, def){ var p = String(t||'').split(':'); return p.length > 1 ? (+p[0])*60 + (+p[1]) : def; }
+  function fineGiorno(sc, opId, ds){ var ses = _scSessioniValide(_scTimbrGiorno(sc, opId, ds)); if(!ses.length) return null; var x = ses[ses.length-1]; if(!x.uscita) return -1; var d = scIstante(x.uscita); return d.getHours()*60 + d.getMinutes(); }
   function hm(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(Math.round(m%60)).padStart(2,'0'); }
 
   /* ── aggancio ai fogli firma: attivo solo quando si sceglie "con ore spalmate" ── */
-  window._rcSpalma = false;
+  window._rcSpalma = true;   // di default i fogli firma usano le ore spalmate salvate; false solo per il foglio "senza ore spalmate"
   var orig = _scDatiGiorno;
   _scDatiGiorno = function(sc, op, ds, i){
     var d = orig(sc, op, ds, i); if(!window._rcSpalma || (d && d.assenza)) return d;
     var dl = delta(sc, op.id, ds); if(!dl) return d;
     var ses = _scSessioniValide(_scTimbrGiorno(sc, op.id, ds)), last = Math.max(0, ses.length-1); if(i !== last) return d;
-    if(!d || !ses.length){ if(dl <= 0) return d; var e = entrataTipica(sc, op.id); return {assenza:false, etichetta:'', entrata:hm(e), uscita:hm(e+dl*60), ore:dl}; }
+    if(!d || !ses.length){ if(dl <= 0) return d; var cf = cfg(), e = Math.max(minDi(cf.oraDa,450), Math.min(entrataTipica(sc, op.id), minDi(cf.oraA,1170) - dl*60)); return {assenza:false, etichetta:'', entrata:hm(e), uscita:hm(e+dl*60), ore:dl}; }
     var x = ses[last]; if(!x.entrata || !x.uscita) return d;
     var ore = _scOreSessione(x) + dl; if(ore <= 0.01) return null;
     var us = new Date(scIstante(x.uscita).getTime() + dl*3600000);
@@ -90111,9 +90115,9 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   /* ── azioni ── */
   window.rcSalvaCfg = function(){ if(!puo()) return; var c = cfg(), v = function(id){ return (document.getElementById(id)||{}).value; };
     c.dal = v('rc-dal')||''; c.maxGiorno = parseFloat(v('rc-mg'))||6; c.maxSett = parseFloat(v('rc-ms'))||30; c.maxGg = parseInt(v('rc-mgg'))||5;
-    c.qMedia = parseFloat(v('rc-qm'))||1; c.qLenta = parseFloat(v('rc-ql'))||0.5; c.mod = v('rc-mod')||'media'; saveStorage(); showToast('✅ Parametri salvati','success'); };
+    c.oraDa = v('rc-od')||'07:30'; c.oraA = v('rc-oa')||'19:30'; c.qMedia = parseFloat(v('rc-qm'))||1; c.qLenta = parseFloat(v('rc-ql'))||0.5; c.mod = v('rc-mod')||'media'; saveStorage(); showToast('✅ Parametri salvati','success'); };
   window.rcModOp = function(opId, m){ if(!puo()) return; var sc = scGetDb(); sc.recupero = sc.recupero||{}; sc.recupero.ops = sc.recupero.ops||{}; sc.recupero.ops[opId] = {mod:m||null}; saveStorage(); };
-  window.rcMese = function(opId, v){ _mese[opId] = v; };
+  window.rcMese = function(opId, v){ _mese[opId] = v; if(_calOn[opId]) window.rcCalendario(opId); };
   function ymDi(opId){ return _mese[opId] || cfg().dal || scDataLocale(new Date()).slice(0,7); }
   window.rcAnteprima = function(opId){ if(!puo()) return; var ym = ymDi(opId), R = righe(opId, ym), mod = modOp(opId), p = pianifica(opId, ym, R, mod), el = document.getElementById('rc-prev-'+opId);
     if(p === null){ showToast('Imposta prima Inizio e Fine progetto nelle Impostazioni','warning'); return; }
@@ -90129,23 +90133,42 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     if(con && !piani()[opId+'|'+ym]){ var p = pianifica(opId, ym, righe(opId, ym), modOp(opId)); if(p && p.length){ if(!confirm('Per '+ym+' non c\'è una spalmatura salvata. La calcolo e la salvo ora?')) return; piani()[opId+'|'+ym] = p; saveStorage(); } }
     var mese = +ym.slice(5,7)-1, anno = +ym.slice(0,4); window._rcSpalma = !!con;
     try{ if(pdf) scScaricaFoglioFirmaPDF([op], mese, anno); else _scStampaFoglioFirmaHTML([op], mese, anno); }catch(e){ console.warn('[recupero]', e); }
-    setTimeout(function(){ window._rcSpalma = false; }, 8000); };
+    setTimeout(function(){ window._rcSpalma = true; }, 8000); };
+
+
+  /* ── calendario del mese: ore timbrate, recuperate (+), spostate (−) ── */
+  window.rcCalendario = function(opId, toggle){ if(!puo()) return; var el = document.getElementById('rc-cal-'+opId); if(!el) return;
+    if(toggle && _calOn[opId]){ _calOn[opId] = false; el.innerHTML = ''; return; } _calOn[opId] = true;
+    var sc = scGetDb(), ym = ymDi(opId), imp = _scPortaleImp(), saved = piani()[opId+'|'+ym], plan = saved || pianifica(opId, ym, righe(opId, ym), modOp(opId)) || [], R = righe(opId, ym).concat(plan);
+    var y = +ym.slice(0,4), m = +ym.slice(5,7), n = new Date(y, m, 0).getDate(), off = (new Date(y, m-1, 1).getDay()+6)%7;
+    var h = '<div style="margin-top:10px;font-size:12px"><b>'+ym+'</b> · '+(saved ? '<span style="color:#2e7d32">piano salvato</span>' : '<span style="color:#e65100">anteprima, non ancora salvata</span>')+' · <span style="color:#2e7d32">+ ore recuperate</span> · <span style="color:#e65100">− ore spostate</span></div>'
+      + '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-top:6px;font-size:11px">';
+    ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(function(g){ h += '<div style="text-align:center;font-weight:700">'+g+'</div>'; });
+    for(var i=0; i<off; i++) h += '<div></div>';
+    for(var g=1; g<=n; g++){ var ds = ym+'-'+String(g).padStart(2,'0'), dw = new Date(ds+'T12:00:00').getDay(), rosso = dw === 0 || dw === 6 || (typeof _iprFestivo === 'function' && _iprFestivo(ds)),
+        real = oreReali(sc, opId, ds), add = 0, sub = 0, pre = imp.progettoInizio && ds < imp.progettoInizio, post = imp.progettoFine && ds > imp.progettoFine, ass = ((sc.giornate||{})[ds+'_'+opId]||'normale') !== 'normale';
+      R.forEach(function(r){ if(r.a === ds) add += r.ore; if(r.da === ds) sub += r.ore; });
+      h += '<div style="border:1px solid rgba(128,128,128,.35);border-radius:6px;padding:3px 4px;min-height:54px;background:'+(rosso ? 'rgba(198,40,40,.09)' : 'transparent')+';opacity:'+(post ? .5 : 1)+'"><div style="font-weight:700;color:'+(rosso ? '#c62828' : 'inherit')+'">'+g+(ass ? ' 🩺' : '')+'</div>'
+        + (real > 0.01 ? '<div>'+scFmtOreCent(real)+'h</div>' : '')
+        + (add > 0.01 ? '<div style="color:#2e7d32;font-weight:700">+'+scFmtOreCent(add)+'h</div>' : '')
+        + (sub > 0.01 ? '<div style="color:#e65100;font-weight:700">−'+scFmtOreCent(sub)+'h</div><div style="opacity:.7">restano '+scFmtOreCent(Math.max(0, real-sub))+'h</div>' : (pre && real > 0.01 ? '<div style="opacity:.7">da spostare</div>' : '')) + '</div>'; }
+    el.innerHTML = h + '</div>'; };
 
   window.rcRender = function(){ var el = document.getElementById('sc-tab-recupero'); if(!el) return; if(!puo()){ el.innerHTML = '<p class="text-muted">Sezione riservata agli amministratori.</p>'; return; }
     var sc = scGetDb(); if(!sc) return; var c = cfg(), imp = _scPortaleImp(), ops = scGetOperatori();
     function f(l, id, v, t, x){ return '<label style="font-size:12px;font-weight:700">'+l+'<br><input id="'+id+'" type="'+t+'" value="'+v+'" '+(x||'')+' class="form-control" style="max-width:135px" onchange="rcSalvaCfg()"></label>'; }
     function sel(id, v, onch, vuoto){ return '<select id="'+id+'" class="form-control" style="max-width:150px" onchange="'+onch+'">'+(vuoto ? '<option value="">Predefinita</option>' : '')+['veloce','media','lenta'].map(function(m){ return '<option value="'+m+'"'+(m === v ? ' selected' : '')+'>'+m[0].toUpperCase()+m.slice(1)+'</option>'; }).join('')+'</select>'; }
-    var h = '<div class="card" style="padding:16px;margin-bottom:14px"><h3 style="margin:0 0 6px">♻️ Recupero ore</h3><p class="text-muted" style="font-size:12px;margin:0 0 10px">Le ore timbrate prima dell\'inizio progetto ('+(imp.progettoInizio ? imp.progettoInizio : '<b>inizio non impostato</b>')+' → '+(imp.progettoFine ? imp.progettoFine : '<b>fine non impostata</b>')+') vengono spostate sui fogli firma dei mesi successivi. Le timbrature non vengono mai modificate. Esclusi sabato, domenica, festivi, malattia e permessi.</p><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">'
-      + f('Spalma dal mese','rc-dal',c.dal,'month')+f('Max ore/giorno','rc-mg',c.maxGiorno,'number','step="0.25" min="1"')+f('Max ore/settimana','rc-ms',c.maxSett,'number','step="0.5" min="1"')+f('Max giorni/sett.','rc-mgg',c.maxGg,'number','min="1" max="7"')+f('Ore/giorno "media"','rc-qm',c.qMedia,'number','step="0.25" min="0.25"')+f('Ore/giorno "lenta"','rc-ql',c.qLenta,'number','step="0.25" min="0.25"')
+    var h = '<div class="card" style="padding:16px;margin-bottom:14px"><h3 style="margin:0 0 6px">♻️ Recupero ore</h3><p class="text-muted" style="font-size:12px;margin:0 0 10px">Le ore timbrate prima dell\'inizio progetto ('+(imp.progettoInizio ? imp.progettoInizio : '<b>inizio non impostato</b>')+' → '+(imp.progettoFine ? imp.progettoFine : '<b>fine non impostata</b>')+') vengono spostate sui fogli firma dei mesi successivi. Le timbrature non vengono mai modificate. Le ore recuperate restano dentro l\'orario impostato. Esclusi sabato, domenica, festivi, malattia e permessi.</p><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">'
+      + f('Spalma dal mese','rc-dal',c.dal,'month')+f('Max ore/giorno','rc-mg',c.maxGiorno,'number','step="0.25" min="1"')+f('Max ore/settimana','rc-ms',c.maxSett,'number','step="0.5" min="1"')+f('Max giorni/sett.','rc-mgg',c.maxGg,'number','min="1" max="7"')+f('Orario da','rc-od',c.oraDa,'time')+f('a','rc-oa',c.oraA,'time')+f('Ore/giorno "media"','rc-qm',c.qMedia,'number','step="0.25" min="0.25"')+f('Ore/giorno "lenta"','rc-ql',c.qLenta,'number','step="0.25" min="0.25"')
       + '<label style="font-size:12px;font-weight:700">Modalità (veloce = fino al massimo giornaliero)<br>'+sel('rc-mod', c.mod, 'rcSalvaCfg()', false)+'</label></div></div>';
     ops.forEach(function(op){ var id = op.id, nome = ((op.cognome||'')+' '+(op.nome||'')).trim(), R = righe(id), mag = magazzino(id, R), da = mag.reduce(function(s,x){ return s+x.ore; }, 0), fatte = R.reduce(function(s,r){ return s+r.ore; }, 0), om = (((sc.recupero||{}).ops||{})[id]||{}).mod || '';
       h += '<div class="card" style="padding:14px;margin-bottom:10px"><div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between"><b style="font-size:15px">'+escapeHtml(nome)+'</b><span style="font-size:12px">Già recuperate: <b>'+scFmtOreCent(fatte)+'h</b> · Ancora da recuperare: <b style="color:'+(da > 0.01 ? '#c62828' : '#2e7d32')+'">'+scFmtOreCent(da)+'h</b></span></div>'
         + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:10px"><label style="font-size:12px;font-weight:700">Mese<br><input type="month" class="form-control" style="max-width:150px" value="'+ymDi(id)+'" onchange="rcMese(\''+id+'\',this.value)"></label>'
         + '<label style="font-size:12px;font-weight:700">Modalità<br>'+sel('rc-m-'+id, om, 'rcModOp(\''+id+'\',this.value)', true)+'</label>'
-        + '<button type="button" class="btn btn-outline btn-sm" onclick="rcAnteprima(\''+id+'\')">👁️ Anteprima</button><button type="button" class="btn btn-sm" onclick="rcApplica(\''+id+'\')">✅ Applica e salva</button><button type="button" class="btn btn-outline btn-sm" onclick="rcElimina(\''+id+'\')">🗑️ Elimina spalmatura mese</button></div>'
+        + '<button type="button" class="btn btn-outline btn-sm" onclick="rcAnteprima(\''+id+'\')">👁️ Anteprima</button><button type="button" class="btn btn-outline btn-sm" onclick="rcCalendario(\''+id+'\',true)">📅 Calendario</button><button type="button" class="btn btn-sm" onclick="rcApplica(\''+id+'\')">✅ Applica e salva</button><button type="button" class="btn btn-outline btn-sm" onclick="rcElimina(\''+id+'\')">🗑️ Elimina spalmatura mese</button></div>'
         + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><span style="font-size:12px;font-weight:700;align-self:center">Foglio firme:</span><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',false,false)">🖨️ Senza ore spalmate</button><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',false,true)">⬇️ PDF senza</button><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',true,false)">🖨️ Con ore spalmate</button><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',true,true)">⬇️ PDF con</button></div>'
-        + '<div id="rc-prev-'+id+'" style="font-size:12px;margin-top:8px"></div></div>'; });
-    el.innerHTML = h; };
+        + '<div id="rc-prev-'+id+'" style="font-size:12px;margin-top:8px"></div><div id="rc-cal-'+id+'"></div></div>'; });
+    el.innerHTML = h; Object.keys(_calOn).forEach(function(k){ if(_calOn[k]) window.rcCalendario(k); }); };
 
   /* ── visibilità: solo Admin e Responsabile Generale (voce di menu e scheda) ── */
   function vis(){ ['sb-scu-recupero','sc-tab-btn-recupero'].forEach(function(id){ var e = document.getElementById(id); if(!e) return; if(puo()) e.style.removeProperty('display'); else e.style.setProperty('display','none','important'); }); }
