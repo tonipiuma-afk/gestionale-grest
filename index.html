@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 11:35</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -13132,6 +13132,11 @@ table tbody tr:hover{
             <label style="font-size:12px;font-weight:700">Fine<br><input type="date" id="sc-imp-prog-fine" class="form-control" style="max-width:170px"></label>
             <button type="button" class="btn btn-teal btn-sm" onclick="scPortaleSalvaDate()">Salva date</button>
           </div>
+        </div>
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border,#e0e0e0)">
+          <div style="font-weight:800">📅 Giorni minimi a settimana</div>
+          <div class="text-muted" style="font-size:12px;margin-bottom:8px">Ogni volontario deve avere almeno questi giorni di servizio in ogni settimana (su 7, da lunedì a domenica). Malattia e permessi contano come giorni; ogni festivo abbassa il minimo di uno. Nel foglio firme le settimane sotto il minimo vengono segnalate, e il recupero ore riempie per primi i giorni feriali vuoti.</div>
+          <label style="font-size:12px;font-weight:700">Giorni<br><input type="number" id="sc-imp-min-gg" min="1" max="7" value="5" class="form-control" style="max-width:90px" onchange="rcSalvaMinGg(this.value)"></label>
         </div>
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border,#e0e0e0)">
           <div style="font-weight:800">📣 Comunicazione ai ragazzi</div>
@@ -57447,7 +57452,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 11:35 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -90100,25 +90105,51 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     return r;
   }
 
-  /* fut = true solo per la stima: per i piani veri si usano soltanto i giorni già passati (timbrature definitive) */
+  /* ── regola generale "giorni minimi a settimana" (su 7, lunedì–domenica): malattia e permessi contano, ogni festivo non domenicale abbassa il minimo di 1 ── */
+  function minGg(){ var v = parseInt(_scPortaleImp().minGiorniSett); return isNaN(v) ? 5 : v; }
+  function festivoFeriale(ds){ return new Date(ds+'T12:00:00').getDay() !== 0 && typeof _iprFestivo === 'function' && !!_iprFestivo(ds); }
+  function piuGiorni(ds, n){ var d = new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n); return scDataLocale(d); }
+  function oreGiornoOp(opId){ var v = ((scGetDb() || {}).oreGiornaliere || {})[opId]; return parseFloat(v) || 5; }
+  /* Settimane del mese (intere, già finite, dentro il servizio) con meno giorni del minimo, come risultano sul foglio firme con le ore recuperate */
+  function settimaneCorte(opId, ym){ var sc = scGetDb(), D = dateOp(opId), out = [], oggi = scDataLocale(new Date()), M = minGg(); if(!D.ini || !sc) return out;
+    var fineMese = ym+'-'+String(new Date(+ym.slice(0,4), +ym.slice(5,7), 0).getDate()).padStart(2,'0');
+    for(var l = lun(ym+'-01'); l <= fineMese; l = piuGiorni(l, 7)){ var dom = piuGiorni(l, 6); if(l < D.ini || (D.fine && dom > D.fine) || dom >= oggi) continue;
+      var g = 0, f = 0; for(var i=0;i<7;i++){ var d = piuGiorni(l, i); if(festivoFeriale(d)) f++; if(giornata(sc, opId, d) !== 'normale' || oreReali(sc, opId, d) + delta(sc, opId, d) > 0.01) g++; }
+      if(g < M - f) out.push({lun:l, dom:dom, g:g, min:M - f}); }
+    return out; }
+  function fmtSett(w){ return fmtDs(w.lun)+'–'+fmtDs(w.dom)+' ('+w.g+' su '+w.min+')'; }
+
+  /* fut = true solo per la stima: per i piani veri si usano soltanto i giorni già passati (timbrature definitive);
+     nella stima i giorni futuri feriali valgono come giornate normali da "ore/giorno" del volontario */
   function pianifica(opId, ym, R, mod, fut){
     var sc = scGetDb(), c = cfg(), D = dateOp(opId), ini = D.ini, fine = D.fine; if(!ini || !fine) return null;
     var mag = magazzino(opId, R), out = []; if(!mag.length || (c.dal && ym < c.dal)) return out;
-    var q = mod === 'veloce' ? 99 : (mod === 'lenta' ? c.qLenta : c.qMedia), week = {};
-    function eff(ds){ var o = oreReali(sc, opId, ds); R.concat(out).forEach(function(r){ if(r.a === ds) o += r.ore; if(r.da === ds) o -= r.ore; }); return o; }
-    function wk(l){ if(week[l]) return week[l]; var g = 0, o = 0; for(var i=0;i<7;i++){ var d = new Date(l+'T12:00:00'); d.setDate(d.getDate()+i); var e = eff(scDataLocale(d)); if(e > 0.01){ g++; o += e; } } return week[l] = {g:g, o:o}; }
-    var n = new Date(+ym.slice(0,4), +ym.slice(5,7), 0).getDate(), oggi = scDataLocale(new Date());
-    for(var g=1; g<=n && mag.length; g++){
-      var ds = ym+'-'+String(g).padStart(2,'0'); if(ds < ini || ds > fine) continue;
-      if(!fut && ds >= oggi) continue;                                              // oggi e i giorni futuri: non ancora definitivi
-      if(rosso(ds)) continue;                                                       // sabato, domenica, festivi
-      if(giornata(sc, opId, ds) !== 'normale') continue;                            // malattia/permessi
+    var q = mod === 'veloce' ? 99 : (mod === 'lenta' ? c.qLenta : c.qMedia), week = {}, oggi = scDataLocale(new Date()), og = oreGiornoOp(opId), M = minGg();
+    function base(ds){ if(fut && ds >= oggi) return (ds >= ini && ds <= fine && !rosso(ds) && giornata(sc, opId, ds) === 'normale') ? og : 0; return oreReali(sc, opId, ds); }
+    function eff(ds){ var o = base(ds); R.concat(out).forEach(function(r){ if(r.a === ds) o += r.ore; if(r.da === ds) o -= r.ore; }); return o; }
+    function wk(l){ if(week[l]) return week[l]; var g = 0, o = 0; for(var i=0;i<7;i++){ var e = eff(piuGiorni(l, i)); if(e > 0.01){ g++; o += e; } } return week[l] = {g:g, o:o}; }
+    function ok(ds){ return ds >= ini && ds <= fine && (fut || ds < oggi) && !rosso(ds) && giornata(sc, opId, ds) === 'normale'; }   // esclusi sab/dom, festivi, malattia/permessi, oggi e futuro
+    function prendi(ds, cap, W){ var vuoto = eff(ds) < 0.01, need = cap;
+      while(need > 0.001 && mag.length){ var s = mag[0], t = Math.min(need, s.ore); out.push({da:s.ds, a:ds, ore:t}); s.ore -= t; need -= t; if(s.ore < 0.01) mag.shift(); }
+      var dato = cap - need; if(dato > 0){ if(vuoto) W.g++; W.o += dato; } }
+    var n = new Date(+ym.slice(0,4), +ym.slice(5,7), 0).getDate(), sett = {}, g, ds;
+    for(g=1; g<=n; g++) sett[lun(ym+'-'+String(g).padStart(2,'0'))] = 1;
+    // 1) prima le settimane sotto il minimo di giorni: i giorni feriali vuoti (senza malattia/permessi) diventano giornate di recupero da "ore/giorno"
+    Object.keys(sett).sort().forEach(function(l){ if(!mag.length) return; var dom = piuGiorni(l, 6); if(l < ini || dom > fine || dom >= oggi) return;
+      var giorni = 0, fest = 0, cand = [];
+      for(var i=0;i<7;i++){ var d = piuGiorni(l, i); if(festivoFeriale(d)) fest++; if(giornata(sc, opId, d) !== 'normale' || eff(d) > 0.01) giorni++; else if(d.slice(0,7) === ym && ok(d)) cand.push(d); }
+      var manca = M - fest - giorni;
+      cand.forEach(function(d){ if(manca <= 0 || !mag.length) return; var m = margini(sesGiorno(sc, opId, d), c); if(!m) return; var W = wk(l);
+        var cap = Math.floor(Math.min(og, c.maxGiorno, c.maxSett - W.o, m.tot/60) * 4) / 4; if(cap < 0.25) return; prendi(d, cap, W); manca--; });
+    });
+    // 2) poi la distribuzione normale col ritmo scelto
+    for(g=1; g<=n && mag.length; g++){
+      ds = ym+'-'+String(g).padStart(2,'0'); if(!ok(ds)) continue;
       var e = eff(ds), W = wk(lun(ds)); if(e < 0.01 && W.g >= c.maxGg) continue;
       var m = margini(sesGiorno(sc, opId, ds), c); if(!m) continue;
-      var aggi = e - oreReali(sc, opId, ds), capW = m.tot/60 - aggi;               // spazio nella finestra oraria (prima e/o dopo)
+      var b = base(ds), capW = m.tot/60 - (m.vuoto ? b : 0) - (e - b);                // spazio nella finestra oraria (prima e/o dopo)
       var cap = Math.floor(Math.min(c.maxGiorno - e, c.maxSett - W.o, q, capW) * 4) / 4; if(cap < 0.25) continue;
-      var need = cap; while(need > 0.001 && mag.length){ var s = mag[0], t = Math.min(need, s.ore); out.push({da:s.ds, a:ds, ore:t}); s.ore -= t; need -= t; if(s.ore < 0.01) mag.shift(); }
-      var dato = cap - need; if(dato > 0){ if(e < 0.01) W.g++; W.o += dato; }
+      prendi(ds, cap, W);
     }
     return out;
   }
@@ -90167,8 +90198,8 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   // ogni foglio aperto dai menu normali riparte "con ore spalmate"; solo i pulsanti "senza" di questa pagina lo spengono,
   // e il valore resta finché il foglio non è finito (niente più timer di 8 secondi)
   var oPDF = scScaricaFoglioFirmaPDF, oHTML = _scStampaFoglioFirmaHTML;
-  scScaricaFoglioFirmaPDF = function(){ if(!_rcPriv) window._rcSpalma = true; return oPDF.apply(this, arguments); };
-  _scStampaFoglioFirmaHTML = function(){ if(!_rcPriv) window._rcSpalma = true; return oHTML.apply(this, arguments); };
+  scScaricaFoglioFirmaPDF = function(ops, mese, anno){ if(!_rcPriv) window._rcSpalma = true; if(window._rcSpalma && !avvisoCorte(ops, mese, anno)) return; return oPDF.apply(this, arguments); };
+  _scStampaFoglioFirmaHTML = function(ops, mese, anno){ if(!_rcPriv) window._rcSpalma = true; if(window._rcSpalma && !avvisoCorte(ops, mese, anno)) return; return oHTML.apply(this, arguments); };
   function foglio(ops, ym, con, pdf){ var mese = +ym.slice(5,7)-1, anno = +ym.slice(0,4); _rcPriv = true; window._rcSpalma = !!con;
     try{ if(pdf) scScaricaFoglioFirmaPDF(ops, mese, anno); else _scStampaFoglioFirmaHTML(ops, mese, anno); }catch(e){ console.warn('[recupero]', e); } finally { _rcPriv = false; } }
   var origTab = _scSwitchTabCorpo;
@@ -90275,7 +90306,8 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   function info(op, ym){ var id = op.id, P = piani(), saved = P[id+'|'+ym], R = righe(id), fatte = somma(R), da = somma(magazzino(id, R)), tot = fatte + da, mod = modOp(id), pb = problemi(id);
     var prev = saved ? null : (pianifica(id, ym, righe(id, ym), mod) || []), oreMese = saved ? somma(saved) : somma(prev || []);
     var st = pb[ym] ? 'wa' : (saved ? 'ok' : (prev && prev.length ? 'da' : 'no'));
-    return {id:id, op:op, nome:((op.cognome||'')+' '+(op.nome||'')).trim(), saved:saved, prev:prev, oreMese:oreMese, fatte:fatte, da:da, tot:tot, mod:mod, pb:pb, st:st, stima:tot > 0.01 ? stima(id, mod) : 0}; }
+    var corte = settimaneCorte(id, ym);
+    return {corte:corte, id:id, op:op, nome:((op.cognome||'')+' '+(op.nome||'')).trim(), saved:saved, prev:prev, oreMese:oreMese, fatte:fatte, da:da, tot:tot, mod:mod, pb:pb, st:st, stima:tot > 0.01 ? stima(id, mod) : 0}; }
   function chip(x, ym){ var nm = nomeMese(ym);
     if(x.st === 'wa') return '<span class="rc-chip c-wa">⚠️ Da ricalcolare</span>';
     if(x.st === 'ok') return '<span class="rc-chip c-ok">Salvato</span>';
@@ -90309,6 +90341,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       + '<div class="rc-sub">'+(x.oreMese > 0.01 ? cap1(nm)+': <b>+'+fh(x.oreMese)+'h</b> recuperate su '+Object.keys(giorni).length+' giorni ('+stato+') · ' : '')+(dateOp(id).pers ? 'servizio personale '+dateOp(id).ini.split('-').reverse().join('/')+' → '+(dateOp(id).fine||'?').split('-').reverse().join('/')+' · ' : '')+(x.tot > 0.01 ? 'ne restano <b>'+fh(dopo)+'h</b> da recuperare nei mesi dopo' : 'nessuna ora fatta prima del progetto')+'</div></div>'
       + '<div class="rc-fl"><span class="rc-sub" style="margin:0">Ritmo</span><select class="form-control" style="max-width:190px" onchange="rcModOp(\''+id+'\',this.value)"><option value="">Predefinito ('+cap1(cfg().mod)+')</option>'+['veloce','media','lenta'].map(function(m){ var om = (((scGetDb().recupero||{}).ops||{})[id]||{}).mod; return '<option value="'+m+'"'+(om === m ? ' selected' : '')+'>'+cap1(m)+'</option>'; }).join('')+'</select>'+btn+'</div></div>';
     var pk = Object.keys(x.pb).sort(); if(pk.length) h += '<div class="rc-warn">'+pk.map(function(m){ return '<div style="margin:2px 0">⚠️ <b>'+nomeMeseAnno(m)+'</b>: '+x.pb[m].map(escapeHtml).join('; ')+' <button type="button" class="rc-btn o" style="padding:3px 9px;font-size:11px;margin-left:4px" onclick="rcRicalcola(\''+id+'\',\''+m+'\')">🔄 Ricalcola da qui</button></div>'; }).join('')+'</div>';
+    if(x.corte.length) h += '<div class="rc-warn" style="color:#b45309;background:#fffbeb;border-color:#fde68a">📅 Nel foglio di '+nm+' ci sono settimane con meno di '+minGg()+' giorni di servizio: <b>'+x.corte.map(fmtSett).join(', ')+'</b>'+(x.da > 0.01 ? '. Se ci sono giorni feriali vuoti, il recupero li riempie per primi (salva o ricalcola il mese).' : '.')+'</div>';
     if(ym >= scDataLocale(new Date()).slice(0,7)) h += '<div class="rc-sub" style="margin-top:8px;color:#1d4ed8">ℹ️ '+cap1(nm)+' non è ancora finito: si recuperano solo i giorni fino a ieri. A fine mese usa "Ricalcola" per completarlo.</div>';
     h += calHtml(id, ym, x.saved ? [] : (x.prev || []));
     h += '<div class="rc-fl" style="justify-content:space-between;margin-top:12px;border-top:1px solid var(--border,#e2e8f0);padding-top:12px"><div class="rc-fl"><b>Foglio firme '+nm+'</b>'
@@ -90345,11 +90378,13 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     // numeri del mese
     h += '<div class="rc-kpi"><div class="rc-k"><b>'+nCon+'</b><span>Volontari con ore da recuperare</span></div><div class="rc-k"><b style="color:#16a34a">'+nOk+'</b><span>'+cap1(nm)+' salvato</span></div><div class="rc-k"><b style="color:#b45309">'+nDa+'</b><span>'+cap1(nm)+' da salvare</span></div><div class="rc-k"><b style="color:'+(nWa ? '#dc2626' : 'inherit')+'">'+nWa+'</b><span>Da ricalcolare</span></div></div>';
 
+    var nCorte = X.filter(function(x){ return x.corte.length; }).length;
+    if(nCorte) h += '<div class="rc-warn" style="margin:0 0 12px;color:#b45309;background:#fffbeb;border-color:#fde68a">📅 <b>'+nCorte+(nCorte === 1 ? ' volontario ha' : ' volontari hanno')+'</b> settimane di '+nm+' con meno di '+minGg()+' giorni di servizio nel foglio firme (icona 📅 nella tabella).</div>';
     // tabella
     h += '<div class="rc-card" style="padding:6px 12px 14px"><div class="rc-row rc-head"><div>Volontario</div><div>Avanzamento</div><div>'+cap1(nm)+'</div><div>Ore del mese</div><div>Fine progetto</div><div></div></div>';
     if(!X.length) h += '<div class="rc-sub" style="padding:14px 8px">Nessun volontario in questo programma.</div>';
     X.forEach(function(x){ var pc = x.tot > 0.01 ? Math.round(x.fatte / x.tot * 100) : 0, sel = _sel === x.id;
-      h += '<div class="rc-row'+(sel ? ' sel' : '')+'" onclick="rcSel(\''+x.id+'\')"><div class="nm"><b>'+escapeHtml(x.nome)+'</b>'+(Object.keys(x.pb).length && x.st !== 'wa' ? ' <span title="Altri mesi da ricalcolare">⚠️</span>' : '')+'</div>'
+      h += '<div class="rc-row'+(sel ? ' sel' : '')+'" onclick="rcSel(\''+x.id+'\')"><div class="nm"><b>'+escapeHtml(x.nome)+'</b>'+(Object.keys(x.pb).length && x.st !== 'wa' ? ' <span title="Altri mesi da ricalcolare">⚠️</span>' : '')+(x.corte.length ? ' <span title="Settimane sotto i '+minGg()+' giorni: '+x.corte.map(fmtSett).join(', ')+'">📅</span>' : '')+'</div>'
         + '<div class="av" style="display:flex;align-items:center;gap:8px">'+(x.tot > 0.01 ? '<span class="rc-bar"><i style="width:'+pc+'%'+(x.da < 0.01 ? ';background:#16a34a' : '')+'"></i></span><span style="white-space:nowrap">'+fh(x.fatte)+' / '+fh(x.tot)+'h</span>' : '<span class="text-muted">—</span>')+'</div>'
         + '<div>'+chip(x, ym)+'</div><div><span class="lbl">Ore del mese</span>'+(x.oreMese > 0.01 ? '+'+fh(x.oreMese)+'h' : '<span class="text-muted">—</span>')+'</div><div><span class="lbl">Fine progetto</span>'+fineHtml(x)+'</div><div class="x" style="color:var(--teal,#2563eb)">'+(sel ? '▾' : '▸')+'</div></div>';
       if(sel) h += detHtml(x, ym); });
@@ -90386,6 +90421,22 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       if(tot < 0.01) return h; sp = Math.min(sp, tot); var resta = tot - sp, col = resta < 0.01 ? ['#f0fdf4','#15803d'] : (sp > 0.01 ? ['#fffbeb','#b45309'] : ['#fef2f2','#b91c1c']);
       return '<div onclick="rcApriVolontario(\''+opId+'\')" title="Apri Ore recuperate" style="cursor:pointer;background:'+col[0]+';color:'+col[1]+';border-radius:10px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:8px">♻️ '+(mese ? cap1(MESI[+mese.slice(5,7)-1])+' (prima del progetto)' : 'Ore prima del progetto')+': '+fh(tot)+'h timbrate · '+fh(sp)+'h spostate sui fogli dei mesi dopo · '+(resta < 0.01 ? 'tutte recuperate' : fh(resta)+'h da recuperare')+'</div>' + h;
     }catch(e){ return h; } };
+
+  /* ── avvisi "settimane sotto il minimo": Fogli firma, scarico/stampa, impostazione generale ── */
+  function avvisoCorte(ops, mese, anno){ try{ if(!puo()) return true; reset(); var ym = anno+'-'+String(mese+1).padStart(2,'0'), rr = [];
+      (ops||[]).forEach(function(o){ var w = settimaneCorte(o.id, ym); if(w.length) rr.push('• '+((o.cognome||'')+' '+(o.nome||'')).trim()+': '+w.map(fmtSett).join(', ')); });
+      if(!rr.length) return true;
+      return confirm('Attenzione: nel foglio firme di '+nomeMeseAnno(ym)+' ci sono settimane con meno di '+minGg()+' giorni di servizio (malattia e permessi contano, i festivi abbassano il minimo):\n\n'+rr.slice(0,12).join('\n')+(rr.length > 12 ? '\n… e altri '+(rr.length-12) : '')+'\n\nContinuo lo stesso?');
+    }catch(e){ return true; } }
+  if(typeof scRenderFogli === 'function'){ var oFF = scRenderFogli; scRenderFogli = function(){ var r = oFF.apply(this, arguments);
+      try{ if(puo()){ reset(); var ym = _scFFym();
+        document.querySelectorAll('#sc-fogli-body button[onclick^="scFFScaricaUno("]').forEach(function(b){ var m = /scFFScaricaUno\('([^']+)'/.exec(b.getAttribute('onclick')||''); if(!m) return; var w = settimaneCorte(m[1], ym); if(!w.length) return;
+          var row = b.parentNode && b.parentNode.parentNode, info = row && row.children[1]; if(!info) return;
+          var d = document.createElement('div'); d.style.cssText = 'font-size:11.5px;font-weight:700;color:#b45309;margin-top:3px'; d.textContent = '📅 Settimane sotto i '+minGg()+' giorni: '+w.map(fmtSett).join(', '); info.appendChild(d); }); } }catch(e){ console.warn('[recupero]', e); }
+      return r; }; }
+  window.rcSalvaMinGg = function(v){ var n = parseInt(v); if(isNaN(n) || n < 1 || n > 7){ showToast('Inserisci un numero da 1 a 7','warning'); return; } _scPortaleImp().minGiorniSett = n; saveStorage(); showToast('✅ Giorni minimi a settimana: '+n,'success'); };
+  if(typeof _scPortaleRenderExtra === 'function'){ var oExtra = _scPortaleRenderExtra; _scPortaleRenderExtra = function(){ var r = oExtra.apply(this, arguments);
+      try{ var i = document.getElementById('sc-imp-min-gg'); if(i) i.value = minGg(); }catch(e){} return r; }; }
 
   /* ── visibilità: solo Admin e Responsabile Generale (voce di menu e scheda) ── */
   function vis(){ ['sb-scu-recupero','sc-tab-btn-recupero'].forEach(function(id){ var e = document.getElementById(id); if(!e) return; if(puo()) e.style.removeProperty('display'); else e.style.setProperty('display','none','important'); }); }
