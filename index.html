@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 10:08</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -9783,6 +9783,10 @@ table tbody tr:hover{
   <div class="sb-group" id="sbg-scu-conf" data-area="scu">
     <div class="sb-group-header">⚙️ CONFIGURAZIONE<span class="sb-group-arrow">▼</span></div>
     <div class="sb-group-items" id="sbgi-scu-conf">
+      <a onclick="scuVai('recupero')" data-sctab="recupero" id="sb-scu-recupero" style="display:none !important">
+        <svg class="sico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+        RECUPERO ORE
+      </a>
       <a onclick="scuVai('impostazioni')" data-sctab="impostazioni">
         <svg class="sico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         IMPOSTAZIONI
@@ -12964,6 +12968,10 @@ table tbody tr:hover{
       <span style="font-size:18px">📝</span>
       <span class="sc-tab-label">Fogli firma</span>
     </button>
+    <button type="button" class="sc-tab" id="sc-tab-btn-recupero" style="display:none !important" onclick="scSwitchTab('recupero',this)">
+      <span style="font-size:18px">♻️</span>
+      <span class="sc-tab-label">Recupero ore</span>
+    </button>
     <button type="button" class="sc-tab" id="sc-tab-btn-impostazioni" onclick="scSwitchTab('impostazioni',this)">
       <span style="font-size:18px">⚙️</span>
       <span class="sc-tab-label">Impostazioni</span>
@@ -13036,6 +13044,7 @@ table tbody tr:hover{
   </div>
 
   <!-- TAB: FOGLI FIRMA -->
+  <div id="sc-tab-recupero" class="tab-content" style="display:none"></div>
   <div id="sc-tab-fogli" class="tab-content" style="display:none">
     <div id="sc-fogli-body"></div>
     <details id="sc-ff-modello-box" style="margin-top:16px">
@@ -57438,7 +57447,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 10:08 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -90036,111 +90045,113 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
 })();
 </script>
 
-<script id="recupero-interno-v2">
+<script id="recupero-ore">
+/* ═══ RECUPERO ORE SCU — spalmatura delle ore pre-progetto sui fogli firma (solo Admin / Resp. Generale)
+   Le timbrature NON vengono mai modificate: gli spostamenti stanno in sc.recupero.piani['opId|YYYY-MM'] = [{da,a,ore}]. ═══ */
 (function(){
-'use strict';
-var base=_scDatiGiorno, cache={};
-var e=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
-var min=function(h){return Math.max(0,Math.round((+h||0)*60));};
-function settings(sc,id){return Object.assign({attivo:false,giorno:6,settimana:30,velocita:'media'},(sc.impostazioni||{})['recuperoInterno_'+id]||{});}
-function week(ds){var d=new Date(ds+'T12:00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function hh(n){return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
-function clock(s){var a=String(s||'').split(':');return (+a[0])*60+(+a[1]);}
-window.scRecuperoPiano=function(sc,id){
- var c=settings(sc,id),dates=sc.dateServizio||{},start=dates[id+'_inizio'],end=dates[id+'_fine'];
- var sig=JSON.stringify([c,dates,sc.timbrature&&sc.timbrature[id],sc.giornate,sc.impostazioni,scArrotondaAttivo()]);
- if(cache[id]&&cache[id].sig===sig)return cache[id].p;
- var p={giorni:{},righe:[],fonti:[],iniziali:0,inseriti:0,residuo:0,errore:'',attivo:c.attivo};
- function done(){p.residuo=p.iniziali-p.inseriti;cache[id]={sig:sig,p:p};return p;}
- if(!/^\d{4}-\d{2}-\d{2}$/.test(start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(end||'')||start>end){p.errore='Imposta inizio e fine ufficiali nella scheda del volontario.';return done();}
- var days={},weeks={}, targets=[];((sc.timbrature||{})[id]||[]).forEach(function(t){if(t&&t.ts)days[t.ts.slice(0,10)]=1;});
- Object.keys(sc.giornate||{}).forEach(function(k){if(k.endsWith('_'+id))days[k.slice(0,10)]=1;});
- Object.keys(days).sort().forEach(function(ds){var sessions=_scSessioniValide(_scTimbrGiorno(sc,id,ds)), rows=[],sum=0;for(var i=0;i<Math.max(2,sessions.length);i++){var r=base(sc,{id:id},ds,i);rows.push(r?Object.assign({},r):null);if(r)sum+=min(r.ore);}
- if(ds<start||ds>end){sessions.forEach(function(s,i){if(s.entrata&&s.uscita){var n=min(_scOreSessione(s));if(n){p.fonti.push({data:ds,sessione:i,minuti:n,usati:0,post:ds>end});p.iniziali+=n;}}});}
- else {weeks[week(ds)]=(weeks[week(ds)]||0)+sum;var idx=sessions.length-1,last=rows[idx];if(idx>=0&&idx<2&&last&&!last.assenza&&last.entrata&&last.uscita&&sessions.every(function(s){return s.entrata&&s.uscita;}))targets.push({data:ds,rows:rows,idx:idx,minuti:sum});}
- });
- if(!c.attivo)return done();
- if(!(c.giorno>0&&c.giorno<=24&&c.settimana>0&&c.settimana<=168)){p.errore='Controlla i limiti giornalieri e settimanali.';return done();}
- var rate={lenta:30,media:60,veloce:120}[c.velocita]||60;
- function distribute(post){var list=p.fonti.filter(function(s){return s.post===post;});var ts=post?targets.slice().reverse():targets;
- ts.forEach(function(t){var prior=p.giorni[t.data],rs=prior||t.rows.map(function(r){return r?Object.assign({},r):null;}),r=rs[t.idx],cap=Math.min(min(c.giorno)-t.minuti,min(c.settimana)-(weeks[week(t.data)]||0),rate-(t.extra||0),1439-clock(r.uscita));
- list.forEach(function(src){var take=Math.max(0,Math.min(cap,src.minuti-src.usati));if(!take)return;src.usati+=take;cap-=take;t.extra=(t.extra||0)+take;t.minuti+=take;weeks[week(t.data)]+=take;p.inseriti+=take;r.ore=(min(r.ore)+take)/60;r.uscita=hh(clock(r.uscita)+take);p.giorni[t.data]=rs;p.righe.push({origine:src.data,sessione:src.sessione,destinazione:t.data,minuti:take,post:post});});});}
- distribute(false);distribute(true);return done();
-};
-window._scDatiGiorno=function(sc,op,ds,idx){var p=scRecuperoPiano(sc,op.id),r=base(sc,op,ds,idx);if(!p.attivo||p.errore)return r;
- if(p.giorni[ds])return p.giorni[ds][idx]||null;
- // Sottrai dalle sessioni di origine solo i minuti effettivamente trasferiti.
- var src=p.fonti.find(function(x){return x.data===ds&&x.sessione===idx;});if(!src||!src.usati||!r)return r;
- var left=src.minuti-src.usati;if(!left)return null;return Object.assign({},r,{ore:left/60,uscita:hh(clock(r.entrata)+left)});
-};
-window.scRecuperoSalva=function(id,root){var sc=scGetDb(),read=function(k){return root.querySelector('[name="'+k+'"]').value;},g=+read('giorno'),w=+read('settimana');if(!(g>0&&g<=24&&w>0&&w<=168)){showToast('Controlla i limiti: giorno 0–24, settimana 0–168','warning');return;}if(!sc.impostazioni)sc.impostazioni={};sc.impostazioni['recuperoInterno_'+id]={attivo:root.querySelector('[name="attivo"]').checked,giorno:g,settimana:w,velocita:read('velocita')};cache={};saveStorage();scRenderFogli();showToast('Recupero aggiornato: rigenera i PDF dei mesi interessati','success');};
-function stats(sc,id,p){var c=settings(sc,id),dates=sc.dateServizio||{},start=dates[id+'_inizio'],end=dates[id+'_fine'],tot=0,weeks={};Object.keys(p.giorni).forEach(function(ds){/* il totale sottostante include già le ore anticipate: non sommarle nuovamente */});
- var dsSet={};((sc.timbrature||{})[id]||[]).forEach(function(t){if(t&&t.ts)dsSet[t.ts.slice(0,10)]=1;});Object.keys(dsSet).forEach(function(ds){if(ds>=start&&ds<=end){var n=0;for(var i=0;i<2;i++){var r=base(sc,{id:id},ds,i);if(r)n+=min(r.ore);}tot+=n;weeks[week(ds)]=(weeks[week(ds)]||0)+n;}});
- var monte=min((sc.monteOre||{})[id]||sc.monteOreDefault||1044),remaining=Math.max(0,monte-tot-p.iniziali-min((sc.orePrec||{})[id]||0)),keys=Object.keys(weeks),avg=keys.length?Math.min(min(c.settimana),tot/keys.length):0,finish='non disponibile';if(!remaining)finish='monte ore raggiunto';else if(avg){var d=new Date();d.setDate(d.getDate()+Math.ceil(remaining/avg*7));finish=d.toLocaleDateString('it-IT');}
- var rate={lenta:30,media:60,veloce:120}[c.velocita],eligible=Object.keys(p.giorni).length,mean=eligible?p.inseriti/eligible:0;
- return '<p>Monte ore residuo stimato: <b>'+scFmtOre(remaining/60)+'</b> · Media registrata: '+scFmtOre(avg/60)+'/settimana · Fine prevista: <b>'+e(finish)+'</b>.</p><p>Saldo da distribuire: '+(p.residuo? (mean?'circa '+Math.ceil(p.residuo/mean)+' ulteriori giornate con capienza':'previsione non disponibile, servono giornate con capienza'):'completato')+'. Le previsioni dipendono dalle presenze future; termine ufficiale '+e(end||'non impostato')+'.</p>';
-}
-function panel(){var sc=scGetDb()||{};return '<details open style="padding:16px;margin:12px 0;border:1px solid var(--border);border-radius:14px"><summary style="font-weight:900;cursor:pointer">Recupero ore — progetto interno</summary><p>Il foglio firma allunga l’uscita usando le ore fuori periodo. Le quote inserite vengono sottratte dai fogli di origine. Le timbrature originali restano memorizzate. Settimana: lunedì–domenica. Si usano solo giornate complete già timbrate; nessun inserimento su giornate assenti o future senza timbrature.</p><p>Lenta: fino a 30 minuti per giornata. Media: fino a 1 ora. Veloce: fino a 2 ore. Valgono sempre i limiti giornalieri e settimanali. Le ore successive alla fine si distribuiscono dall’ultima giornata all’indietro.</p>'+_scFFOps().map(function(op){var c=settings(sc,op.id),p=scRecuperoPiano(sc,op.id);return '<section data-rec-id="'+e(op.id)+'" style="border-top:1px solid var(--border);padding:12px 0"><b>'+e((op.cognome||'')+' '+(op.nome||''))+'</b><p><label><input name="attivo" type="checkbox" '+(c.attivo?'checked':'')+'> Attiva recupero sui fogli firma</label></p><label>Massimo ore al giorno <input name="giorno" type="number" min="0.25" max="24" step="0.25" value="'+e(c.giorno)+'"></label> <label>Massimo ore a settimana <input name="settimana" type="number" min="0.25" max="168" step="0.25" value="'+e(c.settimana)+'"></label> <label>Distribuzione <select name="velocita">'+['lenta','media','veloce'].map(function(v){return '<option '+(v===c.velocita?'selected':'')+'>'+v+'</option>';}).join('')+'</select></label> <button type="button" data-rec-save>Salva e ricalcola</button>'+(p.errore?'<p>'+e(p.errore)+'</p>':'<p>Ore fuori periodo: <b>'+scFmtOre(p.iniziali/60)+'</b> · Già inserite nei fogli: <b>'+scFmtOre(p.inseriti/60)+'</b> · Ancora da distribuire: <b>'+scFmtOre(p.residuo/60)+'</b></p>'+stats(sc,op.id,p)+'<details><summary>Dettaglio ore di origine e trasferimenti</summary><div style="max-height:350px;overflow:auto"><table style="width:100%"><tr><th>Origine</th><th>Ore iniziali</th><th>Già inserite</th><th>Residue</th></tr>'+p.fonti.map(function(s){return '<tr><td>'+e(s.data)+'</td><td>'+scFmtOre(s.minuti/60)+'</td><td>'+scFmtOre(s.usati/60)+'</td><td>'+scFmtOre((s.minuti-s.usati)/60)+'</td></tr>';}).join('')+'</table><table style="width:100%"><tr><th>Da</th><th>A</th><th>Quota</th></tr>'+p.righe.map(function(r){return '<tr><td>'+r.origine+'</td><td>'+r.destinazione+'</td><td>'+scFmtOre(r.minuti/60)+'</td></tr>';}).join('')+'</table></div></details>')+'</section>';}).join('')+'</details>';}
-var render=scRenderFogli;window.scRenderFogli=function(){var r=render.apply(this,arguments),box=document.getElementById('sc-fogli-body');if(box){box.insertAdjacentHTML('beforeend',panel());box.querySelectorAll('[data-rec-save]').forEach(function(b){b.onclick=function(){var root=b.closest('[data-rec-id]');scRecuperoSalva(root.dataset.recId,root);};});}return r;};
-// Allinea il riepilogo della scheda Fogli firma ai valori realmente stampati.
-window._scFFDati=function(id,ym){var sc=scGetDb()||{},parts=ym.split('-'),last=new Date(+parts[0],+parts[1],0).getDate(),ore=0,giorni=0;for(var g=1;g<=last;g++){var ds=ym+'-'+String(g).padStart(2,'0'),present=false;for(var i=0;i<2;i++){var r=_scDatiGiorno(sc,{id:id},ds,i);if(r&&r.ore>0){ore+=r.ore;present=true;}}if(present)giorni++;}return {ore:ore,giorni:giorni};};
+  var _mese = {};
+  function puo(){ try{ var r = (typeof AUTH!=='undefined' && AUTH && AUTH.currentUser && AUTH.currentUser.ruolo) || (typeof currentRole!=='undefined' ? currentRole : ''); return ['Admin','Responsabile Generale'].indexOf(r) >= 0; }catch(e){ return false; } }
+  function cfg(){ var sc = scGetDb(); sc.recupero = sc.recupero || {}; var c = sc.recupero.cfg = sc.recupero.cfg || {};
+    var d = {dal:'', maxGiorno:6, maxSett:30, maxGg:5, mod:'media', qMedia:1, qLenta:0.5}; for(var k in d) if(c[k] === undefined) c[k] = d[k]; return c; }
+  function piani(){ var sc = scGetDb(); sc.recupero = sc.recupero || {}; return sc.recupero.piani = sc.recupero.piani || {}; }
+  function righe(opId, skip){ var P = piani(), out = []; Object.keys(P).forEach(function(k){ var p = k.split('|'); if(p[0] === opId && p[1] !== skip) out = out.concat(P[k]); }); return out; }
+  function oreReali(sc, opId, ds){ if(((sc.giornate||{})[ds+'_'+opId]||'normale') !== 'normale') return 0;
+    return _scSessioniValide(_scTimbrGiorno(sc, opId, ds)).reduce(function(s,x){ return s + _scOreSessione(x); }, 0); }
+  function magazzino(opId, R){ var sc = scGetDb(), ini = _scPortaleImp().progettoInizio, days = {}, out = []; if(!ini) return out;
+    (sc.timbrature[opId]||[]).forEach(function(t){ var ds = String(t.ts).slice(0,10); if(ds < ini) days[ds] = 1; });
+    Object.keys(days).sort().forEach(function(ds){ var o = oreReali(sc, opId, ds); R.forEach(function(r){ if(r.da === ds) o -= r.ore; }); if(o > 0.01) out.push({ds:ds, ore:o}); });
+    return out; }
+  function lun(ds){ var d = new Date(ds+'T12:00:00'); d.setDate(d.getDate() - (d.getDay()+6)%7); return scDataLocale(d); }
+  function pianifica(opId, ym, R, mod){
+    var sc = scGetDb(), c = cfg(), imp = _scPortaleImp(), ini = imp.progettoInizio, fine = imp.progettoFine; if(!ini || !fine) return null;
+    var mag = magazzino(opId, R), out = []; if(!mag.length || (c.dal && ym < c.dal)) return out;
+    var q = mod === 'veloce' ? 99 : (mod === 'lenta' ? c.qLenta : c.qMedia), week = {};
+    function eff(ds){ var o = oreReali(sc, opId, ds); R.concat(out).forEach(function(r){ if(r.a === ds) o += r.ore; if(r.da === ds) o -= r.ore; }); return o; }
+    function wk(l){ if(week[l]) return week[l]; var g = 0, o = 0; for(var i=0;i<7;i++){ var d = new Date(l+'T12:00:00'); d.setDate(d.getDate()+i); var e = eff(scDataLocale(d)); if(e > 0.01){ g++; o += e; } } return week[l] = {g:g, o:o}; }
+    var n = new Date(+ym.slice(0,4), +ym.slice(5,7), 0).getDate();
+    for(var g=1; g<=n && mag.length; g++){
+      var ds = ym+'-'+String(g).padStart(2,'0'); if(ds < ini || ds > fine) continue;
+      var dw = new Date(ds+'T12:00:00').getDay(); if(dw === 0 || dw === 6) continue;               // sabato/domenica = rosso
+      if(typeof _iprFestivo === 'function' && _iprFestivo(ds)) continue;                           // festivi
+      if(((sc.giornate||{})[ds+'_'+opId]||'normale') !== 'normale') continue;                      // malattia/permessi
+      var e = eff(ds), W = wk(lun(ds)); if(e < 0.01 && W.g >= c.maxGg) continue;
+      var cap = Math.floor(Math.min(c.maxGiorno - e, c.maxSett - W.o, q) * 4) / 4; if(cap < 0.25) continue;
+      var need = cap; while(need > 0.001 && mag.length){ var s = mag[0], t = Math.min(need, s.ore); out.push({da:s.ds, a:ds, ore:t}); s.ore -= t; need -= t; if(s.ore < 0.01) mag.shift(); }
+      var dato = cap - need; if(dato > 0){ if(e < 0.01) W.g++; W.o += dato; }
+    }
+    return out;
+  }
+  function residuoFine(opId, ym, R, mod){ var fine = _scPortaleImp().progettoFine; if(!fine) return null; var acc = R.slice(), cur = ym;
+    for(var k=0;k<60;k++){ var p = pianifica(opId, cur, acc, mod); if(!p) return null; acc = acc.concat(p); if(cur >= fine.slice(0,7)) break; var y = +cur.slice(0,4), m = +cur.slice(5,7)+1; if(m > 12){ m = 1; y++; } cur = y+'-'+String(m).padStart(2,'0'); }
+    return magazzino(opId, acc).reduce(function(s,x){ return s + x.ore; }, 0); }
+  function modOp(opId){ var sc = scGetDb(), o = ((sc.recupero||{}).ops||{})[opId]; return (o && o.mod) || cfg().mod; }
+  function delta(sc, opId, ds){ var P = (sc.recupero||{}).piani; if(!P) return 0; var d = 0;
+    Object.keys(P).forEach(function(k){ if(k.split('|')[0] !== opId) return; P[k].forEach(function(r){ if(r.a === ds) d += r.ore; if(r.da === ds) d -= r.ore; }); }); return d; }
+  function entrataTipica(sc, opId){ var prima = {}, cnt = {}, best = 480, bn = 0;
+    (sc.timbrature[opId]||[]).forEach(function(t){ var ds = String(t.ts).slice(0,10); if(!prima[ds] || t.ts < prima[ds]) prima[ds] = t.ts; });
+    Object.keys(prima).forEach(function(ds){ var d = scIstante(prima[ds]), m = Math.round((d.getHours()*60+d.getMinutes())/5)*5; cnt[m] = (cnt[m]||0)+1; if(cnt[m] > bn){ bn = cnt[m]; best = m; } }); return best; }
+  function hm(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(Math.round(m%60)).padStart(2,'0'); }
+
+  /* ── aggancio ai fogli firma: attivo solo quando si sceglie "con ore spalmate" ── */
+  window._rcSpalma = false;
+  var orig = _scDatiGiorno;
+  _scDatiGiorno = function(sc, op, ds, i){
+    var d = orig(sc, op, ds, i); if(!window._rcSpalma || (d && d.assenza)) return d;
+    var dl = delta(sc, op.id, ds); if(!dl) return d;
+    var ses = _scSessioniValide(_scTimbrGiorno(sc, op.id, ds)), last = Math.max(0, ses.length-1); if(i !== last) return d;
+    if(!d || !ses.length){ if(dl <= 0) return d; var e = entrataTipica(sc, op.id); return {assenza:false, etichetta:'', entrata:hm(e), uscita:hm(e+dl*60), ore:dl}; }
+    var x = ses[last]; if(!x.entrata || !x.uscita) return d;
+    var ore = _scOreSessione(x) + dl; if(ore <= 0.01) return null;
+    var us = new Date(scIstante(x.uscita).getTime() + dl*3600000);
+    return {assenza:false, etichetta:'', entrata:d.entrata, uscita:us.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}), ore:ore};
+  };
+  var origTab = _scSwitchTabCorpo;
+  _scSwitchTabCorpo = function(t, b){ origTab(t, b); if(t === 'recupero') window.rcRender(); };
+
+  /* ── azioni ── */
+  window.rcSalvaCfg = function(){ if(!puo()) return; var c = cfg(), v = function(id){ return (document.getElementById(id)||{}).value; };
+    c.dal = v('rc-dal')||''; c.maxGiorno = parseFloat(v('rc-mg'))||6; c.maxSett = parseFloat(v('rc-ms'))||30; c.maxGg = parseInt(v('rc-mgg'))||5;
+    c.qMedia = parseFloat(v('rc-qm'))||1; c.qLenta = parseFloat(v('rc-ql'))||0.5; c.mod = v('rc-mod')||'media'; saveStorage(); showToast('✅ Parametri salvati','success'); };
+  window.rcModOp = function(opId, m){ if(!puo()) return; var sc = scGetDb(); sc.recupero = sc.recupero||{}; sc.recupero.ops = sc.recupero.ops||{}; sc.recupero.ops[opId] = {mod:m||null}; saveStorage(); };
+  window.rcMese = function(opId, v){ _mese[opId] = v; };
+  function ymDi(opId){ return _mese[opId] || cfg().dal || scDataLocale(new Date()).slice(0,7); }
+  window.rcAnteprima = function(opId){ if(!puo()) return; var ym = ymDi(opId), R = righe(opId, ym), mod = modOp(opId), p = pianifica(opId, ym, R, mod), el = document.getElementById('rc-prev-'+opId);
+    if(p === null){ showToast('Imposta prima Inizio e Fine progetto nelle Impostazioni','warning'); return; }
+    var by = {}; p.forEach(function(r){ (by[r.a] = by[r.a]||[]).push(r); }); var h = '';
+    Object.keys(by).sort().forEach(function(ds){ h += '<div>'+ds.slice(8)+'/'+ds.slice(5,7)+': <b>+'+scFmtOreCent(by[ds].reduce(function(s,r){ return s+r.ore; },0))+'h</b> <span class="text-muted">(da '+by[ds].map(function(r){ return r.da.slice(8)+'/'+r.da.slice(5,7); }).filter(function(v,i,a){ return a.indexOf(v) === i; }).join(', ')+')</span></div>'; });
+    var res = residuoFine(opId, ym, R, mod); var saved = piani()[opId+'|'+ym];
+    el.innerHTML = (saved ? '<div style="color:#2e7d32"><b>Piano già salvato per questo mese</b> ('+scFmtOreCent(saved.reduce(function(s,r){ return s+r.ore; },0))+'h)</div>' : '')+(h || '<div class="text-muted">Nessuna ora da spalmare in questo mese con i parametri attuali.</div>')+(res !== null ? '<div style="margin-top:6px">Stima a fine progetto, a questo ritmo: '+(res > 0.01 ? '<b style="color:#c62828">restano '+scFmtOreCent(res)+'h non recuperate</b>' : '<b style="color:#2e7d32">tutte recuperate</b>')+'</div>' : ''); };
+  window.rcApplica = function(opId){ if(!puo()) return; var ym = ymDi(opId), p = pianifica(opId, ym, righe(opId, ym), modOp(opId)); if(p === null){ showToast('Imposta prima Inizio e Fine progetto','warning'); return; }
+    if(!p.length){ showToast('Niente da spalmare in questo mese','info'); return; } piani()[opId+'|'+ym] = p; saveStorage(); showToast('✅ Spalmatura del mese salvata','success'); window.rcRender(); };
+  window.rcElimina = function(opId){ if(!puo()) return; var ym = ymDi(opId), k = opId+'|'+ym; if(!piani()[k]){ showToast('Nessuna spalmatura salvata per questo mese','info'); return; }
+    if(!confirm('Eliminare la spalmatura di '+ym+'? Le ore tornano da recuperare. Le timbrature non cambiano.')) return; delete piani()[k]; saveStorage(); showToast('Spalmatura eliminata','success'); window.rcRender(); };
+  window.rcFoglio = function(opId, con, pdf){ if(!puo()) return; var ym = ymDi(opId), op = scGetOperatori().filter(function(o){ return o.id === opId; })[0]; if(!op) return;
+    if(con && !piani()[opId+'|'+ym]){ var p = pianifica(opId, ym, righe(opId, ym), modOp(opId)); if(p && p.length){ if(!confirm('Per '+ym+' non c\'è una spalmatura salvata. La calcolo e la salvo ora?')) return; piani()[opId+'|'+ym] = p; saveStorage(); } }
+    var mese = +ym.slice(5,7)-1, anno = +ym.slice(0,4); window._rcSpalma = !!con;
+    try{ if(pdf) scScaricaFoglioFirmaPDF([op], mese, anno); else _scStampaFoglioFirmaHTML([op], mese, anno); }catch(e){ console.warn('[recupero]', e); }
+    setTimeout(function(){ window._rcSpalma = false; }, 8000); };
+
+  window.rcRender = function(){ var el = document.getElementById('sc-tab-recupero'); if(!el) return; if(!puo()){ el.innerHTML = '<p class="text-muted">Sezione riservata agli amministratori.</p>'; return; }
+    var sc = scGetDb(); if(!sc) return; var c = cfg(), imp = _scPortaleImp(), ops = scGetOperatori();
+    function f(l, id, v, t, x){ return '<label style="font-size:12px;font-weight:700">'+l+'<br><input id="'+id+'" type="'+t+'" value="'+v+'" '+(x||'')+' class="form-control" style="max-width:135px" onchange="rcSalvaCfg()"></label>'; }
+    function sel(id, v, onch, vuoto){ return '<select id="'+id+'" class="form-control" style="max-width:150px" onchange="'+onch+'">'+(vuoto ? '<option value="">Predefinita</option>' : '')+['veloce','media','lenta'].map(function(m){ return '<option value="'+m+'"'+(m === v ? ' selected' : '')+'>'+m[0].toUpperCase()+m.slice(1)+'</option>'; }).join('')+'</select>'; }
+    var h = '<div class="card" style="padding:16px;margin-bottom:14px"><h3 style="margin:0 0 6px">♻️ Recupero ore</h3><p class="text-muted" style="font-size:12px;margin:0 0 10px">Le ore timbrate prima dell\'inizio progetto ('+(imp.progettoInizio ? imp.progettoInizio : '<b>inizio non impostato</b>')+' → '+(imp.progettoFine ? imp.progettoFine : '<b>fine non impostata</b>')+') vengono spostate sui fogli firma dei mesi successivi. Le timbrature non vengono mai modificate. Esclusi sabato, domenica, festivi, malattia e permessi.</p><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">'
+      + f('Spalma dal mese','rc-dal',c.dal,'month')+f('Max ore/giorno','rc-mg',c.maxGiorno,'number','step="0.25" min="1"')+f('Max ore/settimana','rc-ms',c.maxSett,'number','step="0.5" min="1"')+f('Max giorni/sett.','rc-mgg',c.maxGg,'number','min="1" max="7"')+f('Ore/giorno "media"','rc-qm',c.qMedia,'number','step="0.25" min="0.25"')+f('Ore/giorno "lenta"','rc-ql',c.qLenta,'number','step="0.25" min="0.25"')
+      + '<label style="font-size:12px;font-weight:700">Modalità (veloce = fino al massimo giornaliero)<br>'+sel('rc-mod', c.mod, 'rcSalvaCfg()', false)+'</label></div></div>';
+    ops.forEach(function(op){ var id = op.id, nome = ((op.cognome||'')+' '+(op.nome||'')).trim(), R = righe(id), mag = magazzino(id, R), da = mag.reduce(function(s,x){ return s+x.ore; }, 0), fatte = R.reduce(function(s,r){ return s+r.ore; }, 0), om = (((sc.recupero||{}).ops||{})[id]||{}).mod || '';
+      h += '<div class="card" style="padding:14px;margin-bottom:10px"><div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between"><b style="font-size:15px">'+escapeHtml(nome)+'</b><span style="font-size:12px">Già recuperate: <b>'+scFmtOreCent(fatte)+'h</b> · Ancora da recuperare: <b style="color:'+(da > 0.01 ? '#c62828' : '#2e7d32')+'">'+scFmtOreCent(da)+'h</b></span></div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:10px"><label style="font-size:12px;font-weight:700">Mese<br><input type="month" class="form-control" style="max-width:150px" value="'+ymDi(id)+'" onchange="rcMese(\''+id+'\',this.value)"></label>'
+        + '<label style="font-size:12px;font-weight:700">Modalità<br>'+sel('rc-m-'+id, om, 'rcModOp(\''+id+'\',this.value)', true)+'</label>'
+        + '<button type="button" class="btn btn-outline btn-sm" onclick="rcAnteprima(\''+id+'\')">👁️ Anteprima</button><button type="button" class="btn btn-sm" onclick="rcApplica(\''+id+'\')">✅ Applica e salva</button><button type="button" class="btn btn-outline btn-sm" onclick="rcElimina(\''+id+'\')">🗑️ Elimina spalmatura mese</button></div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><span style="font-size:12px;font-weight:700;align-self:center">Foglio firme:</span><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',false,false)">🖨️ Senza ore spalmate</button><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',false,true)">⬇️ PDF senza</button><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',true,false)">🖨️ Con ore spalmate</button><button type="button" class="btn btn-outline btn-sm" onclick="rcFoglio(\''+id+'\',true,true)">⬇️ PDF con</button></div>'
+        + '<div id="rc-prev-'+id+'" style="font-size:12px;margin-top:8px"></div></div>'; });
+    el.innerHTML = h; };
+
+  /* ── visibilità: solo Admin e Responsabile Generale (voce di menu e scheda) ── */
+  function vis(){ ['sb-scu-recupero','sc-tab-btn-recupero'].forEach(function(id){ var e = document.getElementById(id); if(!e) return; if(puo()) e.style.removeProperty('display'); else e.style.setProperty('display','none','important'); }); }
+  setInterval(function(){ try{ vis(); }catch(e){} }, 1500); try{ vis(); }catch(e){}
 })();
 </script>
-<script id="recupero-interno-v2">
-(function(){
-'use strict';
-var base=_scDatiGiorno, cache={};
-var e=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
-var min=function(h){return Math.max(0,Math.round((+h||0)*60));};
-function settings(sc,id){return Object.assign({attivo:false,giorno:6,settimana:30,velocita:'media',dal:''},(sc.impostazioni||{})['recuperoInterno_'+id]||{});}
-function validDate(ds){if(!/^\d{4}-\d{2}-\d{2}$/.test(ds||''))return false;var d=new Date(ds+'T12:00:00');return !isNaN(d)&&d.getFullYear()===+ds.slice(0,4)&&d.getMonth()+1===+ds.slice(5,7)&&d.getDate()===+ds.slice(8,10);}
-function week(ds){var d=new Date(ds+'T12:00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function hh(n){return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
-function clock(s){var a=String(s||'').split(':');return (+a[0])*60+(+a[1]);}
-window.scRecuperoPiano=function(sc,id){
- var c=settings(sc,id),dates=sc.dateServizio||{},start=dates[id+'_inizio'],end=dates[id+'_fine'];
- var sig=JSON.stringify([c,dates,sc.timbrature&&sc.timbrature[id],sc.giornate,sc.impostazioni,scArrotondaAttivo()]);
- if(cache[id]&&cache[id].sig===sig)return cache[id].p;
- var p={giorni:{},righe:[],fonti:[],iniziali:0,inseriti:0,residuo:0,errore:'',attivo:c.attivo};
- function done(){p.residuo=p.iniziali-p.inseriti;cache[id]={sig:sig,p:p};return p;}
- if(!/^\d{4}-\d{2}-\d{2}$/.test(start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(end||'')||start>end){p.errore='Imposta inizio e fine ufficiali nella scheda del volontario.';return done();}
- var days={},weeks={}, targets=[];((sc.timbrature||{})[id]||[]).forEach(function(t){if(t&&t.ts)days[t.ts.slice(0,10)]=1;});
- Object.keys(sc.giornate||{}).forEach(function(k){if(k.endsWith('_'+id))days[k.slice(0,10)]=1;});
- Object.keys(days).sort().forEach(function(ds){var sessions=_scSessioniValide(_scTimbrGiorno(sc,id,ds)), rows=[],sum=0;for(var i=0;i<Math.max(2,sessions.length);i++){var r=base(sc,{id:id},ds,i);rows.push(r?Object.assign({},r):null);if(r)sum+=min(r.ore);}
- if(ds<start||ds>end){sessions.forEach(function(s,i){if(s.entrata&&s.uscita){var n=min(_scOreSessione(s));if(n){p.fonti.push({data:ds,sessione:i,minuti:n,usati:0,post:ds>end});p.iniziali+=n;}}});}
- else {weeks[week(ds)]=(weeks[week(ds)]||0)+sum;var idx=sessions.length-1,last=rows[idx];if(idx>=0&&idx<2&&last&&!last.assenza&&last.entrata&&last.uscita&&sessions.every(function(s){return s.entrata&&s.uscita;}))targets.push({data:ds,rows:rows,idx:idx,minuti:sum});}
- });
- if(!c.attivo)return done();
- if(!validDate(c.dal)||c.dal<start||c.dal>end){p.errore='Scegli una data di inizio distribuzione compresa nel periodo ufficiale.';return done();}
- if(!(c.giorno>0&&c.giorno<=24&&c.settimana>0&&c.settimana<=168)){p.errore='Controlla i limiti giornalieri e settimanali.';return done();}
- // Quote della capienza disponibile: nessun tetto fisso di minuti.
- var factor={lenta:0.25,media:0.5,veloce:1}[c.velocita]||0.5, budget={},extraWeek={};
- Object.keys(weeks).forEach(function(w){budget[w]=Math.floor(Math.max(0,min(c.settimana)-weeks[w])*factor);});
- targets=targets.filter(function(t){return t.data>=c.dal;});
- targets.forEach(function(t){t.budget=Math.floor(Math.max(0,min(c.giorno)-t.minuti)*factor);});
- function distribute(post){var list=p.fonti.filter(function(s){return s.post===post;});var ts=post?targets.slice().reverse():targets;
- ts.forEach(function(t){var prior=p.giorni[t.data],rs=prior||t.rows.map(function(r){return r?Object.assign({},r):null;}),r=rs[t.idx],cap=Math.min(min(c.giorno)-t.minuti,min(c.settimana)-(weeks[week(t.data)]||0),t.budget-(t.extra||0), (budget[week(t.data)]||0)-(extraWeek[week(t.data)]||0),1439-clock(r.uscita));
- list.forEach(function(src){var take=Math.max(0,Math.min(cap,src.minuti-src.usati));if(!take)return;src.usati+=take;cap-=take;t.extra=(t.extra||0)+take;t.minuti+=take;weeks[week(t.data)]+=take;extraWeek[week(t.data)]=(extraWeek[week(t.data)]||0)+take;p.inseriti+=take;r.ore=(min(r.ore)+take)/60;r.uscita=hh(clock(r.uscita)+take);p.giorni[t.data]=rs;p.righe.push({origine:src.data,sessione:src.sessione,destinazione:t.data,minuti:take,post:post});});});}
- distribute(false);distribute(true);return done();
-};
-window._scDatiGiorno=function(sc,op,ds,idx){var p=scRecuperoPiano(sc,op.id),r=base(sc,op,ds,idx);if(!p.attivo||p.errore)return r;
- if(p.giorni[ds])return p.giorni[ds][idx]||null;
- // Sottrai dalle sessioni di origine solo i minuti effettivamente trasferiti.
- var src=p.fonti.find(function(x){return x.data===ds&&x.sessione===idx;});if(!src||!src.usati||!r)return r;
- var left=src.minuti-src.usati;if(!left)return null;return Object.assign({},r,{ore:left/60,uscita:hh(clock(r.entrata)+left)});
-};
-window.scRecuperoSalva=function(id,root){var sc=scGetDb(),read=function(k){return root.querySelector('[name="'+k+'"]').value;},g=+read('giorno'),w=+read('settimana');if(!(g>0&&g<=24&&w>0&&w<=168)){showToast('Controlla i limiti: giorno 0–24, settimana 0–168','warning');return;}var dal=read('dal'),dates=sc.dateServizio||{};if(root.querySelector('[name="attivo"]').checked&&(!validDate(dal)||dal<dates[id+'_inizio']||dal>dates[id+'_fine'])){showToast('Scegli una data di distribuzione entro il periodo ufficiale','warning');return;}if(!sc.impostazioni)sc.impostazioni={};sc.impostazioni['recuperoInterno_'+id]={attivo:root.querySelector('[name="attivo"]').checked,giorno:g,settimana:w,velocita:read('velocita'),dal:dal};cache={};saveStorage();scRenderFogli();showToast('Recupero aggiornato: rigenera i PDF dei mesi interessati','success');};
-function stats(sc,id,p){var c=settings(sc,id),dates=sc.dateServizio||{},start=dates[id+'_inizio'],end=dates[id+'_fine'],tot=0,weeks={};Object.keys(p.giorni).forEach(function(ds){/* il totale sottostante include già le ore anticipate: non sommarle nuovamente */});
- var dsSet={};((sc.timbrature||{})[id]||[]).forEach(function(t){if(t&&t.ts)dsSet[t.ts.slice(0,10)]=1;});Object.keys(dsSet).forEach(function(ds){if(ds>=start&&ds<=end){var n=0;for(var i=0;i<2;i++){var r=base(sc,{id:id},ds,i);if(r)n+=min(r.ore);}tot+=n;weeks[week(ds)]=(weeks[week(ds)]||0)+n;}});
- var monte=min((sc.monteOre||{})[id]||sc.monteOreDefault||1044),remaining=Math.max(0,monte-tot-p.iniziali-min((sc.orePrec||{})[id]||0)),keys=Object.keys(weeks),avg=keys.length?Math.min(min(c.settimana),tot/keys.length):0,finish='non disponibile';if(!remaining)finish='monte ore raggiunto';else if(avg){var d=new Date();d.setDate(d.getDate()+Math.ceil(remaining/avg*7));finish=d.toLocaleDateString('it-IT');}
- var eligible=Object.keys(p.giorni).length,mean=eligible?p.inseriti/eligible:0;
- return '<p>Monte ore residuo stimato: <b>'+scFmtOre(remaining/60)+'</b> · Media registrata: '+scFmtOre(avg/60)+'/settimana · Fine prevista: <b>'+e(finish)+'</b>.</p><p>Saldo da distribuire: '+(p.residuo? (mean?'circa '+Math.ceil(p.residuo/mean)+' ulteriori giornate con capienza':'previsione non disponibile, servono giornate con capienza'):'completato')+'. Le previsioni dipendono dalle presenze future; termine ufficiale '+e(end||'non impostato')+'.</p>';
-}
-function panel(){var sc=scGetDb()||{};return '<details open style="padding:16px;margin:12px 0;border:1px solid var(--border);border-radius:14px"><summary style="font-weight:900;cursor:pointer">Recupero ore — progetto interno</summary><p>Il foglio firma allunga l’uscita usando le ore fuori periodo. Le quote inserite vengono sottratte dai fogli di origine. Le timbrature originali restano memorizzate. Settimana: lunedì–domenica. Si usano solo giornate complete già timbrate; nessun inserimento su giornate assenti o future senza timbrature.</p><p>Scegli tu da quale data iniziare. Veloce: usa tutta la capienza disponibile, per esaurire il saldo appena possibile. Media: usa metà della capienza giornaliera e settimanale. Lenta: usa un quarto della capienza. La durata dipende dalle presenze e dalle ore da distribuire: non è un numero fisso di mesi. Valgono sempre i limiti giornalieri e settimanali. Le ore successive alla fine si distribuiscono dall’ultima giornata all’indietro.</p>'+_scFFOps().map(function(op){var c=settings(sc,op.id),p=scRecuperoPiano(sc,op.id);return '<section data-rec-id="'+e(op.id)+'" style="border-top:1px solid var(--border);padding:12px 0"><b>'+e((op.cognome||'')+' '+(op.nome||''))+'</b><p><label><input name="attivo" type="checkbox" '+(c.attivo?'checked':'')+'> Attiva recupero sui fogli firma</label></p><label>Inizia a distribuire dal <input name="dal" type="date" min="'+e((sc.dateServizio||{})[op.id+'_inizio']||'')+'" max="'+e((sc.dateServizio||{})[op.id+'_fine']||'')+'" value="'+e(c.dal||'')+'"></label> <label>Massimo ore al giorno <input name="giorno" type="number" min="0.25" max="24" step="0.25" value="'+e(c.giorno)+'"></label> <label>Massimo ore a settimana <input name="settimana" type="number" min="0.25" max="168" step="0.25" value="'+e(c.settimana)+'"></label> <label>Distribuzione <select name="velocita">'+['lenta','media','veloce'].map(function(v){return '<option '+(v===c.velocita?'selected':'')+'>'+v+'</option>';}).join('')+'</select></label> <button type="button" data-rec-save>Salva e ricalcola</button>'+(p.errore?'<p>'+e(p.errore)+'</p>':'<p>Ore fuori periodo: <b>'+scFmtOre(p.iniziali/60)+'</b> · Già inserite nei fogli: <b>'+scFmtOre(p.inseriti/60)+'</b> · Ancora da distribuire: <b>'+scFmtOre(p.residuo/60)+'</b></p>'+stats(sc,op.id,p)+'<details><summary>Dettaglio ore di origine e trasferimenti</summary><div style="max-height:350px;overflow:auto"><table style="width:100%"><tr><th>Origine</th><th>Ore iniziali</th><th>Già inserite</th><th>Residue</th></tr>'+p.fonti.map(function(s){return '<tr><td>'+e(s.data)+'</td><td>'+scFmtOre(s.minuti/60)+'</td><td>'+scFmtOre(s.usati/60)+'</td><td>'+scFmtOre((s.minuti-s.usati)/60)+'</td></tr>';}).join('')+'</table><table style="width:100%"><tr><th>Da</th><th>A</th><th>Quota</th></tr>'+p.righe.map(function(r){return '<tr><td>'+r.origine+'</td><td>'+r.destinazione+'</td><td>'+scFmtOre(r.minuti/60)+'</td></tr>';}).join('')+'</table></div></details>')+'</section>';}).join('')+'</details>';}
-var render=scRenderFogli;window.scRenderFogli=function(){var r=render.apply(this,arguments),box=document.getElementById('sc-fogli-body');if(box){box.insertAdjacentHTML('beforeend',panel());box.querySelectorAll('[data-rec-save]').forEach(function(b){b.onclick=function(){var root=b.closest('[data-rec-id]');scRecuperoSalva(root.dataset.recId,root);};});}return r;};
-// Allinea il riepilogo della scheda Fogli firma ai valori realmente stampati.
-window._scFFDati=function(id,ym){var sc=scGetDb()||{},parts=ym.split('-'),last=new Date(+parts[0],+parts[1],0).getDate(),ore=0,giorni=0;for(var g=1;g<=last;g++){var ds=ym+'-'+String(g).padStart(2,'0'),present=false;for(var i=0;i<2;i++){var r=_scDatiGiorno(sc,{id:id},ds,i);if(r&&r.ore>0){ore+=r.ore;present=true;}}if(present)giorni++;}return {ore:ore,giorni:giorni};};
-})();
-</script>
+
 </body>
 </html>
