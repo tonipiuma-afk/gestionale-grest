@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 03/11/2026 12:11</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -9682,6 +9682,10 @@ table tbody tr:hover{
       <a onclick="navigate('organizzazione')" data-view="organizzazione">
         <svg class="sico" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         ORGANIZZAZIONE
+      </a>
+      <a onclick="navigate('corso-formazione')" data-view="corso-formazione" id="sb-corso-formazione">
+        <svg class="sico" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        CORSO DI FORMAZIONE
       </a>
 
     </div>
@@ -13476,124 +13480,30 @@ table tbody tr:hover{
 </div>
 <div class="view" id="view-organizzazione">
   <div class="breadcrumb">HOME / ORGANIZZAZIONE</div>
-  <div class="page-title">ORGANIZZAZIONE</div>
-  
-  <!-- Tabs -->
-  <div class="tabs" style="margin-bottom:20px">
-    <button type="button" class="tab-btn active" onclick="switchOrgTab('interna')">📋 ORGANIZZAZIONE INTERNA</button>
-    <button type="button" class="tab-btn" onclick="switchOrgTab('laboratori')">🎨 LABORATORI POMERIDIANI</button>
-    <button type="button" class="tab-btn" onclick="switchOrgTab('attivita')">⚽ ATTIVITÀ</button>
-    <button type="button" class="tab-btn" onclick="switchOrgTab('gruppi')">👥 GRUPPI</button>
-    <button type="button" class="tab-btn" onclick="switchOrgTab('formazione')">🎓 CORSO FORMAZIONE</button>
+  <div class="org-top">
+    <div><div class="page-title" style="margin:0">📋 Organizzazione</div><div class="text-muted" style="font-size:13px;margin-top:2px">Mansioni, laboratori, attività e gruppi del GREST. Ogni animatore vede i suoi compiti nel portale.</div></div>
+    <div style="display:flex;gap:8px;align-items:center"><span id="org-salvato" class="org-salvato"></span><button type="button" class="btn btn-outline btn-sm" onclick="orgStampa()">🖨️ Stampa organizzazione</button></div>
   </div>
-  
-  <!-- Tab: Organizzazione Interna -->
-  <div class="tab-content active" id="tab-interna">
-    <div class="card">
-      <div class="section-title">📋 Organizzazione Interna</div>
-      <p class="text-muted mb-3">Assegna gli animatori alle mansioni usando i menu a tendina.</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:45%">MANSIONE</th>
-              <th style="width:30%">RESPONSABILE</th>
-              <th style="width:25%">GIORNI/NOTE</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-org-interna"></tbody>
-        </table>
-      </div>
-    </div>
+  <div class="org-tabs" id="org-tabs">
+    <button type="button" class="org-tab on" data-t="mansioni" onclick="orgVai('mansioni')">📌 Mansioni</button>
+    <button type="button" class="org-tab" data-t="lab" onclick="orgVai('lab')">🎨 Laboratori</button>
+    <button type="button" class="org-tab" data-t="att" onclick="orgVai('att')">⚽ Attività</button>
+    <button type="button" class="org-tab" data-t="gruppi" onclick="orgVai('gruppi')">👥 Gruppi</button>
   </div>
-  
-  <!-- Tab: Laboratori Pomeridiani -->
-  <div class="tab-content" id="tab-laboratori">
-    <!-- Laboratori GREST -->
-    <div class="card">
-      <div class="section-title">🎨 Laboratori GREST (2 Gruppi)</div>
-      <p class="text-muted mb-3">Scrivi manualmente i nomi dei laboratori (Lunedì - Giovedì).</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:20%">GIORNO</th>
-              <th style="width:40%">GRUPPO 1</th>
-              <th style="width:40%">GRUPPO 2</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-lab-grest"></tbody>
-        </table>
-      </div>
-    </div>
-    
-    <!-- Laboratori MINI GREST -->
-    <div class="card mt-3">
-      <div class="section-title">🧸 Laboratori MINI GREST</div>
-      <p class="text-muted mb-3">Scrivi manualmente i laboratori (Lunedì - Venerdì).</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:20%">GIORNO</th>
-              <th style="width:45%">LABORATORIO</th>
-              <th style="width:35%">RESPONSABILE</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-lab-mini"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Tab: Attività -->
-  <div class="tab-content" id="tab-attivita">
-    <div class="card">
-      <div class="section-title">⚽ Attività</div>
-      <p class="text-muted mb-3">Gestisci le attività: teatro, sport, laboratori creativi.</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:25%">ATTIVITÀ</th>
-              <th style="width:25%">LUOGO/SPAZIO</th>
-              <th style="width:25%">RESPONSABILE</th>
-              <th style="width:15%">PARTECIPANTI</th>
-              <th style="width:10%">AZIONI</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-attivita"></tbody>
-        </table>
-      </div>
-      <button type="button" class="btn btn-teal mt-3" onclick="aggiungiAttivita()">➕ AGGIUNGI ATTIVITÀ</button>
-    </div>
-  </div>
+  <div class="org-pan" id="org-pan-mansioni"></div>
+  <div class="org-pan" id="org-pan-lab" style="display:none"></div>
+  <div class="org-pan" id="org-pan-att" style="display:none"></div>
+  <div class="org-pan" id="org-pan-gruppi" style="display:none"></div>
+</div>
 
-  <!-- Tab: Gruppi -->
-  <div class="tab-content" id="tab-gruppi">
-    <div class="card">
-      <div class="section-title">👥 Gruppi</div>
-      <p class="text-muted mb-3">Crea e gestisci i gruppi di lavoro con coordinatore e membri.</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:20%">NOME GRUPPO</th>
-              <th style="width:20%">COORDINATORE</th>
-              <th style="width:30%">MEMBRI</th>
-              <th style="width:20%">SCOPO</th>
-              <th style="width:10%">AZIONI</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-gruppi"></tbody>
-        </table>
-      </div>
-      <button type="button" class="btn btn-teal mt-3" onclick="aggiungiGruppo()">➕ AGGIUNGI GRUPPO</button>
-    </div>
-  </div>
+<!-- ════ IMPOSTAZIONI ════ -->
 
-  <!-- Tab: Corso Formazione -->
-  <div class="tab-content" id="tab-formazione">
+<!-- ════ DIARIO DI BORDO ════ -->
+<div class="view" id="view-corso-formazione">
+  <div class="breadcrumb">HOME / ORGANIZZAZIONE / CORSO DI FORMAZIONE</div>
+  <div class="page-title">🎓 Corso di formazione</div>
+  <p class="text-muted" style="margin:-6px 0 14px">Partecipanti, presenze agli incontri, ore e attestati del corso per animatori.</p>
+
 
     <!-- Sotto-tab bar -->
     <div style="display:flex;gap:4px;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:16px;border:1px solid var(--border)">
@@ -13743,12 +13653,9 @@ table tbody tr:hover{
       <button type="button" class="btn btn-teal" onclick="formazioneSalvaPartecipante()">💾 Salva</button>
       <button type="button" class="btn btn-gray" onclick="closeModal('modal-formazione')">Annulla</button>
     </div>
-  </div>
+  
 </div>
 
-<!-- ════ IMPOSTAZIONI ════ -->
-
-<!-- ════ DIARIO DI BORDO ════ -->
 <div class="view" id="view-diario-bordo">
   <div class="breadcrumb">HOME / DIARIO DI BORDO</div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
@@ -16476,7 +16383,7 @@ function ricercaGlobale(q){
     { parole:['assenze','assenze animatori','indisponibilità','indisponibilita','assente'],icona:'🚫', label:'Assenze Animatori', azione:function(){navigate('assenze-animatori');} },
     { parole:['preiscritti','preiscrizioni'],                      icona:'📥', label:'Preiscritti',            azione:function(){navigate('preiscritti');} },
     { parole:['organizzazione','org interna','laboratori','attività'],icona:'📋', label:'Organizzazione',       azione:function(){navigate('organizzazione');} },
-    { parole:['corso formazione','formazione','corso'],            icona:'🎓', label:'Corso di Formazione',    azione:function(){navigate('organizzazione');setTimeout(function(){switchOrgTab('formazione');},300);} },
+    { parole:['corso formazione','formazione','corso'],            icona:'🎓', label:'Corso di Formazione',    azione:function(){navigate('corso-formazione');} },
     { parole:['impostazioni','settings','configurazione'],         icona:'⚙️', label:'Impostazioni',           azione:function(){navigate('impostazioni');} },
     { parole:['utenti','account','accessi','ruoli'],               icona:'👤', label:'Utenti e Accessi',       azione:function(){navigate('impostazioni-utenti');} },
     { parole:['database','db','backup','salva'],                   icona:'💾', label:'Database',               azione:function(){navigate('database');} },
@@ -16589,7 +16496,7 @@ function ricercaGlobale(q){
       titolo: p.nome,
       sub: 'Corso di formazione',
       icona: '🎓',
-      azione: function(){ navigate('organizzazione'); setTimeout(function(){ switchOrgTab('formazione'); },300); }
+      azione: function(){ navigate('corso-formazione'); }
     });
   });
   if(formTrovati.length) categorie.push({ label:'Corso Formazione', colore:'#6a1b9a', items: formTrovati });
@@ -18856,7 +18763,8 @@ function navigate(view, _forza){
     'pullman':renderPullman,
     'ricevute':initRicevute,
     'comunicazioni':initComunicazioni,
-    'organizzazione':()=>{renderOrgInterna();renderLabGrest();renderLabMini();renderAttivita();renderGruppi();if(getDb()?.formazione)formazioneRenderAnagrafica();},
+    'organizzazione':()=>{renderOrgInterna();renderLabGrest();renderLabMini();renderAttivita();renderGruppi();},
+    'corso-formazione':()=>{ switchFormazioneTab(typeof _formazioneTabCorrente !== 'undefined' && _formazioneTabCorrente ? _formazioneTabCorrente : 'anagrafica'); },
     'servizio-civile':()=>{ scInit(); try{ scuDopoInit(); }catch(_eS){} },
     'assenze-animatori':()=>{ aaRender(); },
     'momento-formativo':()=>{ mfInit(); },
@@ -37101,7 +37009,7 @@ function calcolaBlocchiDaPermessi(permessi){
     'calendario': ['calendario'],
     'dashboard': [],
     'mensa': ['mensa'],
-    'organizzazione': ['organizzazione'],
+    'organizzazione': ['organizzazione','corso-formazione'],
     'elenchi': ['elenchi','maglie'],
     'gite_mare': ['gite','mare','pullman'],
     'servizio_civile': ['servizio-civile'],
@@ -37126,14 +37034,14 @@ const VOCI_CONTABILITA = ['contabilita','spese','ricevute'];
 const VOCI_ADMIN_ONLY  = ['impostazioni-utenti','audit-log','database','access-log'];
 const VOCI_RISERVATE   = ['impostazioni','impostazioni-utenti','audit-log','database',
                           'contabilita','spese','maglie','ricevute',
-                          'animatori','gite','mare','pullman','organizzazione',
+                          'animatori','gite','mare','pullman','organizzazione','corso-formazione',
                           'campionati','classifica','elenchi','preiscritti',
                           'servizio-civile'];
 // Tutto tranne il Servizio Civile: è la vista dell'OLP
 const VOCI_NON_SCU     = ['anagrafica','animatori','assenze-animatori','calendario','campionati',
                           'classifica','comunicazioni','contabilita','diario-bordo','elenchi',
                           'gite','maglie','mare','mensa','merenda','momento-formativo',
-                          'organizzazione','preiscritti','presenze','pullman','ricevute',
+                          'organizzazione','corso-formazione','preiscritti','presenze','pullman','ricevute',
                           'smarriti','sondaggi-animatori','spese','squadre','squadre-animatori',
                           'album','impostazioni','impostazioni-utenti','audit-log','database','access-log'];
 // Nota: 'album' è intenzionalmente accessibile a tutti i ruoli inclusi gli Animatori
@@ -37147,7 +37055,7 @@ const RUOLO_BLOCCHI = {
   'Segretario':              [],
   'Caposquadra':             [...VOCI_CONTABILITA, ...VOCI_ADMIN_ONLY,
                               'maglie','ricevute','gite','mare',
-                              'pullman','organizzazione',
+                              'pullman','organizzazione','corso-formazione',
                               'campionati','database','servizio-civile'],
   'OLP':                     [...VOCI_NON_SCU],
   'Animatore':               [...VOCI_RISERVATE],
@@ -40258,7 +40166,7 @@ const VIEW_TO_GROUP = {
   'contabilita':'economico','spese':'economico','ricevute':'economico',
   'classifica':'tornei','campionati':'tornei',
   'elenchi':'gestione','maglie':'gestione','gite':'gestione','mare':'gestione','pullman':'gestione',
-  'comunicazioni':'org','organizzazione':'org',
+  'comunicazioni':'org','organizzazione':'org','corso-formazione':'org',
 };
 
 function toggleSbGroup(id, forceOpen){
@@ -40354,6 +40262,7 @@ const MOBILE_GROUPS = {
     voci:[
       {view:'comunicazioni', label:'Comunicazioni', svg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'},
       {view:'organizzazione', label:'Organizzazione', svg:'<rect x="2" y="7" width="20" height="14" rx="2"/>'},
+      {view:'corso-formazione', label:'Corso di formazione', svg:'<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>'},
     ]
   },
 };
@@ -57572,7 +57481,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 03/11/2026 12:11 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -59433,7 +59342,7 @@ function paRenderMansioni(){
 
   // ── Organizzazione Interna ──
   (db.orgInterna || []).forEach(function(m){
-    var resp = [m.resp1||'', m.resp2||'', m.resp3||'', m.resp4||''];
+    var resp = [m.resp1||'', m.resp2||'', m.resp3||'', m.resp4||''].concat(m.altri||[]);
     if(resp.some(_matchNome)){
       mie.push({ tipo:'org', icona:'📌', nome: m.mansione||'', sub: m.giorni||'', badge:'' });
     }
@@ -59448,13 +59357,20 @@ function paRenderMansioni(){
     }
   });
 
+  // ── Laboratori Mini GREST: responsabile ──
+  (db.labMini || []).forEach(function(l){
+    if(l.laboratorio && _matchNome(l.responsabile||'')) mie.push({ tipo:'lab', icona:'🎨', nome: 'Laboratorio ' + (l.laboratorio||''), sub: (l.giorno||'') + ' · Mini GREST', badge:'RESPONSABILE' });
+  });
+
   // ── Gruppi: coordinatore ──
+  var _tuttiP = (db.iscritti||[]).concat(db.animatori||[]);
+  function _nomeMembro(id){ var p = _tuttiP.filter(function(x){ return x && x.id === id; })[0]; return p ? ((p.nome||'')+' '+(p.cognome||'')).trim() : id; }
   (db.gruppi || []).forEach(function(g){
     var coord = (g.coordinatore||'').trim().toUpperCase();
     if(_matchNome(coord)){
       mie.push({ tipo:'gruppo', icona:'👑', nome: g.nome||'', sub: g.scopo||'', badge:'COORDINATORE' });
     } else {
-      var membri = (g.membri||[]);
+      var membri = (g.membri||[]).map(_nomeMembro);
       if(membri.some(_matchNome)){
         mie.push({ tipo:'gruppo', icona:'👥', nome: g.nome||'', sub: g.scopo||'', badge:'MEMBRO' });
       }
@@ -73696,7 +73612,7 @@ html[data-pi-tema="scuro"] .tt-distr{color:#fdba74}
   var TITOLI = { 'hub':'Home', 'ist-home':'Istituto San Giuseppe', 'ist-ospiti':'Comunità', 'ist-semi':'Semiconvitto', 'ist-cal':'Calendario', 'ist-servizi':'Servizi esterni', 'ist-scuola':'Scuola', 'ist-sanita':'Sanità', 'ist-mezzi':'Mezzi',
     'servizio-civile':'Servizio Civile', 'dashboard':'Dashboard', 'impostazioni':'Impostazioni', 'impostazioni-utenti':'Utenti', 'anagrafica':'Anagrafica', 'animatori':'Animatori',
     'presenze':'Presenze', 'squadre':'Squadre', 'database':'Database', 'calendario':'Calendario', 'contabilita':'Contabilità', 'mensa':'Mensa', 'merenda':'Merenda',
-    'momento-formativo':'Momento formativo', 'classifica':'Classifica', 'campionati':'Tornei', 'preiscritti':'Pre-iscrizioni', 'diario-bordo':'Diario di bordo', 'sondaggi-animatori':'Sondaggi', 'assenze-animatori':'Assenze animatori', 'squadre-animatori':'Squadre animatori', 'organizzazione':'Organizzazione', 'ricevute':'Ricevute', 'spese':'Spese', 'gite':'Gite', 'pullman':'Pullman', 'mare':'Mare', 'maglie':'Maglie', 'comunicazioni':'Comunicazioni', 'elenchi':'Elenchi squadre', 'smarriti':'Oggetti smarriti', 'iscritto-nuovo':'Nuovo iscritto', 'animatore-nuovo':'Nuovo animatore' };
+    'momento-formativo':'Momento formativo', 'corso-formazione':'Corso di formazione', 'organizzazione':'Organizzazione', 'classifica':'Classifica', 'campionati':'Tornei', 'preiscritti':'Pre-iscrizioni', 'diario-bordo':'Diario di bordo', 'sondaggi-animatori':'Sondaggi', 'assenze-animatori':'Assenze animatori', 'squadre-animatori':'Squadre animatori', 'organizzazione':'Organizzazione', 'ricevute':'Ricevute', 'spese':'Spese', 'gite':'Gite', 'pullman':'Pullman', 'mare':'Mare', 'maglie':'Maglie', 'comunicazioni':'Comunicazioni', 'elenchi':'Elenchi squadre', 'smarriti':'Oggetti smarriti', 'iscritto-nuovo':'Nuovo iscritto', 'animatore-nuovo':'Nuovo animatore' };
   var SCU_TAB = { operatori:'Volontari', orari:'Orari', presenze:'Presenze', riepilogo:'Riepilogo', fogli:'Fogli firma', impostazioni:'Impostazioni' };
   var AREA_NOME = { ist:'Istituto San Giuseppe', grest:'Grest', scu:'Servizio Civile', hub:'Gestionale San Giuseppe' };
   function pulisci(s){ return String(s || '').replace(new RegExp(RE.source.slice(1), 'gu'), ' ').replace(/\s+/g,' ').trim(); }
@@ -90882,6 +90798,182 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     if(ids.length === 1){ isaVisitaNuova(ids[0]); return; }
     if(!(window._ICAL && _ICAL.doc)){ showToast('Calendario non ancora caricato, riprova tra un attimo', 'warning'); return; }
     icForm('', _icOggi(), { permesso:_iosOk('ist_sanita_edit'), pre:{ tipo:'visita', sanita:true, titolo:'Visita medica', ospiti:ids }, dopo:function(){ _isaRiapri(ids[0]); } });
+  };
+})();
+</script>
+<style id="org-2026-css">
+#view-organizzazione .org-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#view-organizzazione .org-salvato{font-size:12px;color:#16a34a;font-weight:600;opacity:0;transition:opacity .3s}#view-organizzazione .org-salvato.on{opacity:1}
+#view-organizzazione .org-tabs{display:flex;gap:4px;background:#f1f5f9;border-radius:10px;padding:3px;width:max-content;max-width:100%;overflow-x:auto;margin-bottom:14px}
+#view-organizzazione .org-tab{border:0;background:none;padding:8px 14px;border-radius:8px;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;font-size:13px;white-space:nowrap}#view-organizzazione .org-tab.on{background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#view-organizzazione .org-sum{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;font-size:13px;color:var(--text-muted,#64748b)}
+#view-organizzazione .org-sum b{color:var(--text,#0f172a)}
+#view-organizzazione .org-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+#view-organizzazione .org-c{background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+#view-organizzazione .org-c.vuota{border-color:#fdba74;background:#fffaf5}
+#view-organizzazione .org-c h4{margin:0 0 8px;font-size:14px;font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+#view-organizzazione .org-c h4 small{font-weight:600;color:var(--text-muted,#64748b);font-size:11.5px;white-space:nowrap}
+#view-organizzazione .org-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+#view-organizzazione .org-chip{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;border:1px solid #dbe5fb;border-radius:999px;padding:3px 8px 3px 3px;font-size:12.5px;font-weight:600;color:#1e3a8a}
+#view-organizzazione .org-chip i{width:24px;height:24px;border-radius:50%;background:#2563eb;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:700;overflow:hidden;flex-shrink:0}
+#view-organizzazione .org-chip i img{width:100%;height:100%;object-fit:cover}
+#view-organizzazione .org-chip button{border:0;background:none;color:#64748b;cursor:pointer;font-size:13px;padding:0 0 0 2px;line-height:1}
+#view-organizzazione .org-chip.resp{background:#fff7ed;border-color:#fed7aa;color:#9a3412}#view-organizzazione .org-chip.resp i{background:#ea580c}
+#view-organizzazione .org-add{border:1px dashed #93b4f5;background:#fff;color:#2563eb;border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+#view-organizzazione .org-in{box-sizing:border-box;width:100%;border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;background:var(--card,#fff);color:inherit}
+#view-organizzazione .org-lbl{font-size:11px;font-weight:600;color:var(--text-muted,#64748b);margin:6px 0 3px;display:block}
+#view-organizzazione .org-sez{font-size:13px;font-weight:700;margin:4px 0 10px;color:var(--text,#0f172a)}
+#view-organizzazione .org-meta{font-size:12px;color:var(--text-muted,#64748b);margin-bottom:8px}
+#view-organizzazione .org-az{display:flex;gap:6px;justify-content:flex-end}
+#view-organizzazione .org-vuoto{padding:30px;text-align:center;color:var(--text-muted,#64748b);background:var(--card,#fff);border:1px dashed var(--border,#e2e8f0);border-radius:12px}
+#org-pick .op-l{max-height:340px;overflow:auto;border:1px solid var(--border,#e2e8f0);border-radius:10px;margin-top:8px}
+#org-pick .op-r{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:13.5px}#org-pick .op-r:hover{background:#f8fafc}
+#org-pick .op-r i{width:30px;height:30px;border-radius:50%;background:#2563eb;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0}#org-pick .op-r i img{width:100%;height:100%;object-fit:cover}
+#org-pick .op-r small{color:#64748b;font-size:11.5px;display:block}
+@media(max-width:600px){#view-organizzazione .org-grid{grid-template-columns:1fr}}
+</style>
+<script id="org-2026-js">
+/* ═════════════════════════════════════════════════════════════════════
+   GREST › ORGANIZZAZIONE (novembre 2026): Mansioni · Laboratori · Attività · Gruppi
+   Stessi dati di prima (orgInterna, labGrest, labMini, attivita, gruppi). Mansioni senza limite di
+   responsabili: i primi 4 restano in resp1..resp4 (compatibilità), gli altri in «altri».
+   Il Corso di formazione è una pagina a sé (menu Organizzazione › Corso di formazione).
+   ═════════════════════════════════════════════════════════════════════ */
+(function(){
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  var J = function(s){ return E(String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); };
+  var TAB = 'mansioni';
+  function db(){ return getDb(); }
+  function norm(s){ return String(s || '').trim().toUpperCase().replace(/\s+/g, ' '); }
+  function cap(s){ return String(s || '').toLowerCase().replace(/(^|[\s'’])\S/g, function(c){ return c.toUpperCase(); }); }
+  function animatori(){ return ((db() || {}).animatori || []).filter(function(a){ return a && !a._eliminato; }).sort(function(a, b){ return (String(a.nome) + ' ' + a.cognome).localeCompare(String(b.nome) + ' ' + b.cognome); }); }
+  function nomeA(a){ return ((a.nome || '') + ' ' + (a.cognome || '')).trim(); }
+  function trova(nome){ var n = norm(nome); return animatori().filter(function(a){ return norm(nomeA(a)) === n || norm((a.cognome || '') + ' ' + (a.nome || '')) === n; })[0] || null; }
+  function ini(s){ var p = String(s || '?').trim().split(/\s+/); return ((p[0] || '?').charAt(0) + (p[1] || '').charAt(0)).toUpperCase(); }
+  function av(nome){ var a = trova(nome); return '<i>' + (a && a.foto ? '<img src="' + E(a.foto) + '" alt="" loading="lazy">' : E(ini(nome))) + '</i>'; }
+  function chip(nome, x, cls){ return '<span class="org-chip' + (cls ? ' ' + cls : '') + '">' + av(nome) + E(cap(nome)) + (x ? '<button type="button" title="Togli" onclick="' + x + '">✕</button>' : '') + '</span>'; }
+  function resp(m){ return [m.resp1, m.resp2, m.resp3, m.resp4].concat(m.altri || []).filter(function(x){ return x && String(x).trim(); }); }
+  function setResp(m, L){ ['resp1', 'resp2', 'resp3', 'resp4'].forEach(function(k, i){ m[k] = L[i] || ''; }); m.altri = L.slice(4); }
+  var _t = null;
+  function salvato(item){
+    var d = db(); try{ _marcaOrganizzazioneModificata(d, item); }catch(e){}
+    try{ saveStorage(); }catch(e){} try{ if(typeof _uploadEFeedback === 'function') _uploadEFeedback(); }catch(e){}
+    var s = document.getElementById('org-salvato'); if(s){ s.textContent = '✓ salvato'; s.classList.add('on'); clearTimeout(_t); _t = setTimeout(function(){ s.classList.remove('on'); }, 1800); }
+  }
+  /* quante cose ha già ogni animatore (per la scelta) */
+  function impegni(){ var d = db() || {}, c = {};
+    var add = function(n, t){ n = norm(n); if(!n) return; (c[n] = c[n] || []).push(t); };
+    (d.orgInterna || []).forEach(function(m){ resp(m).forEach(function(r){ add(r, cap(m.mansione)); }); });
+    (d.labMini || []).forEach(function(l){ if(l.responsabile) add(l.responsabile, 'Lab. Mini ' + l.giorno); });
+    (d.attivita || []).forEach(function(a){ if(a.responsabile) add(a.responsabile, a.nome); (a.partecipanti || []).forEach(function(p){ add(p, a.nome); }); });
+    return c; }
+
+  window.orgVai = function(t){ TAB = t;
+    document.querySelectorAll('#org-tabs .org-tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-t') === t); });
+    ['mansioni', 'lab', 'att', 'gruppi'].forEach(function(k){ var p = document.getElementById('org-pan-' + k); if(p) p.style.display = k === t ? '' : 'none'; });
+    if(t === 'mansioni') renderOrgInterna(); else if(t === 'lab'){ renderLabGrest(); } else if(t === 'att') renderAttivita(); else renderGruppi(); };
+  /* vecchia funzione: ora cambia solo le linguette di questa pagina */
+  window.switchOrgTab = function(t){ orgVai({ interna:'mansioni', laboratori:'lab', attivita:'att', gruppi:'gruppi' }[t] || t); if(t === 'formazione') navigate('corso-formazione'); };
+
+  /* ── MANSIONI ── */
+  window.renderOrgInterna = function(){
+    var d = db(), el = document.getElementById('org-pan-mansioni'); if(!d || !el) return;
+    if(_normalizzaOrganizzazione(d)){ try{ saveStorage(true); }catch(e){} }
+    var L = d.orgInterna || [], ass = L.filter(function(m){ return resp(m).length; }).length;
+    el.innerHTML = '<div class="org-sum"><span><b>' + ass + ' su ' + L.length + '</b> mansioni assegnate</span>' + (ass < L.length ? '<span style="color:#c2410c">· ' + (L.length - ass) + ' da assegnare (bordo arancione)</span>' : '<span style="color:#16a34a">· tutte coperte ✓</span>') + '</div><div class="org-grid">'
+      + L.map(function(m, i){ var R = resp(m);
+        return '<div class="org-c' + (R.length ? '' : ' vuota') + '"><h4>' + E(cap(m.mansione)) + '<small>' + (R.length ? R.length + (R.length === 1 ? ' persona' : ' persone') : 'da assegnare') + '</small></h4>'
+          + '<div class="org-chips">' + R.map(function(r, k){ return chip(r, 'orgTogli(' + i + ',' + k + ')'); }).join('') + '<button type="button" class="org-add" onclick="orgScegli(\'m\',' + i + ')">➕ Aggiungi</button></div>'
+          + '<label class="org-lbl">Giorni / note</label><input class="org-in" value="' + E(m.giorni || '') + '" placeholder="es. tutti i giorni, solo mattina…" onchange="orgNota(' + i + ',this.value)"></div>'; }).join('') + '</div>';
+  };
+  window.orgTogli = function(i, k){ var m = (db().orgInterna || [])[i]; if(!m) return; var R = resp(m); R.splice(k, 1); setResp(m, R); salvato(m); renderOrgInterna(); };
+  window.orgNota = function(i, v){ var m = (db().orgInterna || [])[i]; if(!m) return; m.giorni = v; salvato(m); };
+
+  /* scelta animatore con ricerca (per mansioni e responsabile dei laboratori Mini) */
+  window.orgScegli = function(dove, i){
+    var d = db(), imp = impegni(), gia = dove === 'm' ? resp(d.orgInterna[i]).map(norm) : [];
+    var tit = dove === 'm' ? cap(d.orgInterna[i].mansione) : 'Laboratorio Mini GREST · ' + d.labMini[i].giorno;
+    var ov = document.createElement('div'); ov.id = 'org-pick'; ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML = '<div style="background:var(--card,#fff);border-radius:16px;max-width:460px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3)"><div style="font-weight:800;font-size:16px">' + (dove === 'm' ? '➕ Aggiungi a ' : '👤 Responsabile · ') + E(tit) + '</div>'
+      + '<input id="op-q" class="form-control" placeholder="🔍 Cerca animatore…" style="margin-top:10px" oninput="orgFiltra()"><div class="op-l" id="op-l"></div>'
+      + '<div style="display:flex;justify-content:space-between;margin-top:12px">' + (dove === 'l' ? '<button type="button" class="btn btn-outline btn-sm" onclick="orgSceltaOk(\'l\',' + i + ',\'\')">Nessun responsabile</button>' : '<span></span>') + '<button type="button" class="btn btn-gray btn-sm" onclick="document.getElementById(\'org-pick\').remove()">Chiudi</button></div></div>';
+    document.body.appendChild(ov); ov.addEventListener('click', function(e){ if(e.target === ov) ov.remove(); });
+    var l = document.getElementById('op-l');
+    l.innerHTML = animatori().filter(function(a){ return gia.indexOf(norm(nomeA(a))) < 0; }).map(function(a){ var n = nomeA(a), x = imp[norm(n)] || [];
+      return '<div class="op-r" data-n="' + E(norm(n)) + '" onclick="orgSceltaOk(\'' + dove + '\',' + i + ',\'' + J(n) + '\')"><i>' + (a.foto ? '<img src="' + E(a.foto) + '" alt="">' : E(ini(n))) + '</i><div><b>' + E(cap(n)) + '</b><small>' + (x.length ? 'Già in: ' + E(x.slice(0, 3).join(', ')) + (x.length > 3 ? ' +' + (x.length - 3) : '') : 'Nessun altro incarico') + '</small></div></div>'; }).join('') || '<div style="padding:14px;color:#64748b">Nessun animatore</div>';
+    setTimeout(function(){ var q = document.getElementById('op-q'); if(q) q.focus(); }, 60);
+  };
+  window.orgFiltra = function(){ var q = norm((document.getElementById('op-q') || {}).value); document.querySelectorAll('#op-l .op-r').forEach(function(r){ r.style.display = !q || r.getAttribute('data-n').indexOf(q) >= 0 ? '' : 'none'; }); };
+  window.orgSceltaOk = function(dove, i, nome){ var d = db(), o = document.getElementById('org-pick');
+    if(dove === 'm'){ var m = d.orgInterna[i], R = resp(m); if(nome && R.map(norm).indexOf(norm(nome)) < 0) R.push(nome); setResp(m, R); salvato(m); renderOrgInterna(); }
+    else { var l = d.labMini[i]; l.responsabile = nome; salvato(l); renderLabGrest(); }
+    if(o) o.remove(); };
+
+  /* ── LABORATORI (GREST e Mini GREST nella stessa linguetta) ── */
+  window.renderLabGrest = function(){
+    var d = db(), el = document.getElementById('org-pan-lab'); if(!d || !el) return;
+    if(_normalizzaOrganizzazione(d)){ try{ saveStorage(true); }catch(e){} }
+    el.innerHTML = '<div class="org-sez">🎨 Laboratori GREST <span style="font-weight:500;color:var(--text-muted,#64748b)">· due gruppi, dal lunedì al giovedì</span></div><div class="org-grid">'
+      + (d.labGrest || []).map(function(r, i){ return '<div class="org-c' + (r.gruppo1 || r.gruppo2 ? '' : ' vuota') + '"><h4>' + E(r.giorno) + '</h4>'
+        + '<label class="org-lbl">Gruppo 1</label><input class="org-in" value="' + E(r.gruppo1 || '') + '" placeholder="es. CUCINA, ARTE…" onchange="orgLab(\'g\',' + i + ',\'gruppo1\',this.value)">'
+        + '<label class="org-lbl">Gruppo 2</label><input class="org-in" value="' + E(r.gruppo2 || '') + '" placeholder="es. MUSICA, CODING…" onchange="orgLab(\'g\',' + i + ',\'gruppo2\',this.value)"></div>'; }).join('') + '</div>'
+      + '<div class="org-sez" style="margin-top:20px">🧸 Laboratori Mini GREST <span style="font-weight:500;color:var(--text-muted,#64748b)">· dal lunedì al venerdì</span></div><div class="org-grid">'
+      + (d.labMini || []).map(function(r, i){ return '<div class="org-c' + (r.laboratorio ? '' : ' vuota') + '"><h4>' + E(r.giorno) + '</h4>'
+        + '<label class="org-lbl">Laboratorio</label><input class="org-in" value="' + E(r.laboratorio || '') + '" placeholder="es. LAB. CREATIVO…" onchange="orgLab(\'m\',' + i + ',\'laboratorio\',this.value)">'
+        + '<label class="org-lbl">Responsabile</label><div class="org-chips">' + (r.responsabile ? chip(r.responsabile, 'orgLab(\'m\',' + i + ',\'responsabile\',\'\')', 'resp') : '') + '<button type="button" class="org-add" onclick="orgScegli(\'l\',' + i + ')">' + (r.responsabile ? 'Cambia' : '➕ Scegli') + '</button></div></div>'; }).join('') + '</div>';
+  };
+  window.renderLabMini = function(){ if(TAB === 'lab') renderLabGrest(); };
+  window.orgLab = function(t, i, k, v){ var d = db(), r = (t === 'g' ? d.labGrest : d.labMini)[i]; if(!r) return;
+    r[k] = (k === 'responsabile') ? v : String(v || '').toUpperCase(); salvato(r); if(k === 'responsabile') renderLabGrest(); };
+
+  /* ── ATTIVITÀ ── */
+  window.renderAttivita = function(){
+    var d = db(), el = document.getElementById('org-pan-att'); if(!d || !el) return;
+    if(!d.attivita) d.attivita = []; try{ if(_normalizzaAttivita(d)) saveStorage(true); }catch(e){}
+    var L = d.attivita;
+    el.innerHTML = '<div class="org-sum"><span><b>' + L.length + '</b> ' + (L.length === 1 ? 'attività' : 'attività') + '</span><button type="button" class="btn btn-teal btn-sm" style="margin-left:auto" onclick="aggiungiAttivita()">➕ Nuova attività</button></div>'
+      + (L.length ? '<div class="org-grid">' + L.map(function(a, i){ var P = a.partecipanti || [];
+          return '<div class="org-c"><h4>' + (typeof getLabEmoji === 'function' ? getLabEmoji(a.nome) + ' ' : '') + E(cap(a.nome || '—')) + '<small>' + P.length + ' partecipanti</small></h4>'
+            + (a.luogo ? '<div class="org-meta">📍 ' + E(a.luogo) + '</div>' : '')
+            + '<div class="org-chips">' + (a.responsabile ? chip(a.responsabile, '', 'resp') : '<span class="org-meta" style="margin:0">Nessun responsabile</span>') + '</div>'
+            + (P.length ? '<div class="org-chips">' + P.map(function(p){ return chip(p); }).join('') + '</div>' : '')
+            + '<div class="org-az"><button type="button" class="btn btn-outline btn-sm" onclick="editAttivita(' + i + ')">✏️ Modifica</button><button type="button" class="btn btn-outline btn-sm" style="color:#dc2626" onclick="deleteAttivita(' + i + ')">🗑️</button></div></div>'; }).join('') + '</div>'
+        : '<div class="org-vuoto">Nessuna attività. Aggiungi teatro, ballo, scenografia…</div>');
+  };
+
+  /* ── GRUPPI ── */
+  window.renderGruppi = function(){
+    var d = db(), el = document.getElementById('org-pan-gruppi'); if(!d || !el) return;
+    if(!d.gruppi) d.gruppi = [];
+    var tutti = (d.iscritti || []).concat(d.animatori || []);
+    var nomeId = function(id){ var p = tutti.filter(function(x){ return x.id === id; })[0]; return p ? ((p.nome || '') + ' ' + (p.cognome || '')).trim() : id; };
+    var L = d.gruppi;
+    el.innerHTML = '<div class="org-sum"><span><b>' + L.length + '</b> ' + (L.length === 1 ? 'gruppo' : 'gruppi') + '</span><button type="button" class="btn btn-teal btn-sm" style="margin-left:auto" onclick="aggiungiGruppo()">➕ Nuovo gruppo</button></div>'
+      + (L.length ? '<div class="org-grid">' + L.map(function(g, i){ var M = (g.membri || []).map(nomeId);
+          return '<div class="org-c"><h4>👥 ' + E(g.nome || '—') + '<small>' + M.length + ' membri</small></h4>' + (g.scopo ? '<div class="org-meta">🎯 ' + E(g.scopo) + '</div>' : '')
+            + '<div class="org-chips">' + (g.coordinatore ? chip(g.coordinatore, '', 'resp') : '<span class="org-meta" style="margin:0">Nessun coordinatore</span>') + '</div>'
+            + (M.length ? '<div class="org-chips">' + M.map(function(n){ return chip(n); }).join('') + '</div>' : '')
+            + '<div class="org-az"><button type="button" class="btn btn-outline btn-sm" onclick="editGruppo(' + i + ')">✏️ Modifica</button><button type="button" class="btn btn-outline btn-sm" style="color:#dc2626" onclick="deleteGruppo(' + i + ')">🗑️</button></div></div>'; }).join('') + '</div>'
+        : '<div class="org-vuoto">Nessun gruppo. Crea i gruppi di lavoro con coordinatore e membri.</div>');
+  };
+
+  /* ── STAMPA: un foglio con tutta l'organizzazione ── */
+  window.orgStampa = function(){
+    var d = db(); if(!d) return; try{ _normalizzaOrganizzazione(d); }catch(e){}
+    var tutti = (d.iscritti || []).concat(d.animatori || []), nomeId = function(id){ var p = tutti.filter(function(x){ return x.id === id; })[0]; return p ? ((p.nome || '') + ' ' + (p.cognome || '')).trim() : id; };
+    var w = window.open('', '_blank'); if(!w){ showToast('Consenti le finestre popup per stampare', 'warning'); return; }
+    var sez = function(t, h){ return '<h2>' + t + '</h2>' + h; };
+    var tab = function(th, rows){ return '<table><thead><tr>' + th.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr></thead><tbody>' + (rows.length ? rows.join('') : '<tr><td colspan="' + th.length + '" style="color:#888">—</td></tr>') + '</tbody></table>'; };
+    var tr = function(c){ return '<tr>' + c.map(function(x){ return '<td>' + x + '</td>'; }).join('') + '</tr>'; };
+    var h = '<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>Organizzazione GREST</title><style>body{font-family:Arial,sans-serif;padding:22px;color:#111;font-size:12px}h1{font-size:20px;margin:0}h2{font-size:14px;margin:18px 0 6px;color:#1e3a8a;border-bottom:2px solid #1e3a8a;padding-bottom:3px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #cbd5e1;padding:5px 7px;text-align:left;vertical-align:top}th{background:#eef2f7;font-size:11px}.sub{color:#666;margin:2px 0 6px}@media print{h2{break-after:avoid}table{break-inside:auto}tr{break-inside:avoid}}</style></head><body>'
+      + '<h1>Organizzazione GREST</h1><div class="sub">' + E(d.nomeDb || '') + ' · aggiornata al ' + new Date().toLocaleDateString('it-IT') + '</div>'
+      + sez('📌 Mansioni', tab(['Mansione', 'Responsabili', 'Giorni / note'], (d.orgInterna || []).map(function(m){ return tr([E(cap(m.mansione)), E(resp(m).map(cap).join(', ') || '—'), E(m.giorni || '')]); })))
+      + sez('🎨 Laboratori GREST', tab(['Giorno', 'Gruppo 1', 'Gruppo 2'], (d.labGrest || []).map(function(r){ return tr([E(r.giorno), E(r.gruppo1 || ''), E(r.gruppo2 || '')]); })))
+      + sez('🧸 Laboratori Mini GREST', tab(['Giorno', 'Laboratorio', 'Responsabile'], (d.labMini || []).map(function(r){ return tr([E(r.giorno), E(r.laboratorio || ''), E(cap(r.responsabile || ''))]); })))
+      + sez('⚽ Attività', tab(['Attività', 'Luogo', 'Responsabile', 'Partecipanti'], (d.attivita || []).map(function(a){ return tr([E(cap(a.nome || '')), E(a.luogo || ''), E(cap(a.responsabile || '')), E((a.partecipanti || []).map(cap).join(', '))]); })))
+      + sez('👥 Gruppi', tab(['Gruppo', 'Coordinatore', 'Membri', 'Scopo'], (d.gruppi || []).map(function(g){ return tr([E(g.nome || ''), E(cap(g.coordinatore || '')), E((g.membri || []).map(nomeId).map(cap).join(', ')), E(g.scopo || '')]); })))
+      + '<script>window.onload=function(){window.print();}<\/script></body></html>';
+    w.document.write(h); w.document.close();
   };
 })();
 </script>
