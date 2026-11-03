@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 03/11/2026 11:23</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -14691,7 +14691,7 @@ table tbody tr:hover{
     #view-access-log .al-seg{display:flex;border:1px solid var(--border,#e2e8f0);border-radius:9px;overflow:hidden}#view-access-log .al-per{border:0;background:var(--card,#fff);padding:8px 11px;color:#475569;cursor:pointer;font-family:inherit;font-size:13px}#view-access-log .al-per.on{background:#2563eb;color:#fff;font-weight:600}
     #view-access-log .al-day{display:flex;justify-content:space-between;align-items:center;width:100%;margin:16px 0 4px;padding:0 0 6px;border:0;border-bottom:1px solid var(--border,#e2e8f0);background:none;cursor:pointer;font-family:inherit;font-size:13px;color:inherit;text-align:left}#view-access-log .al-day > span{color:var(--text-muted,#64748b);font-size:12px}
     #view-access-log .al-row{display:grid;grid-template-columns:54px 36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px;border-radius:10px}#view-access-log .al-row:hover{background:#f8fafc}#view-access-log .al-row.ko{background:#fef2f2}
-    #view-access-log .al-t{font-size:16px;font-weight:700}#view-access-log .al-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12.5px}
+    #view-access-log .al-t{font-size:16px;font-weight:700}#view-access-log .al-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12.5px;overflow:hidden;flex-shrink:0}#view-access-log .al-av img{width:100%;height:100%;object-fit:cover;display:block}
     #view-access-log .al-n b{font-size:14px}#view-access-log .al-chip{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
     #view-access-log .al-dv{display:flex;align-items:center;gap:8px;color:var(--text-muted,#64748b);font-size:12px;white-space:nowrap}
     #view-access-log .al-rep{background:#e0e7ff;color:#3730a3;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px}
@@ -38558,6 +38558,9 @@ function _alScu(){ const ids = {}, nomi = {};
 function _alArricchisci(log){
   const utenti = {}; ((window.APP && APP.utenti) || []).forEach(u => { if(u && u.username) utenti[String(u.username).toUpperCase()] = u; });
   const S = _alScu(), oggi = new Date(), ieri = new Date(Date.now() - 864e5);
+  /* foto: quella del profilo dell'account, altrimenti quella della scheda animatore / volontario collegata */
+  const fotoAn = {}, fotoNome = {};
+  try{ const db = getDb() || {}; (db.animatori || []).concat(scGetOperatori() || []).forEach(a => { if(a && a.foto){ if(a.id) fotoAn[a.id] = a.foto; fotoNome[_alNorm((a.nome || '') + ' ' + (a.cognome || ''))] = a.foto; fotoNome[_alNorm((a.cognome || '') + ' ' + (a.nome || ''))] = a.foto; } }); }catch(e){}
   return log.filter(e => e && e.ts).map(e => {
     const d = new Date(e.ts), u = utenti[String(e.username || '').toUpperCase()] || null;
     const m = /Login come (.+?) \(/.exec(e.dettagli || '');
@@ -38570,7 +38573,8 @@ function _alArricchisci(log){
     const dv = String(e.device || ''), pz = dv.split('·').map(x => x.trim());
     const piatt = /iOS|iPhone|iPad/i.test(dv) ? 'ios' : (/Android/i.test(dv) ? 'android' : 'pc');
     const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    return { e, d, ds, u, ruolo, nome, gruppo, piatt, browser:pz[1] || '', esito:e.esito, user:String(e.username || '—') };
+    const foto = (u && (u.foto || (u.animatoreId && fotoAn[u.animatoreId]))) || fotoNome[_alNorm(nome)] || '';
+    return { e, d, ds, u, ruolo, nome, gruppo, piatt, foto, browser:pz[1] || '', esito:e.esito, user:String(e.username || '—') };
   }).sort((a, b) => b.d - a.d);
 }
 function _alCap(s){ s = String(s || '').toLowerCase(); return s.replace(/(^|[\s'])\S/g, c => c.toUpperCase()); }
@@ -38631,7 +38635,7 @@ function _renderAccessLogConDati(log){
     const quando = d => { if(!d) return '—'; const gg = Math.floor((new Date(oggiDs + 'T23:59:59') - d) / 864e5); const h = d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }); return gg <= 0 ? 'oggi ' + h : (gg === 1 ? 'ieri ' + h : d.toLocaleDateString('it-IT')); };
     container.innerHTML = '<div class="al-ut al-ut-h"><div>Utente</div><div>Ultimo accesso</div><div>Accessi 7 gg</div><div>Dispositivi</div><div>Falliti</div></div>'
       + L.map(p => { const x = p.x, cfg = RUOLO_CFG[x.ruolo] || {}; return `<div class="al-ut${p.fail ? ' ko' : ''}" onclick="alUtente('${_alE(x.user).replace(/'/g, "\\'")}')" title="Vedi la cronologia di @${_alE(x.user)}">
-        <div><b>${_alE(_alCap(x.nome) || '@' + x.user)}</b> ${x.ruolo ? `<span class="al-chip" style="background:${cfg.bg || '#f1f5f9'};color:${cfg.color || '#475569'}">${_alE(cfg.label || x.ruolo)}</span>` : '<span class="al-chip" style="background:#fee2e2;color:#b91c1c">non riconosciuto</span>'}${x.gruppo === 'scu' ? ' <span class="al-chip" style="background:#e0e7ff;color:#3730a3">SCU</span>' : ''}<div class="al-sub">@${_alE(x.user)}</div></div>
+        <div style="display:flex;gap:8px;align-items:center"><div class="al-av" style="width:28px;height:28px;font-size:11px;background:${x.ruolo ? (cfg.color || '#64748b') : '#94a3b8'}">${x.foto ? '<img src="' + _alE(x.foto) + '" alt="" loading="lazy">' : (x.nome ? _alE(_alIni(x.nome)) : '?')}</div><div><b>${_alE(_alCap(x.nome) || '@' + x.user)}</b> ${x.ruolo ? `<span class="al-chip" style="background:${cfg.bg || '#f1f5f9'};color:${cfg.color || '#475569'}">${_alE(cfg.label || x.ruolo)}</span>` : '<span class="al-chip" style="background:#fee2e2;color:#b91c1c">non riconosciuto</span>'}${x.gruppo === 'scu' ? ' <span class="al-chip" style="background:#e0e7ff;color:#3730a3">SCU</span>' : ''}<div class="al-sub">@${_alE(x.user)}</div></div></div>
         <div>${quando(p.ult)}</div><div>${p.n7}</div><div>${Object.keys(p.dev).map(d => ({ pc:'💻', android:'📱 Android', ios:'📱 iPhone' }[d])).join(' ')}</div><div style="${p.fail ? 'color:#dc2626;font-weight:700' : ''}">${p.fail}</div></div>`; }).join('');
     return;
   }
@@ -38655,7 +38659,7 @@ function _renderAccessLogConDati(log){
       const nome = _alCap(x.nome) || '@' + x.user, sub = '@' + _alE(x.user) + (r.n > 1 ? ' · ' + r.n + ' volte tra le ' + hm(r.prima) + ' e le ' + hm(x.d) : '') + (ko2 && x.e.dettagli ? ' · ' + _alE(x.e.dettagli) : '');
       const chip = x.ruolo ? `<span class="al-chip" style="background:${cfg.bg || '#f1f5f9'};color:${cfg.color || '#475569'}">${_alE(cfg.label || x.ruolo)}</span>` : (ko2 ? '<span class="al-chip" style="background:#fee2e2;color:#b91c1c">' + (x.u ? 'password errata' : 'utente inesistente') + '</span>' : '');
       return `<div class="al-row${ko2 ? ' ko' : ''}" title="${_alE((x.e.device || '') + (x.e.dettagli ? ' · ' + x.e.dettagli : ''))}"><div class="al-t">${hm(x.d)}</div>
-        <div class="al-av" style="background:${x.ruolo ? (cfg.color || '#64748b') : '#94a3b8'}">${x.nome ? _alE(_alIni(x.nome)) : '?'}</div>
+        <div class="al-av" style="background:${x.ruolo ? (cfg.color || '#64748b') : '#94a3b8'}">${x.foto ? '<img src="' + _alE(x.foto) + '" alt="" loading="lazy">' : (x.nome ? _alE(_alIni(x.nome)) : '?')}</div>
         <div class="al-n"><b>${_alE(nome)}</b> ${chip}${x.gruppo === 'scu' ? ' <span class="al-chip" style="background:#e0e7ff;color:#3730a3">SCU</span>' : ''}<div class="al-sub">${sub}</div></div>
         <div class="al-dv">${_alDev(x)}${r.n > 1 ? ' <span class="al-rep">×' + r.n + '</span>' : ''} <span class="al-res ${es.c}">${es.l}</span></div></div>`; }).join('');
   }).join('') + (mostrate > 400 ? '<div class="al-sub" style="text-align:center;padding:10px">Mostrate le prime 400 righe: usa i filtri per restringere.</div>' : '');
@@ -57502,7 +57506,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 03/11/2026 11:23 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
