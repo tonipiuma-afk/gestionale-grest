@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 02/11/2026 12:38</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57452,7 +57452,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 02/11/2026 12:38 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -90508,6 +90508,217 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   /* ── visibilità: solo Admin e Responsabile Generale (voce di menu e scheda) ── */
   function vis(){ ['sb-scu-recupero','sc-tab-btn-recupero'].forEach(function(id){ var e = document.getElementById(id); if(!e) return; if(puo()) e.style.removeProperty('display'); else e.style.setProperty('display','none','important'); }); }
   setInterval(function(){ try{ vis(); }catch(e){} }, 1500); try{ vis(); }catch(e){}
+})();
+</script>
+<script id="visite-gruppo">
+/* ═════════════════════════════════════════════════════════════════════
+   VISITE DI GRUPPO (novembre 2026) — es. vaccino antinfluenzale per 5 ragazzi
+   • Si compila una volta e si scelgono più ragazzi: viene creata UNA VISITA PER RAGAZZO
+     (stesso campo «gruppo»), così ognuno ha nella sua Sanità il suo «fatta» e il suo esito.
+   • Calendario e home mostrano il gruppo come un impegno solo («· 5 ragazzi»); aprendolo
+     c'è l'elenco dei ragazzi con il «fatto» di ognuno e «Fatto per tutti».
+   • Modifica / eliminazione: nel modulo si sceglie «tutti i ragazzi» o «solo questo ragazzo».
+   • Google Calendar: una sola copia per il gruppo (sul «capogruppo»), con i nomi nelle note.
+   ═════════════════════════════════════════════════════════════════════ */
+(function(){
+  var E = function(t){ return _icE(t); };
+  var G = null;   // creazione di gruppo in corso
+  function vivi(gr){ var ev = (_ICAL.doc && _ICAL.doc.eventi) || {}; return Object.keys(ev).map(function(k){ return ev[k]; }).filter(function(e){ return e && !e._del && gr && e.gruppo === gr; }); }
+  function nomeO(id){ var o = _IOS.doc && _IOS.doc.ospiti && _IOS.doc.ospiti[id]; return o ? _iosNome(o) : '?'; }
+  function puoEd(){ return _icEdit() || (typeof _iosOk === 'function' && _iosOk('ist_sanita_edit')); }
+  var COMUNI = ['titolo','tipo','data','tutto','ora','oraFine','rip','ripFino','chi','chiTipo','chiId','luogo','mezzo','note','sanita','specialistica'];
+
+  /* salvataggio di più impegni in una volta sola (una lettura e una scrittura sul NAS) */
+  async function salvaMolti(recs){
+    var base = await _icLeggi();
+    if(!base){ showToast('⚠️ NAS non raggiungibile: modifica NON salvata, riprova', 'warning'); return false; }
+    var ts = new Date().toISOString(), by = (typeof _imzUtente === 'function') ? _imzUtente() : '';
+    for(var i = 0; i < recs.length; i++){ var cur = base.eventi[recs[i].id];
+      if(cur && String(cur._ts || '') > ts){ showToast('⚠️ Qualcuno ha appena modificato questi impegni: ricarico', 'warning'); _ICAL.doc = base; _icRender(); return false; } }
+    recs.forEach(function(r){ r._ts = ts; r._by = by; base.eventi[r.id] = r; });
+    if(!(await _scuPost(ICAL_KEY, base, 20000))){ showToast('⚠️ Salvataggio sul NAS non riuscito, riprova', 'warning'); return false; }
+    _ICAL.doc = base; return true;
+  }
+  function aggiorna(){ try{ _icRender(); }catch(e){} try{ _icAggiornaHome(); }catch(e){} try{ if(typeof _isaRender === 'function' && document.querySelector('#view-ist-sanita.active')) _isaRender(); }catch(e){} }
+
+  /* ── Google: una copia sola per il gruppo, con titolo «· N ragazzi» e i nomi nelle note ── */
+  var oPG = window._icPerGoogle;
+  window._icPerGoogle = function(e){ var p = oPG.apply(this, arguments);
+    try{ var ids = null;
+      if(G && !(_ICAL.doc.eventi || {})[e.id]) ids = G.ospiti;
+      else if(e.gruppo){ var m = vivi(e.gruppo); if(m.length > 1) ids = m.map(function(x){ return x.ospite; }); }
+      if(ids && ids.length > 1){ p.titolo = String(e.titolo || '') + ' · ' + ids.length + ' ragazzi'; p.note = 'Ragazzi: ' + ids.map(nomeO).join(', ') + '\n' + String(p.note || '').replace(/^Ragazzo: .*\n?/m, ''); }
+    }catch(x){}
+    return p; };
+
+  /* ── calendario e home: il gruppo come un impegno solo ── */
+  var oV = window._icVoci;
+  window._icVoci = function(){ var v = oV.apply(this, arguments), primo = {}, out = [];
+    v.forEach(function(x){
+      if(x.fonte !== 'imp' || !x.e || !x.e.gruppo){ out.push(x); return; }
+      var k = x.e.gruppo + '|' + x.ds, p = primo[k];
+      if(!p){ p = primo[k] = Object.assign({}, x, { grp:x.e.gruppo, membri:[x], e:Object.assign({}, x.e, { ospite:'' }) }); out.push(p); }
+      else p.membri.push(x);
+    });
+    out.forEach(function(x){ if(!x.grp) return; var n = x.membri.length;
+      if(n < 2){ var s = x.membri[0]; Object.keys(x).forEach(function(k){ delete x[k]; }); Object.assign(x, s); return; }
+      var f = x.membri.filter(function(m){ return m.fatto; }).length;
+      x.titolo = '👥 ' + x.membri[0].titolo + ' · ' + n + ' ragazzi' + (f && f < n ? ' (' + f + '/' + n + ' fatti)' : ''); x.fatto = f === n; });
+    return out; };
+  var oR = window._icRiga;
+  window._icRiga = _icRiga = function(x){ var h = oR.apply(this, arguments);
+    try{ if(x && x.grp) h = h.replace(/onclick="[^"]*"/, 'onclick="icApriGruppo(\'' + x.grp + '\',\'' + x.ds + '\')"'); }catch(e){}
+    return h; };
+
+  /* ── dettaglio del gruppo: ragazzi, fatto di ognuno, fatto per tutti ── */
+  window.icApriGruppo = function(gr, ds){
+    var M = vivi(gr).filter(function(e){ return _icOccorrenze(e, ds, ds).length; }).sort(function(a, b){ return nomeO(a.ospite).localeCompare(nomeO(b.ospite)); });
+    if(!M.length){ _imzChiudi(); aggiorna(); return; }
+    var e = M[0], t = _icTipo(e.tipo), ed = puoEd(), fatti = M.filter(function(m){ return (m.fatti || {})[ds]; }).length;
+    var riga = function(l, v){ return v ? '<div class="imz-kv"><span>' + l + '</span><b>' + E(v) + '</b></div>' : ''; };
+    var c = '<div class="ic-det-t" style="--c:' + t.c + '"><i></i>' + E(t.l) + ' · 👥 visita di gruppo · <b>' + fatti + '/' + M.length + ' fatti</b></div>'
+      + riga('Quando', _icFmtG(ds) + (e.tutto ? ' · tutto il giorno' : ' · ' + (e.ora || '') + (e.oraFine && e.oraFine > (e.ora || '') ? '–' + e.oraFine : '')))
+      + riga('Chi accompagna', e.chi) + riga('Ambulatorio / specialistica', e.specialistica) + riga('Luogo', e.luogo)
+      + (e.note ? '<div class="imz-sez" style="display:block">Note</div><div style="white-space:pre-wrap;font-size:14px">' + E(e.note) + '</div>' : '')
+      + '<div class="imz-sez" style="display:block">Ragazzi</div>'
+      + M.map(function(m){ var ok = !!(m.fatti || {})[ds], es = (m.esiti || {})[ds];
+          return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border)"><span style="width:9px;height:9px;border-radius:50%;flex-shrink:0;background:' + (ok ? '#16a34a' : '#cbd5e1') + '"></span>'
+            + '<div style="flex:1;min-width:0"><b data-no-sobrio>' + E(nomeO(m.ospite)) + '</b>' + (ok ? ' <span style="color:#16a34a;font-size:12px;font-weight:700">✓ fatto</span>' : '') + (es ? '<div style="font-size:12px;color:var(--text-muted);white-space:pre-wrap">📝 ' + E(es) + '</div>' : '') + '</div>'
+            + (m.sanita ? '<button type="button" class="btn btn-outline btn-sm" title="Apri la Sanità del ragazzo" onclick="_imzChiudi();navigate(\'ist-sanita\');setTimeout(function(){iosScheda(\'' + m.ospite + '\',\'sanita\')},600)">🩺</button>' : '')
+            + (ed ? '<button type="button" class="btn ' + (ok ? 'btn-outline' : 'btn-teal') + ' btn-sm" onclick="icGruppoFatto(\'' + gr + '\',\'' + ds + '\',\'' + m.id + '\')">' + (ok ? '↺' : '✓ Fatto') + '</button>' : '') + '</div>'; }).join('')
+      + (e.gId || M.some(function(m){ return m.gId; }) ? '<div class="ic-hint" style="margin-top:10px">📅 È anche su Google Calendar (una sola volta per tutto il gruppo).</div>' : '');
+    var piede = (ed ? '<button type="button" class="btn btn-outline btn-sm" style="margin-right:auto" onclick="icForm(\'' + e.id + '\',\'' + ds + '\')">✏️ Modifica</button>'
+        + (fatti < M.length ? '<button type="button" class="btn btn-teal btn-sm" id="icg-tutti" onclick="icGruppoFatto(\'' + gr + '\',\'' + ds + '\',\'*\')">✓ Fatto per tutti</button>' : '') : '')
+      + '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Chiudi</button>';
+    _imzModal(E(e.titolo), c, piede);
+  };
+  window.icGruppoFatto = async function(gr, ds, id){
+    if(!puoEd()) return;
+    var M = vivi(gr).filter(function(e){ return _icOccorrenze(e, ds, ds).length && (id === '*' || e.id === id); }), recs = M.map(function(e){ return JSON.parse(JSON.stringify(e)); });
+    if(!recs.length) return;
+    recs.forEach(function(r){ r.fatti = r.fatti || {}; if(id === '*') r.fatti[ds] = true; else if(r.fatti[ds]) delete r.fatti[ds]; else r.fatti[ds] = true; });
+    var b = document.getElementById('icg-tutti'); if(b && id === '*'){ b.disabled = true; b.textContent = '⏳ Salvo…'; }
+    if(await salvaMolti(recs)){ try{ _iosLog('Visita di gruppo ' + ds + ' · fatto per ' + recs.map(function(r){ return nomeO(r.ospite); }).join(', ')); }catch(e){} aggiorna(); icApriGruppo(gr, ds); }
+    else if(b){ b.disabled = false; b.textContent = '✓ Fatto per tutti'; }
+  };
+
+  /* ── modulo: scelta di più ragazzi (nuovo) oppure «tutti / solo questo» (gruppo esistente) ── */
+  function montaMulti(id, opz){
+    var sel = document.getElementById('ic-osp'), box = sel && sel.closest('.imz-f'); if(!box || document.getElementById('ic-multi')) return;
+    var e = id && _ICAL.doc.eventi[id];
+    if(id){
+      var M = e && e.gruppo ? vivi(e.gruppo) : []; if(M.length < 2) return;
+      var w = document.createElement('div'); w.id = 'ic-multi'; w.className = 'imz-f pieno';
+      w.innerHTML = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px"><b>👥 Visita di gruppo con ' + M.length + ' ragazzi</b><div style="font-size:12px;color:var(--text-muted);margin:2px 0 8px">' + E(M.map(function(m){ return nomeO(m.ospite); }).join(', ')) + '</div>'
+        + '<label class="ic-chk" data-no-sobrio style="margin-right:14px"><input type="radio" name="ic-ambito" value="tutti" checked> Modifiche ed eliminazione per <b>tutti i ragazzi</b></label>'
+        + '<label class="ic-chk" data-no-sobrio><input type="radio" name="ic-ambito" value="solo"> Solo per <b>' + E(nomeO(e.ospite)) + '</b></label></div>';
+      var g = sel.closest('.imz-grid'); g.insertBefore(w, g.firstChild); return;
+    }
+    var pre = (opz && opz.pre && opz.pre.ospiti) || [], osp = _iosOspiti('Presente', true);
+    var w2 = document.createElement('div'); w2.id = 'ic-multi'; w2.className = 'imz-f pieno';
+    w2.innerHTML = '<label class="ic-chk" data-no-sobrio><input type="checkbox" id="ic-multi-on"' + (pre.length ? ' checked' : '') + '> 👥 Stessa visita per più ragazzi</label>'
+      + '<div id="ic-multi-l" style="display:none;margin-top:6px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;max-height:240px;overflow:auto">'
+      + '<div style="display:flex;gap:8px;margin-bottom:6px"><button type="button" class="btn btn-outline btn-sm" onclick="document.querySelectorAll(\'.ic-mo\').forEach(function(c){c.checked=true});icMultiConta()">Seleziona tutti</button><button type="button" class="btn btn-outline btn-sm" onclick="document.querySelectorAll(\'.ic-mo\').forEach(function(c){c.checked=false});icMultiConta()">Nessuno</button><span id="ic-multi-n" style="margin-left:auto;font-size:12px;font-weight:700;align-self:center"></span></div>'
+      + osp.map(function(o){ return '<label class="ic-chk" data-no-sobrio style="display:flex;padding:3px 0"><input type="checkbox" class="ic-mo" value="' + o.id + '"' + (pre.indexOf(o.id) >= 0 ? ' checked' : '') + ' onchange="icMultiConta()"> ' + E(_iosNome(o)) + (o.semi ? ' · semiconvitto' : '') + '</label>'; }).join('') + '</div>';
+    box.parentNode.insertBefore(w2, box.nextSibling);
+    var on = document.getElementById('ic-multi-on');
+    var vedi = function(){ var m = on.checked; document.getElementById('ic-multi-l').style.display = m ? '' : 'none'; box.style.display = m ? 'none' : '';
+      var av = document.getElementById('ic-avv-edu-box'); if(av && m) av.style.display = 'none';
+      if(m){ var s = document.getElementById('ic-sanita'); if(s && !s.checked && (opz && opz.pre && opz.pre.sanita)){ s.checked = true; s.dispatchEvent(new Event('change')); } } icMultiConta(); };
+    on.addEventListener('change', vedi); vedi();
+  }
+  window.icMultiConta = function(){ var n = document.querySelectorAll('.ic-mo:checked').length, el = document.getElementById('ic-multi-n'); if(el) el.textContent = n + (n === 1 ? ' ragazzo' : ' ragazzi'); };
+  function scelti(){ var on = document.getElementById('ic-multi-on'); if(!on || !on.checked) return null; return Array.prototype.map.call(document.querySelectorAll('.ic-mo:checked'), function(c){ return c.value; }); }
+  function ambito(){ var r = document.querySelector('input[name="ic-ambito"]:checked'); return r ? r.value : ''; }
+
+  var oF = window.icForm;
+  window.icForm = function(id, ds, opz){ var r = oF.apply(this, arguments); try{ montaMulti(id, opz); }catch(e){ console.warn('[visite gruppo]', e); } return r; };
+
+  /* il capogruppo nasce dal salvataggio normale (Google, accompagnatore); poi si aggiungono gli altri ragazzi */
+  var oS = window._icSalva;
+  window._icSalva = async function(rec){ var ok = await oS.apply(this, arguments); try{ if(ok && G && rec && !rec._del && !G.capo) G.capo = rec.id; }catch(e){} return ok; };
+
+  var oSalva = window.icSalva;
+  window.icSalva = async function(id){
+    var ids = !id ? scelti() : null;
+    if(!id && ids){
+      if(!ids.length){ showToast('Scegli almeno un ragazzo', 'warning'); return; }
+      if(ids.length === 1){ document.getElementById('ic-osp').value = ids[0]; document.getElementById('ic-multi-on').checked = false; return oSalva.apply(this, arguments); }
+      var sb = document.getElementById('ic-sanita'), san = !!(sb && sb.checked), spec = _imzV('ic-spec'), opz = _ICAL.opz;
+      G = { ospiti:ids, sanita:san, spec:spec, capo:null };
+      document.getElementById('ic-osp').value = ''; if(sb) sb.checked = false;   // il capogruppo si salva prima «neutro»: un solo avviso, senza nome
+      _ICAL.opz = Object.assign({}, opz || {}, { dopo:null });
+      try{ await oSalva.call(this, ''); }catch(e){ console.warn('[visite gruppo]', e); }
+      var capo = G.capo && _ICAL.doc.eventi[G.capo], g0 = G; G = null;
+      if(!capo){ if(sb) sb.checked = san; _ICAL.opz = opz; return; }   // non salvato (campi mancanti o NAS): il modulo resta aperto
+      var gr = _imzId('grp'), recs = [], base = JSON.parse(JSON.stringify(capo));
+      ids.forEach(function(oid, i){
+        var r = i === 0 ? base : JSON.parse(JSON.stringify(base));
+        if(i > 0){ r.id = _imzId('ev'); r.google = false; delete r.gId; delete r.gCal; }
+        r.gruppo = gr; r.ospite = oid; r.sanita = g0.sanita; r.specialistica = g0.sanita ? g0.spec : '';
+        if(g0.sanita && i === 0 && /^Visita medica · /.test(r.titolo || '')) r.titolo = 'Visita medica';
+        recs.push(r); });
+      if(!(await salvaMolti(recs))){ showToast('⚠️ Salvato solo come impegno singolo: riapri e aggiungi i ragazzi', 'warning'); aggiorna(); return; }
+      try{ if(capo.gId && _icGoogleOn()) await _icGoogle(_icPerGoogle(recs[0]), true); }catch(e){}
+      try{ _iosLog('Visita di gruppo creata · ' + recs[0].titolo + ' · ' + ids.map(nomeO).join(', ')); }catch(e){}
+      try{ if(typeof nfInvia === 'function' && recs[0].data >= _icOggi()){ var gg = _imzD(recs[0].data).toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'short' });
+          nfInvia({ ruoli:['Admin', 'Responsabile Generale'], titolo:(g0.sanita ? 'Nuova visita' : 'Nuovo appuntamento') + ' · ' + ids.length + ' ragazzi', corpo:gg + (recs[0].tutto ? '' : (recs[0].ora ? ' alle ' + recs[0].ora : '')) + ' · ' + recs[0].titolo + (recs[0].luogo ? ' · ' + recs[0].luogo : '') + (recs[0].chi ? ' · accompagna ' + recs[0].chi : ''), tag:'cal-' + gr, vai:'g:ist-cal', app:'grest', ancheIo:true }); } }catch(e){}
+      aggiorna(); showToast('✅ Visita salvata per ' + ids.length + ' ragazzi', 'success');
+      if(opz && typeof opz.dopo === 'function'){ try{ opz.dopo(recs[0]); }catch(e){} }
+      return;
+    }
+    var e0 = id && _ICAL.doc.eventi[id], M = e0 && e0.gruppo ? vivi(e0.gruppo) : [];
+    if(!id || M.length < 2 || ambito() !== 'tutti') return oSalva.apply(this, arguments);
+    var prima = e0._ts;
+    await oSalva.apply(this, arguments);
+    var e1 = _ICAL.doc.eventi[id]; if(!e1 || e1._ts === prima) return;   // non salvato
+    var altri = vivi(e1.gruppo).filter(function(m){ return m.id !== id; }).map(function(m){ var r = JSON.parse(JSON.stringify(m)); COMUNI.forEach(function(k){ r[k] = e1[k]; }); return r; });
+    if(!altri.length) return;
+    if(await salvaMolti(altri)){
+      try{ var capo2 = altri.filter(function(m){ return m.gId; })[0]; if(capo2 && _icGoogleOn()) await _icGoogle(_icPerGoogle(capo2), true); }catch(e){}
+      aggiorna(); showToast('✅ Modifiche applicate a tutti i ' + (altri.length + 1) + ' ragazzi', 'success');
+    }
+  };
+
+  var oEl = window.icElimina;
+  window.icElimina = async function(id){
+    var e0 = (_ICAL.doc.eventi || {})[id], M = e0 && e0.gruppo ? vivi(e0.gruppo) : [];
+    if(M.length < 2) return oEl.apply(this, arguments);
+    if(ambito() === 'solo'){
+      var capo = !!e0.gId; await oEl.apply(this, arguments);
+      var dopo = (_ICAL.doc.eventi || {})[id]; if(!dopo || !dopo._del || !capo) return;
+      var resto = vivi(e0.gruppo); if(!resto.length || !_icGoogleOn() || e0.google === false) return;   // la copia su Google passa al prossimo ragazzo del gruppo
+      var n = JSON.parse(JSON.stringify(resto[0])); n.google = true;
+      try{ var r = await _icGoogle(_icPerGoogle(n), true); n.gId = r.id; n.gCal = _icImp().gImpegni; _ICAL.g = {}; await salvaMolti([n]); }catch(err){}
+      return;
+    }
+    if(!await xConferma('Eliminare «' + e0.titolo + '» per tutti i ' + M.length + ' ragazzi del gruppo?')) return;
+    var gKo = '';
+    for(var i = 0; i < M.length; i++){ if(M[i].gId && _icGoogleOn()){ try{ await _icGoogle({ azione:'elimina', cal:M[i].gCal || _icImp().gImpegni, id:M[i].gId }, true); _ICAL.g = {}; }catch(err){ gKo = _icErroreG(err); } } }
+    var recs = M.map(function(m){ var r = JSON.parse(JSON.stringify(m)); r._del = true; return r; });
+    if(await salvaMolti(recs)){
+      _imzChiudi(); aggiorna(); showToast(gKo ? 'Visita eliminata, ma NON da Google Calendar (' + gKo + '): cancellala anche lì' : 'Visita eliminata per tutti i ragazzi', gKo ? 'warning' : 'success');
+      var dp = _ICAL.opz && _ICAL.opz.dopo; _ICAL.opz = null; if(typeof dp === 'function'){ try{ dp(recs[0]); }catch(err){} }
+    }
+  };
+
+  /* ── Sanità › Programma visita: si possono scegliere più ragazzi ── */
+  window.isaVisitaScegli = function(){
+    if(typeof _isaEdit === 'function' && !_isaEdit()) return;
+    var L = _iosOspiti('Presente');
+    _imzModal('➕ Programma visita', '<div class="imz-f pieno"><label>Per quali ragazzi? <span style="font-weight:500;color:var(--text-muted)">(più ragazzi = una visita di gruppo, es. vaccino)</span></label>'
+      + '<div style="display:flex;gap:8px;margin:6px 0"><button type="button" class="btn btn-outline btn-sm" onclick="document.querySelectorAll(\'.isa-mo\').forEach(function(c){c.checked=true})">Seleziona tutti</button><button type="button" class="btn btn-outline btn-sm" onclick="document.querySelectorAll(\'.isa-mo\').forEach(function(c){c.checked=false})">Nessuno</button></div>'
+      + '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;max-height:320px;overflow:auto">' + L.map(function(o){ return '<label class="ic-chk" data-no-sobrio style="display:flex;padding:4px 0"><input type="checkbox" class="isa-mo" value="' + o.id + '"> ' + E(_iosNome(o)) + '</label>'; }).join('') + '</div></div>',
+      '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" onclick="isaVisitaScegliOk()">Avanti →</button>');
+  };
+  window.isaVisitaScegliOk = function(){
+    var ids = Array.prototype.map.call(document.querySelectorAll('.isa-mo:checked'), function(c){ return c.value; });
+    if(!ids.length){ showToast('Scegli almeno un ragazzo', 'warning'); return; }
+    window._ISA_V = 1;
+    if(ids.length === 1){ isaVisitaNuova(ids[0]); return; }
+    if(!(window._ICAL && _ICAL.doc)){ showToast('Calendario non ancora caricato, riprova tra un attimo', 'warning'); return; }
+    icForm('', _icOggi(), { permesso:_iosOk('ist_sanita_edit'), pre:{ tipo:'visita', sanita:true, titolo:'Visita medica', ospiti:ids }, dopo:function(){ _isaRiapri(ids[0]); } });
+  };
 })();
 </script>
 
