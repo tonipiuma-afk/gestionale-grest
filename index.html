@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 03/11/2026 11:10</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -14675,35 +14675,55 @@ table tbody tr:hover{
 
 <!-- ═══ REGISTRO ACCESSI (nascosto, solo admin via punto segreto) ═══ -->
 <div class="view" id="view-access-log">
+  <style>
+    #view-access-log .al-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+    #view-access-log .al-h1{font-size:22px;font-weight:800;margin:0}#view-access-log .al-sub{color:var(--text-muted,#64748b);font-size:12px;margin-top:2px}
+    #view-access-log .al-tabs{display:flex;gap:4px;background:#f1f5f9;border-radius:10px;padding:3px;width:max-content;margin:14px 0 0}
+    #view-access-log .al-tab{border:0;background:none;padding:7px 14px;border-radius:8px;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;font-size:13px}#view-access-log .al-tab.on{background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+    #view-access-log #access-log-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 0 0}
+    #view-access-log .al-k{border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:10px 14px;background:var(--card,#fff);text-align:left;cursor:pointer;font-family:inherit}#view-access-log .al-k b{font-size:22px;display:block}#view-access-log .al-k span{font-size:11px;color:var(--text-muted,#64748b)}
+    #view-access-log .al-k.sel{border-color:#2563eb;box-shadow:0 0 0 2px #dbeafe}
+    #view-access-log .al-warn{margin-top:12px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer}
+    #view-access-log #al-gruppi{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+    #view-access-log .al-g{border:1px solid var(--border,#e2e8f0);background:var(--card,#fff);border-radius:999px;padding:6px 12px;font-weight:600;font-size:12.5px;cursor:pointer;color:#334155;font-family:inherit}#view-access-log .al-g small{color:#94a3b8;font-weight:600;margin-left:2px}
+    #view-access-log .al-g.on{background:#2563eb;border-color:#2563eb;color:#fff}#view-access-log .al-g.on small{color:#dbeafe}
+    #view-access-log .al-filt{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px;align-items:center}
+    #view-access-log .al-seg{display:flex;border:1px solid var(--border,#e2e8f0);border-radius:9px;overflow:hidden}#view-access-log .al-per{border:0;background:var(--card,#fff);padding:8px 11px;color:#475569;cursor:pointer;font-family:inherit;font-size:13px}#view-access-log .al-per.on{background:#2563eb;color:#fff;font-weight:600}
+    #view-access-log .al-day{display:flex;justify-content:space-between;align-items:center;width:100%;margin:16px 0 4px;padding:0 0 6px;border:0;border-bottom:1px solid var(--border,#e2e8f0);background:none;cursor:pointer;font-family:inherit;font-size:13px;color:inherit;text-align:left}#view-access-log .al-day > span{color:var(--text-muted,#64748b);font-size:12px}
+    #view-access-log .al-row{display:grid;grid-template-columns:54px 36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px;border-radius:10px}#view-access-log .al-row:hover{background:#f8fafc}#view-access-log .al-row.ko{background:#fef2f2}
+    #view-access-log .al-t{font-size:16px;font-weight:700}#view-access-log .al-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12.5px}
+    #view-access-log .al-n b{font-size:14px}#view-access-log .al-chip{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+    #view-access-log .al-dv{display:flex;align-items:center;gap:8px;color:var(--text-muted,#64748b);font-size:12px;white-space:nowrap}
+    #view-access-log .al-rep{background:#e0e7ff;color:#3730a3;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px}
+    #view-access-log .al-res{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px}#view-access-log .al-ok{background:#f0fdf4;color:#15803d}#view-access-log .al-no{background:#fee2e2;color:#b91c1c}#view-access-log .al-out{background:#f1f5f9;color:#475569}#view-access-log .al-sc{background:#fff7ed;color:#c2410c}
+    #view-access-log .al-ut{display:grid;grid-template-columns:1.8fr 1fr .8fr 1.1fr .6fr;gap:8px;align-items:center;padding:9px 8px;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:13px}#view-access-log .al-ut.ko{background:#fef2f2}#view-access-log .al-ut-h{font-size:11px;color:#64748b;font-weight:600;cursor:default;border-bottom:1px solid var(--border,#e2e8f0)}
+    @media(max-width:760px){#view-access-log #access-log-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+      #view-access-log .al-row{grid-template-columns:44px 30px minmax(0,1fr);gap:8px}#view-access-log .al-dv{grid-column:3;white-space:normal;flex-wrap:wrap}#view-access-log .al-av{width:28px;height:28px;font-size:11px}#view-access-log .al-t{font-size:14px}
+      #view-access-log .al-ut{grid-template-columns:1.5fr 1fr .6fr}#view-access-log .al-ut > div:nth-child(4){display:none}#view-access-log .al-ut > div:nth-child(3){display:none}}
+  </style>
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
-      <div class="page-title" style="margin:0">🔐 Registro Accessi</div>
+    <div class="al-top">
+      <div><div class="al-h1">🔒 Registro Accessi</div><div class="al-sub">Chi è entrato nel gestionale, quando e da quale dispositivo · solo amministratori</div></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <span style="font-size:11px;background:#ffebee;color:#e53935;padding:4px 10px;border-radius:8px;font-weight:800">🔒 SOLO ADMIN</span>
-        <button type="button" class="btn btn-outline btn-sm" onclick="exportAccessLog()" title="Esporta CSV">📥 Esporta</button>
-        <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="clearAccessLog()">🗑️ Svuota</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="exportAccessLog()" title="Esporta CSV">⬇️ Esporta</button>
+        <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca" onclick="clearAccessLog()">🗑️ Svuota</button>
       </div>
     </div>
-    <!-- Stats rapide -->
-    <div id="access-log-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px"></div>
-    <!-- Filtri -->
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
-      <input type="text" class="form-control" id="access-search" placeholder="🔍 Cerca per username..." oninput="renderAccessLog()" style="max-width:260px">
-      <select class="form-control" id="access-filter-esito" onchange="renderAccessLog()" style="max-width:160px">
-        <option value="">Tutti gli esiti</option>
-        <option value="OK">✅ Successo</option>
-        <option value="FAIL">❌ Fallito</option>
-        <option value="LOGOUT">🚪 Logout</option>
-        <option value="SCADUTO">⏰ Account scaduto</option>
+    <div class="al-tabs"><button type="button" class="al-tab on" data-t="cron" onclick="alSet('tab','cron')">📋 Cronologia</button><button type="button" class="al-tab" data-t="utenti" onclick="alSet('tab','utenti')">👤 Per utente</button></div>
+    <div id="access-log-stats"></div>
+    <div id="al-warn"></div>
+    <div id="al-gruppi"></div>
+    <div class="al-filt">
+      <input type="text" class="form-control" id="access-search" placeholder="🔍 Cerca per nome o username…" oninput="_renderAccessLogConDati(window._ACCESS_VISTA || [])" style="flex:1;min-width:200px">
+      <select class="form-control" id="access-filter-esito" onchange="_renderAccessLogConDati(window._ACCESS_VISTA || [])" style="max-width:170px">
+        <option value="">Tutti gli esiti</option><option value="OK">✓ Riuscito</option><option value="FAIL">✕ Fallito</option><option value="LOGOUT">🚪 Uscita</option><option value="SCADUTO">⏰ Account scaduto</option>
       </select>
-      <select class="form-control" id="access-filter-periodo" onchange="renderAccessLog()" style="max-width:160px">
-        <option value="">Tutto</option>
-        <option value="oggi">Oggi</option>
-        <option value="settimana">Ultima settimana</option>
-        <option value="mese">Ultimo mese</option>
+      <select class="form-control" id="access-filter-dev" onchange="_renderAccessLogConDati(window._ACCESS_VISTA || [])" style="max-width:170px">
+        <option value="">Tutti i dispositivi</option><option value="pc">💻 Computer</option><option value="android">📱 Android</option><option value="ios">📱 iPhone</option>
       </select>
+      <div class="al-seg"><button type="button" class="al-per on" data-p="" onclick="alSet('periodo','')">Tutto</button><button type="button" class="al-per" data-p="oggi" onclick="alSet('periodo','oggi')">Oggi</button><button type="button" class="al-per" data-p="7" onclick="alSet('periodo','7')">7 giorni</button><button type="button" class="al-per" data-p="30" onclick="alSet('periodo','30')">30 giorni</button></div>
     </div>
-    <div id="access-log-list"><div class="empty-state"><div class="ei">🔐</div><div>Nessun accesso registrato</div></div></div>
+    <div id="access-log-list"><div class="empty-state"><div class="ei">🔐</div><div>Carico il registro…</div></div></div>
   </div>
 </div>
 
@@ -38527,88 +38547,118 @@ function renderAccessLog(){
     .catch(()=>{ _renderAccessLogConDati(db?.accessLog||[]); });
 }
 
+/* ═══ REGISTRO ACCESSI — vista per giorni, gruppi di utenti, doppioni compattati, avviso falliti, vista «Per utente» (novembre 2026) ═══ */
+window._AL = window._AL || { tab:'cron', gruppo:'', periodo:'', aperti:{} };
+const AL_GRUPPI = [['', 'Tutti'], ['staff', 'Staff'], ['edu', 'Educatori'], ['scu', 'Servizio Civile'], ['anim', 'Animatori'], ['gen', 'Genitori'], ['totem', 'Totem'], ['ignoti', 'Non riconosciuti']];
+function _alE(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+function _alNorm(s){ return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+function _alScu(){ const ids = {}, nomi = {};
+  try{ (scGetOperatori() || []).forEach(o => { ids[o.id] = 1; nomi[_alNorm((o.nome || '') + ' ' + (o.cognome || ''))] = 1; nomi[_alNorm((o.cognome || '') + ' ' + (o.nome || ''))] = 1; }); }catch(e){}
+  return { ids, nomi }; }
+function _alArricchisci(log){
+  const utenti = {}; ((window.APP && APP.utenti) || []).forEach(u => { if(u && u.username) utenti[String(u.username).toUpperCase()] = u; });
+  const S = _alScu(), oggi = new Date(), ieri = new Date(Date.now() - 864e5);
+  return log.filter(e => e && e.ts).map(e => {
+    const d = new Date(e.ts), u = utenti[String(e.username || '').toUpperCase()] || null;
+    const m = /Login come (.+?) \(/.exec(e.dettagli || '');
+    const ruolo = (e.ruolo && e.ruolo !== '—') ? e.ruolo : (u ? u.ruolo : '');
+    const nome = (u && u.nome) || (m ? m[1] : '') || '';
+    let gruppo = 'ignoti';
+    if(ruolo === 'Genitore') gruppo = 'gen'; else if(ruolo === 'Totem') gruppo = 'totem'; else if(ruolo === 'Educatore') gruppo = 'edu';
+    else if(['Animatore', 'Caposquadra', 'Animatore Laboratorio'].indexOf(ruolo) >= 0) gruppo = ((u && u.animatoreId && S.ids[u.animatoreId]) || S.nomi[_alNorm(nome)]) ? 'scu' : 'anim';
+    else if(ruolo) gruppo = 'staff';
+    const dv = String(e.device || ''), pz = dv.split('·').map(x => x.trim());
+    const piatt = /iOS|iPhone|iPad/i.test(dv) ? 'ios' : (/Android/i.test(dv) ? 'android' : 'pc');
+    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return { e, d, ds, u, ruolo, nome, gruppo, piatt, browser:pz[1] || '', esito:e.esito, user:String(e.username || '—') };
+  }).sort((a, b) => b.d - a.d);
+}
+function _alCap(s){ s = String(s || '').toLowerCase(); return s.replace(/(^|[\s'])\S/g, c => c.toUpperCase()); }
+function _alIni(s){ const p = String(s || '?').trim().split(/\s+/); return ((p[0] || '?').charAt(0) + (p[1] || '').charAt(0)).toUpperCase(); }
+function _alDev(x){ return { pc:'💻 Computer', android:'📱 Android', ios:'📱 iPhone' }[x.piatt] + (x.browser ? ' · ' + _alE(x.browser) : ''); }
+function _alGiorno(ds){ const d = new Date(ds + 'T12:00:00'), o = new Date(), oi = o.getFullYear() + '-' + String(o.getMonth() + 1).padStart(2, '0') + '-' + String(o.getDate()).padStart(2, '0');
+  const y = new Date(Date.now() - 864e5), yi = y.getFullYear() + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + String(y.getDate()).padStart(2, '0');
+  const t = d.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' });
+  return ds === oi ? 'Oggi · ' + t : (ds === yi ? 'Ieri · ' + t : t.charAt(0).toUpperCase() + t.slice(1)); }
+function alSet(k, v){ const A = window._AL; if(k === 'kpi'){ if(v === 'ok' || v === 'fail'){ const s = document.getElementById('access-filter-esito'); if(s) s.value = (s.value === (v === 'ok' ? 'OK' : 'FAIL')) ? '' : (v === 'ok' ? 'OK' : 'FAIL'); }
+    else if(v === 'oggi') A.periodo = A.periodo === 'oggi' ? '' : 'oggi'; else if(v === 'utenti'){ A.tab = 'utenti'; A.periodo = 'oggi'; } else { A.periodo = ''; const s = document.getElementById('access-filter-esito'); if(s) s.value = ''; } }
+  else if(k === 'giorno') A.aperti[v] = !A.aperti[v]; else A[k] = v;
+  _renderAccessLogConDati(window._ACCESS_VISTA || []); }
+function alUtente(u){ const s = document.getElementById('access-search'); if(s) s.value = u; window._AL.tab = 'cron'; _renderAccessLogConDati(window._ACCESS_VISTA || []); }
+
 function _renderAccessLogConDati(log){
   const container = document.getElementById('access-log-list'); if(!container) return;
+  const A = window._AL, tutti = _alArricchisci(log || []), now = new Date();
+  const oggiDs = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const inGruppo = tutti.filter(x => !A.gruppo || x.gruppo === A.gruppo);
+  const search = (document.getElementById('access-search')?.value || '').toLowerCase().trim();
+  const filtroEsito = document.getElementById('access-filter-esito')?.value || '';
+  const filtroDev = document.getElementById('access-filter-dev')?.value || '';
+  const perPeriodo = x => !A.periodo || (A.periodo === 'oggi' ? x.ds === oggiDs : (now - x.d) <= (+A.periodo) * 864e5);
+  const base = inGruppo.filter(x => perPeriodo(x) && (!filtroDev || x.piatt === filtroDev)
+    && (!search || x.user.toLowerCase().includes(search) || _alNorm(x.nome).includes(search) || String(x.e.dettagli || '').toLowerCase().includes(search)));
+  const filtrato = base.filter(x => !filtroEsito || x.esito === filtroEsito);
 
-  // Stats
+  // riquadri (sul gruppo scelto)
   const statsEl = document.getElementById('access-log-stats');
   if(statsEl){
-    const totale = log.length;
-    const ok = log.filter(e=>e.esito==='OK').length;
-    const fail = log.filter(e=>e.esito==='FAIL').length;
-    const oggi = log.filter(e=>{
-      const d = new Date(e.ts);
-      const now = new Date();
-      return d.toDateString() === now.toDateString();
-    }).length;
-    statsEl.innerHTML = `
-      <div style="background:var(--bg);padding:10px 16px;border-radius:12px;flex:1;min-width:100px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:var(--text)">${totale}</div>
-        <div style="font-size:11px;color:var(--text-muted);font-weight:700">Totale</div>
-      </div>
-      <div style="background:#e8f5e9;padding:10px 16px;border-radius:12px;flex:1;min-width:100px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:#43a047">${ok}</div>
-        <div style="font-size:11px;color:#43a047;font-weight:700">Riusciti</div>
-      </div>
-      <div style="background:#ffebee;padding:10px 16px;border-radius:12px;flex:1;min-width:100px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:#e53935">${fail}</div>
-        <div style="font-size:11px;color:#e53935;font-weight:700">Falliti</div>
-      </div>
-      <div style="background:#e3f2fd;padding:10px 16px;border-radius:12px;flex:1;min-width:100px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:#1565c0">${oggi}</div>
-        <div style="font-size:11px;color:#1565c0;font-weight:700">Oggi</div>
-      </div>`;
+    const ok = inGruppo.filter(x => x.esito === 'OK').length, fail = inGruppo.filter(x => x.esito === 'FAIL').length, oggi = inGruppo.filter(x => x.ds === oggiDs).length;
+    const uOggi = {}; inGruppo.forEach(x => { if(x.ds === oggiDs && x.esito === 'OK') uOggi[x.user.toUpperCase()] = 1; });
+    const k = (id, n, l, c, sel) => `<button type="button" class="al-k${sel ? ' sel' : ''}" onclick="alSet('kpi','${id}')"><b style="color:${c}">${n}</b><span>${l}</span></button>`;
+    statsEl.innerHTML = k('tot', inGruppo.length, 'Totale (ultimi ' + tutti.length + ')', 'var(--text,#0f172a)', !A.periodo && !filtroEsito)
+      + k('ok', ok, 'Riusciti', '#16a34a', filtroEsito === 'OK') + k('fail', fail, 'Falliti', '#dc2626', filtroEsito === 'FAIL')
+      + k('oggi', oggi, 'Oggi', '#2563eb', A.periodo === 'oggi') + k('utenti', Object.keys(uOggi).length, 'Utenti diversi oggi', 'var(--text,#0f172a)', false);
   }
+  // avviso: 3 o più tentativi falliti per lo stesso nome nell'ultima ora (su tutto il registro)
+  const warn = document.getElementById('al-warn');
+  if(warn){ const c = {}; tutti.forEach(x => { if(x.esito === 'FAIL' && now - x.d < 36e5){ const k = x.user.toLowerCase(); (c[k] = c[k] || []).push(x); } });
+    warn.innerHTML = Object.keys(c).filter(k => c[k].length >= 3).map(k => { const L = c[k]; return `<div class="al-warn" onclick="alUtente('${_alE(L[0].user).replace(/'/g, "\\'")}')">⚠️ <b>${L.length} tentativi falliti</b> per <b>@${_alE(L[0].user)}</b> nell'ultima ora (ultimo alle ${L[0].d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' })} da ${_alDev(L[0])})</div>`; }).join(''); }
+  // pulsanti dei gruppi
+  const gb = document.getElementById('al-gruppi');
+  if(gb){ const n = {}; tutti.forEach(x => { n[x.gruppo] = (n[x.gruppo] || 0) + 1; });
+    gb.innerHTML = AL_GRUPPI.filter(g => !g[0] || n[g[0]] || A.gruppo === g[0]).map(g => `<button type="button" class="al-g${A.gruppo === g[0] ? ' on' : ''}" onclick="alSet('gruppo','${g[0]}')">${g[1]} <small>${g[0] ? (n[g[0]] || 0) : tutti.length}</small></button>`).join(''); }
+  // schede e periodo
+  document.querySelectorAll('#view-access-log .al-tab').forEach(b => b.classList.toggle('on', b.dataset.t === A.tab));
+  document.querySelectorAll('#view-access-log .al-per').forEach(b => b.classList.toggle('on', b.dataset.p === A.periodo));
 
-  // Filtri
-  const search = (document.getElementById('access-search')?.value||'').toLowerCase();
-  const filtroEsito = document.getElementById('access-filter-esito')?.value||'';
-  const filtroPeriodo = document.getElementById('access-filter-periodo')?.value||'';
-
-  const now = new Date();
-  const filtrato = log.filter(e=>{
-    if(search && !(e.username||'').toLowerCase().includes(search) && !(e.dettagli||'').toLowerCase().includes(search)) return false;
-    if(filtroEsito && e.esito !== filtroEsito) return false;
-    if(filtroPeriodo){
-      const d = new Date(e.ts);
-      if(filtroPeriodo==='oggi' && d.toDateString()!==now.toDateString()) return false;
-      if(filtroPeriodo==='settimana' && (now-d)>7*86400000) return false;
-      if(filtroPeriodo==='mese' && (now-d)>30*86400000) return false;
-    }
-    return true;
-  });
-
-  if(!filtrato.length){
-    container.innerHTML='<div class="empty-state"><div class="ei">🔐</div><div>Nessun accesso trovato</div></div>';
+  if(A.tab === 'utenti'){
+    const per = {};
+    base.forEach(x => { const k = x.user.toUpperCase(), p = per[k] = per[k] || { x, ult:null, n7:0, dev:{}, fail:0, nOk:0 };
+      if(x.esito === 'OK'){ if(!p.ult || x.d > p.ult) p.ult = x.d; p.nOk++; if(now - x.d <= 7 * 864e5) p.n7++; }
+      if(x.esito === 'FAIL') p.fail++; p.dev[x.piatt] = 1; });
+    const L = Object.keys(per).map(k => per[k]).sort((a, b) => (b.ult || 0) - (a.ult || 0) || b.fail - a.fail);
+    if(!L.length){ container.innerHTML = '<div class="empty-state"><div class="ei">🔐</div><div>Nessun accesso trovato</div></div>'; return; }
+    const quando = d => { if(!d) return '—'; const gg = Math.floor((new Date(oggiDs + 'T23:59:59') - d) / 864e5); const h = d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }); return gg <= 0 ? 'oggi ' + h : (gg === 1 ? 'ieri ' + h : d.toLocaleDateString('it-IT')); };
+    container.innerHTML = '<div class="al-ut al-ut-h"><div>Utente</div><div>Ultimo accesso</div><div>Accessi 7 gg</div><div>Dispositivi</div><div>Falliti</div></div>'
+      + L.map(p => { const x = p.x, cfg = RUOLO_CFG[x.ruolo] || {}; return `<div class="al-ut${p.fail ? ' ko' : ''}" onclick="alUtente('${_alE(x.user).replace(/'/g, "\\'")}')" title="Vedi la cronologia di @${_alE(x.user)}">
+        <div><b>${_alE(_alCap(x.nome) || '@' + x.user)}</b> ${x.ruolo ? `<span class="al-chip" style="background:${cfg.bg || '#f1f5f9'};color:${cfg.color || '#475569'}">${_alE(cfg.label || x.ruolo)}</span>` : '<span class="al-chip" style="background:#fee2e2;color:#b91c1c">non riconosciuto</span>'}${x.gruppo === 'scu' ? ' <span class="al-chip" style="background:#e0e7ff;color:#3730a3">SCU</span>' : ''}<div class="al-sub">@${_alE(x.user)}</div></div>
+        <div>${quando(p.ult)}</div><div>${p.n7}</div><div>${Object.keys(p.dev).map(d => ({ pc:'💻', android:'📱 Android', ios:'📱 iPhone' }[d])).join(' ')}</div><div style="${p.fail ? 'color:#dc2626;font-weight:700' : ''}">${p.fail}</div></div>`; }).join('');
     return;
   }
 
-  const ESITO_CFG = {
-    'OK':     { emoji:'✅', color:'#43a047', bg:'#e8f5e9', label:'Accesso riuscito' },
-    'FAIL':   { emoji:'❌', color:'#e53935', bg:'#ffebee', label:'Credenziali errate' },
-    'LOGOUT': { emoji:'🚪', color:'#757575', bg:'#f5f5f5', label:'Disconnessione' },
-    'SCADUTO':{ emoji:'⏰', color:'#ff6f00', bg:'#fff8e1', label:'Account scaduto' }
-  };
-
-  container.innerHTML = filtrato.slice(0,300).map(e=>{
-    const d = new Date(e.ts);
-    const cfg = ESITO_CFG[e.esito] || ESITO_CFG['FAIL'];
-    return `<div class="access-row">
-      <div style="width:10px;height:10px;border-radius:50%;background:${cfg.color};flex-shrink:0;margin-top:5px"></div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
-          <span style="font-size:13px;font-weight:800;color:var(--text)">@${e.username}</span>
-          ${e.ruolo && e.ruolo!=='—' ? `<span style="font-size:10px;background:${(RUOLO_CFG[e.ruolo]||{}).bg||'#f0f0f0'};color:${(RUOLO_CFG[e.ruolo]||{}).color||'#666'};padding:2px 8px;border-radius:6px;font-weight:800">${(RUOLO_CFG[e.ruolo]||{}).emoji||''} ${e.ruolo}</span>` : ''}
-          <span style="font-size:10px;background:${cfg.bg};color:${cfg.color};padding:2px 8px;border-radius:6px;font-weight:800">${cfg.emoji} ${cfg.label}</span>
-        </div>
-        <div class="access-device">${e.device||'—'}${e.dettagli?' · '+e.dettagli:''}</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:11px;color:var(--text-muted);font-weight:700;white-space:nowrap">${d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div>
-        <div style="font-size:10px;color:var(--text-muted)">${d.toLocaleDateString('it-IT')}</div>
-      </div>
-    </div>`;
-  }).join('');
+  if(!filtrato.length){ container.innerHTML = '<div class="empty-state"><div class="ei">🔐</div><div>Nessun accesso trovato</div></div>'; return; }
+  // doppioni: stesso utente, stesso esito, stesso dispositivo, a meno di 30 minuti → una riga sola «×N»
+  const righe = [];
+  filtrato.forEach(x => { const p = righe[righe.length - 1];
+    if(p && p.x.ds === x.ds && p.x.user.toUpperCase() === x.user.toUpperCase() && p.x.esito === x.esito && p.x.piatt === x.piatt && (p.prima - x.d) <= 30 * 6e4){ p.n++; p.prima = x.d; }
+    else righe.push({ x, n:1, prima:x.d }); });
+  const perG = {}, ordine = []; righe.forEach(r => { if(!perG[r.x.ds]){ perG[r.x.ds] = []; ordine.push(r.x.ds); } perG[r.x.ds].push(r); });
+  const CFG = { OK:{ c:'al-ok', l:'✓ Riuscito' }, FAIL:{ c:'al-no', l:'✕ Fallito' }, LOGOUT:{ c:'al-out', l:'🚪 Uscita' }, SCADUTO:{ c:'al-sc', l:'⏰ Account scaduto' } };
+  const hm = d => d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+  let mostrate = 0;
+  container.innerHTML = ordine.map((ds, i) => {
+    const R = perG[ds], tot = R.reduce((s, r) => s + r.n, 0), ko = R.filter(r => r.x.esito === 'FAIL').reduce((s, r) => s + r.n, 0);
+    const aperto = A.aperti[ds] !== undefined ? A.aperti[ds] : (i === 0 || A.periodo === 'oggi' || !!search);
+    let h = `<button type="button" class="al-day" onclick="alSet('giorno','${ds}')"><b>${aperto ? '▾' : '▸'} ${_alE(_alGiorno(ds))}</b><span>${tot} ${tot === 1 ? 'voce' : 'voci'}${ko ? ' · <b style="color:#dc2626">' + ko + ' ' + (ko === 1 ? 'fallito' : 'falliti') + '</b>' : ''}</span></button>`;
+    if(!aperto || mostrate > 400) return h;
+    return h + R.map(r => { mostrate++; const x = r.x, cfg = RUOLO_CFG[x.ruolo] || {}, es = CFG[x.esito] || CFG.FAIL, ko2 = x.esito === 'FAIL';
+      const nome = _alCap(x.nome) || '@' + x.user, sub = '@' + _alE(x.user) + (r.n > 1 ? ' · ' + r.n + ' volte tra le ' + hm(r.prima) + ' e le ' + hm(x.d) : '') + (ko2 && x.e.dettagli ? ' · ' + _alE(x.e.dettagli) : '');
+      const chip = x.ruolo ? `<span class="al-chip" style="background:${cfg.bg || '#f1f5f9'};color:${cfg.color || '#475569'}">${_alE(cfg.label || x.ruolo)}</span>` : (ko2 ? '<span class="al-chip" style="background:#fee2e2;color:#b91c1c">' + (x.u ? 'password errata' : 'utente inesistente') + '</span>' : '');
+      return `<div class="al-row${ko2 ? ' ko' : ''}" title="${_alE((x.e.device || '') + (x.e.dettagli ? ' · ' + x.e.dettagli : ''))}"><div class="al-t">${hm(x.d)}</div>
+        <div class="al-av" style="background:${x.ruolo ? (cfg.color || '#64748b') : '#94a3b8'}">${x.nome ? _alE(_alIni(x.nome)) : '?'}</div>
+        <div class="al-n"><b>${_alE(nome)}</b> ${chip}${x.gruppo === 'scu' ? ' <span class="al-chip" style="background:#e0e7ff;color:#3730a3">SCU</span>' : ''}<div class="al-sub">${sub}</div></div>
+        <div class="al-dv">${_alDev(x)}${r.n > 1 ? ' <span class="al-rep">×' + r.n + '</span>' : ''} <span class="al-res ${es.c}">${es.l}</span></div></div>`; }).join('');
+  }).join('') + (mostrate > 400 ? '<div class="al-sub" style="text-align:center;padding:10px">Mostrate le prime 400 righe: usa i filtri per restringere.</div>' : '');
 }
 
 function clearAccessLog(){
@@ -57452,7 +57502,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 03/11/2026 11:10 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
