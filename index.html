@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 04/11/2026 11:13</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57503,7 +57503,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 04/11/2026 11:13 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -75639,9 +75639,12 @@ function _isaVL104(){
     + (edit ? '<span style="margin-left:auto"><button type="button" class="btn btn-teal btn-sm" onclick="isaCarica(\'\',\'l104\')">📤 Carica verbale</button></span>' : '') + '</div>';
   h += '<div class="idb-box">' + (lista.length ? lista.map(function(r){
       var s = r.s, sub = [s.l104Data ? 'Verbale del ' + _imzFmt(s.l104Data) : '', s.l104Note || ''].filter(Boolean).join(' · ');
-      return '<div class="idb-row" onclick="'+(edit ? 'isaForm(\''+r.o.id+'\')' : 'iosScheda(\''+r.o.id+'\',\'sanita\')')+'"><span class="idb-ico">♿</span><div class="idb-txt"><b>'+_imzE(_iosNome(r.o))+'</b>'
-        + '<span>'+(f === 'nonind' ? 'Legge 104 non indicata: apri e scegli Sì o No' : _imzE(sub || 'nessuna nota'))+'</span></div>'
-        + (f === 'nonind' ? '' : _isaChip(r.v)) + (s.fileL104 ? '<button type="button" class="btn btn-outline btn-sm" style="margin-left:6px" onclick="event.stopPropagation();iosFileApri(null,null,false,_isaScheda(\''+r.o.id+'\').fileL104)">📎</button>' : (f === 'nonind' ? '' : '<span class="imz-chip ios-grigio" style="margin-left:6px"><span>senza verbale</span></span>')) + '</div>'; }).join('')
+      var id = r.o.id;
+      var fileB = s.fileL104 ? '<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();iosFileApri(null,null,false,_isaScheda(\''+id+'\').fileL104)">📎 Apri verbale</button>'
+        : (f === 'nonind' ? '' : (edit ? '<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();isaCarica(\''+id+'\',\'l104\')">📤 Carica verbale</button>' : '<span style="font-size:12px;color:var(--text-muted)">senza verbale</span>'));
+      return '<div class="idb-row" onclick="iosScheda(\''+id+'\',\'sanita\')" title="Apri la scheda sanitaria"><span class="idb-ico">♿</span><div class="idb-txt" style="flex:1;min-width:0"><b>'+_imzE(_iosNome(r.o))+'</b>'
+        + '<span>'+(f === 'nonind' ? 'Legge 104 non indicata: premi ✏️ e scegli Sì o No' : _imzE(sub || 'nessuna nota'))+'</span>' + (f === 'nonind' ? '' : '<div style="margin-top:3px">' + _isaChip(r.v) + '</div>') + '</div>'
+        + '<div style="display:flex;gap:4px;flex-shrink:0">' + fileB + (edit ? '<button type="button" class="btn btn-outline btn-sm" title="Modifica dati sanitari" onclick="event.stopPropagation();isaForm(\''+id+'\')">✏️</button>' : '') + '</div></div>'; }).join('')
     : '<div class="idb-vuoto">' + (f ? 'Nessun ragazzo in questo elenco.' : 'Nessun ragazzo con Legge 104. Si indica in ✏️ Modifica dati sanitari di ogni ragazzo.') + '</div>') + '</div>';
   return h;
 }
