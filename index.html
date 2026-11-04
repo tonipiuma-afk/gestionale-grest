@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 04/11/2026 21:03</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -13778,6 +13778,13 @@ table tbody tr:hover{
 
   <!-- TAB ASPETTO -->
   <div class="imp-tab-content" id="imp-tab-aspetto">
+
+  <!-- FRASI DEL GIORNO -->
+  <div class="card" id="imp-card-frasi" style="margin-bottom:20px">
+    <div class="section-title">💬 Frasi del giorno</div>
+    <p class="text-muted mb-3">Le frasi che compaiono sotto il saluto (home e animazione di apertura). Stanno sul NAS e sono uguali per tutti: per ognuna scegli quando esce e per quale area.</p>
+    <div id="frasi-box"><div class="text-muted">Carico le frasi…</div></div>
+  </div>
 
   <!-- FONT -->
   <div class="card" id="imp-card-font" style="margin-bottom:20px">
@@ -38962,54 +38969,8 @@ function mostraMessaggioMotivazionale(nome){
   else if(ora < 18) saluto = 'Buon pomeriggio';
   else saluto = 'Buonasera';
 
-  const frasi = [
-    // Frasi motivazionali GREST
-    { msg:'Oggi sarà un gran GREST! 💪', emoji:'☀️' },
-    { msg:'I ragazzi ti aspettano! 🎉', emoji:'🤩' },
-    { msg:'Pronti per una giornata fantastica?', emoji:'🚀' },
-    { msg:'Il GREST non sarebbe lo stesso senza di te', emoji:'⭐' },
-    { msg:'Oggi si fa la differenza 💥', emoji:'🔥' },
-    { msg:'Energia al massimo oggi?', emoji:'⚡' },
-    { msg:'Ogni giorno è un\'avventura al GREST', emoji:'🎪' },
-    { msg:'Il GREST si illumina con te ✨', emoji:'🌟' },
-    { msg:'Divertiamoci e facciamo divertire!', emoji:'🎈' },
-    { msg:'Un giorno alla volta, un sorriso alla volta', emoji:'🌈' },
-    { msg:'Regala un momento speciale a qualcuno oggi', emoji:'🎁' },
-    // Frasi di Don Bosco
-    { msg:'"Siate allegri, fate del bene e lasciate cantare i passeri" — Don Bosco', emoji:'🕊️' },
-    { msg:'"L\'educazione è cosa di cuore" — Don Bosco', emoji:'❤️' },
-    { msg:'"Basta che siate giovani perché io vi ami assai" — Don Bosco', emoji:'💛' },
-    { msg:'"Con la dolcezza e la carità si guadagnano i cuori" — Don Bosco', emoji:'🤝' },
-    { msg:'"Noi facciamo consistere la santità nello stare molto allegri" — Don Bosco', emoji:'😊' },
-    { msg:'"Fai il bene dove sei, con quello che hai" — Don Bosco', emoji:'🌱' },
-    { msg:'"Ricordatevi che l\'educazione è cosa del cuore" — Don Bosco', emoji:'💖' },
-    { msg:'"Il primo dovere dell\'educatore è di farsi amare" — Don Bosco', emoji:'🫶' },
-    { msg:'"La gioia è la più bella creatura uscita dalle mani di Dio" — Don Bosco', emoji:'✨' },
-    { msg:'"Non basta amare i giovani, bisogna che essi si sentano amati" — Don Bosco', emoji:'💫' },
-    { msg:'"Il bene va fatto bene" — Don Bosco', emoji:'🎯' },
-    { msg:'"Cammina con i piedi per terra e col cuore abita in cielo" — Don Bosco', emoji:'☁️' },
-    { msg:'"La confidenza mette un ponte fra educatore e giovane" — Don Bosco', emoji:'🌉' },
-    { msg:'"Chi sa di essere amato, ama. E chi è amato ottiene tutto" — Don Bosco', emoji:'💝' },
-    { msg:'"Non con le percosse, ma con la mansuetudine e la carità" — Don Bosco', emoji:'🕊️' },
-    { msg:'"Studia di farti amare, piuttosto che farti temere" — Don Bosco', emoji:'🌟' },
-    { msg:'"La prima felicità di un ragazzo è sapersi amato" — Don Bosco', emoji:'🌈' },
-    { msg:'"Coraggio! Il bel Paradiso è aperto per voi" — Don Bosco', emoji:'🙏' },
-    { msg:'"Ogni momento è buono per fare del bene" — Don Bosco', emoji:'⏰' },
-    { msg:'"La ricreazione è una lezione essa stessa" — Don Bosco', emoji:'🎮' },
-    { msg:'"Fate tutto per amor di Dio e sarete sempre allegri" — Don Bosco', emoji:'😄' },
-    { msg:'"Un cuore allegro rende tutto più leggero" — Don Bosco', emoji:'🎈' },
-  ];
+  const scelta = (typeof _frasiScegli === 'function' ? _frasiScegli() : null) || { msg:'' };
 
-  // Frasi speciali per giorni particolari
-  const oggi = new Date();
-  const giorno = oggi.getDay();
-  const frasiSpeciali = [];
-  if(giorno === 1) frasiSpeciali.push({ msg:'Buon lunedì! Si parte alla grande 🚀', emoji:'💪' });
-  if(giorno === 5) frasiSpeciali.push({ msg:'È venerdì! Ultimo sprint della settimana!', emoji:'🎉' });
-  if(giorno === 6 || giorno === 0) frasiSpeciali.push({ msg:'Anche nel weekend al lavoro? Sei un mito!', emoji:'🏆' });
-
-  const tutteFragi = [...frasi, ...frasiSpeciali];
-  const scelta = tutteFragi[Math.floor(Math.random() * tutteFragi.length)];
 
   const banner = document.createElement('div');
   banner.className = 'motiv-banner';
@@ -57502,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 04/11/2026 21:03 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91029,6 +90990,70 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       + '<script>window.onload=function(){window.print();}<\/script></body></html>';
     w.document.write(h); w.document.close();
   };
+})();
+</script>
+<script id="frasi-giorno-js">
+/* ═══ FRASI DEL GIORNO (novembre 2026): non più scritte nel codice. Elenco sul NAS (_frasi_giorno), copia sul dispositivo
+   per averle subito; si modificano da Impostazioni › Aspetto. quando: sempre | grest (solo durante il GREST) | lun | ven | weekend ═══ */
+(function(){
+  var KEY = '_frasi_giorno', LSK = 'piuma_frasi_giorno';
+  var DEF = [{"testo": "Oggi sarà un gran GREST! 💪", "autore": "", "quando": "grest", "area": "", "id": "fd01"}, {"testo": "I ragazzi ti aspettano! 🎉", "autore": "", "quando": "grest", "area": "", "id": "fd02"}, {"testo": "Pronti per una giornata fantastica?", "autore": "", "quando": "grest", "area": "", "id": "fd03"}, {"testo": "Il GREST non sarebbe lo stesso senza di te", "autore": "", "quando": "grest", "area": "", "id": "fd04"}, {"testo": "Oggi si fa la differenza 💥", "autore": "", "quando": "grest", "area": "", "id": "fd05"}, {"testo": "Energia al massimo oggi?", "autore": "", "quando": "grest", "area": "", "id": "fd06"}, {"testo": "Ogni giorno è un'avventura al GREST", "autore": "", "quando": "grest", "area": "", "id": "fd07"}, {"testo": "Il GREST si illumina con te ✨", "autore": "", "quando": "grest", "area": "", "id": "fd08"}, {"testo": "Divertiamoci e facciamo divertire!", "autore": "", "quando": "grest", "area": "", "id": "fd09"}, {"testo": "Un giorno alla volta, un sorriso alla volta", "autore": "", "quando": "grest", "area": "", "id": "fd10"}, {"testo": "Regala un momento speciale a qualcuno oggi", "autore": "", "quando": "grest", "area": "", "id": "fd11"}, {"testo": "Siate allegri, fate del bene e lasciate cantare i passeri", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd12"}, {"testo": "L'educazione è cosa di cuore", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd13"}, {"testo": "Basta che siate giovani perché io vi ami assai", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd14"}, {"testo": "Con la dolcezza e la carità si guadagnano i cuori", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd15"}, {"testo": "Noi facciamo consistere la santità nello stare molto allegri", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd16"}, {"testo": "Fai il bene dove sei, con quello che hai", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd17"}, {"testo": "Ricordatevi che l'educazione è cosa del cuore", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd18"}, {"testo": "Il primo dovere dell'educatore è di farsi amare", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd19"}, {"testo": "La gioia è la più bella creatura uscita dalle mani di Dio", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd20"}, {"testo": "Non basta amare i giovani, bisogna che essi si sentano amati", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd21"}, {"testo": "Il bene va fatto bene", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd22"}, {"testo": "Cammina con i piedi per terra e col cuore abita in cielo", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd23"}, {"testo": "La confidenza mette un ponte fra educatore e giovane", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd24"}, {"testo": "Chi sa di essere amato, ama. E chi è amato ottiene tutto", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd25"}, {"testo": "Non con le percosse, ma con la mansuetudine e la carità", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd26"}, {"testo": "Studia di farti amare, piuttosto che farti temere", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd27"}, {"testo": "La prima felicità di un ragazzo è sapersi amato", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd28"}, {"testo": "Coraggio! Il bel Paradiso è aperto per voi", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd29"}, {"testo": "Ogni momento è buono per fare del bene", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd30"}, {"testo": "La ricreazione è una lezione essa stessa", "autore": "Don Bosco", "quando": "sempre", "area": "", "id": "fd31"}, {"testo": "Buon lunedì! Si parte alla grande 🚀", "autore": "", "quando": "lun", "area": "", "id": "fd32"}, {"testo": "È venerdì! Ultimo sprint della settimana!", "autore": "", "quando": "ven", "area": "", "id": "fd33"}, {"testo": "Anche nel weekend al lavoro? Sei un mito!", "autore": "", "quando": "weekend", "area": "", "id": "fd34"}];
+  var FR = { doc:null, carico:false };
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  var QUANDO = [['sempre','Sempre'],['grest','Solo durante il GREST'],['lun','Solo il lunedì'],['ven','Solo il venerdì'],['weekend','Solo nel fine settimana']];
+  var AREE = [['','Tutte le aree'],['ist','Istituto'],['grest','GREST'],['scu','Servizio Civile']];
+  function LS(v){ try{ if(v === undefined) return JSON.parse(localStorage.getItem(LSK) || 'null'); localStorage.setItem(LSK, JSON.stringify(v)); }catch(e){ return null; } }
+  function lista(){ var d = FR.doc || LS(); return (d && Array.isArray(d.frasi)) ? d.frasi : DEF; }
+  function puo(){ try{ return ['Admin','Responsabile Generale'].indexOf(AUTH.currentUser.ruolo) >= 0; }catch(e){ return false; } }
+  async function carica(){
+    if(FR.carico || typeof _scuGet !== 'function') return; FR.carico = true;
+    try{ var r = await _scuGet(KEY, 10000); if(r && r.ok){ FR.doc = (!r.vuoto && r.db && Array.isArray(r.db.frasi)) ? r.db : null; if(FR.doc) LS(FR.doc); } }catch(e){}
+    FR.carico = false; render();
+  }
+  window._frasiScegli = function(){
+    var g = new Date().getDay(), inGrest = false; try{ inGrest = typeof _grestInCorso === 'function' && _grestInCorso() === true; }catch(e){}
+    var ok = lista().filter(function(f){
+      if(!f || f.attiva === false || !String(f.testo || '').trim()) return false;
+      if(f.quando === 'grest' && !inGrest) return false;
+      if(f.quando === 'lun' && g !== 1) return false; if(f.quando === 'ven' && g !== 5) return false; if(f.quando === 'weekend' && g !== 0 && g !== 6) return false;
+      if(f.area){ try{ if(typeof areaAccesso === 'function' && !areaAccesso(f.area)) return false; }catch(e){} }
+      return true; });
+    if(!ok.length) return null;
+    var s = ok[Math.floor(Math.random() * ok.length)];
+    return { msg: s.autore ? '"' + s.testo + '" — ' + s.autore : s.testo };
+  };
+  async function salva(nuova){
+    var doc = { v:1, frasi:nuova, _ts:new Date().toISOString() };
+    var ok = false; try{ ok = await _scuPost(KEY, doc, 15000); }catch(e){}
+    if(!ok){ showToast('⚠️ NAS non raggiungibile: frasi NON salvate', 'warning'); return false; }
+    FR.doc = doc; LS(doc); showToast('✅ Frasi salvate', 'success'); render(); return true;
+  }
+  function render(){
+    var box = document.getElementById('frasi-box'); if(!box) return;
+    var L = lista(), ed = puo();
+    var sel = function(cls, i, opz, v){ return '<select class="form-control ' + cls + '" data-i="' + i + '" style="max-width:200px"' + (ed ? '' : ' disabled') + '>' + opz.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === (v || '') ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>'; };
+    box.innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">' + L.filter(function(f){ return f.attiva !== false; }).length + ' frasi attive su ' + L.length + (FR.doc ? '' : ' · elenco iniziale (non ancora salvato sul NAS)') + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px;max-height:460px;overflow:auto;padding-right:4px">' + L.map(function(f, i){
+        return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border:1px solid var(--border);border-radius:10px;padding:8px 10px;' + (f.attiva === false ? 'opacity:.55' : '') + '">'
+          + '<label title="Attiva" style="display:flex;align-items:center"><input type="checkbox" class="fr-on" data-i="' + i + '"' + (f.attiva === false ? '' : ' checked') + (ed ? '' : ' disabled') + ' style="width:18px;height:18px"></label>'
+          + '<input class="form-control fr-t" data-i="' + i + '" value="' + E(f.testo) + '" placeholder="Frase" style="flex:3;min-width:220px"' + (ed ? '' : ' disabled') + '>'
+          + '<input class="form-control fr-a" data-i="' + i + '" value="' + E(f.autore) + '" placeholder="Autore (facoltativo)" style="flex:1;min-width:130px"' + (ed ? '' : ' disabled') + '>'
+          + sel('fr-q', i, QUANDO, f.quando || 'sempre') + sel('fr-ar', i, AREE, f.area || '')
+          + (ed ? '<button type="button" class="btn btn-outline btn-sm fr-x" data-i="' + i + '" title="Togli" style="color:#dc2626">🗑️</button>' : '') + '</div>'; }).join('') + '</div>'
+      + (ed ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn btn-outline btn-sm" id="fr-add">➕ Aggiungi frase</button><button type="button" class="btn btn-teal btn-sm" id="fr-save">💾 Salva frasi</button><button type="button" class="btn btn-outline btn-sm" id="fr-reset" style="margin-left:auto">↺ Ripristina le frasi iniziali</button></div>' : '<div class="text-muted" style="margin-top:8px;font-size:12px">Solo Admin e Responsabile Generale possono modificarle.</div>');
+    if(!ed) return;
+    var leggi = function(){ var out = []; box.querySelectorAll('.fr-t').forEach(function(inp){ var i = +inp.getAttribute('data-i'), q = function(c){ return box.querySelector(c + '[data-i="' + i + '"]'); };
+        out.push({ id:(L[i] && L[i].id) || ('fr' + Date.now().toString(36) + i), testo:inp.value.trim(), autore:q('.fr-a').value.trim(), quando:q('.fr-q').value, area:q('.fr-ar').value, attiva:q('.fr-on').checked }); }); return out; };
+    box.querySelector('#fr-add').onclick = function(){ var n = leggi(); n.unshift({ id:'fr' + Date.now().toString(36), testo:'', autore:'', quando:'sempre', area:'', attiva:true }); FR.doc = { v:1, frasi:n, bozza:true }; render(); var p = box.querySelector('.fr-t'); if(p) p.focus(); };
+    box.querySelectorAll('.fr-x').forEach(function(b){ b.onclick = function(){ var n = leggi(); n.splice(+b.getAttribute('data-i'), 1); FR.doc = { v:1, frasi:n, bozza:true }; render(); }; });
+    box.querySelector('#fr-save').onclick = function(){ salva(leggi().filter(function(f){ return f.testo; })); };
+    box.querySelector('#fr-reset').onclick = async function(){ if(await xConferma('Rimettere le frasi iniziali? Quelle aggiunte o modificate vanno perse.')) salva(JSON.parse(JSON.stringify(DEF))); };
+  }
+  window.frasiRender = function(){ render(); carica(); };
+  var oL = window.loadImp; if(typeof oL === 'function') window.loadImp = function(){ var r = oL.apply(this, arguments); try{ frasiRender(); }catch(e){} return r; };
+  setTimeout(function(){ try{ if(typeof AUTH !== 'undefined' && AUTH.currentUser) carica(); }catch(e){} }, 8000);
+  /* la scheda Aspetto può aprirsi in tanti modi: quando il riquadro diventa visibile lo disegno */
+  var _vis = false; setInterval(function(){ var b = document.getElementById('frasi-box'), v = !!(b && b.offsetParent); if(v && !_vis) frasiRender(); _vis = v; }, 800);
 })();
 </script>
 
