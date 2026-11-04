@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 03/11/2026 13:37</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -17804,7 +17804,20 @@ function _isaStato(o){
   if(!s.esenzione) out.mancanti.push('esenzione');
   else if(!s.validitaEsenz) out.mancanti.push('validità esenzione');
   else if(s.validitaEsenz === 'A scadenza'){ if(!s.scadEsenz) out.mancanti.push('scadenza esenzione'); else { var g2 = _imzGG(s.scadEsenz); if(g2 < 0) out.scadute.push('esenzione'); else if(g2 <= 30) out.entro30.push('esenzione'); } }
+  var v4 = _isaL104(s); if(v4.ord === 0) out.scadute.push('revisione Legge 104'); else if(v4.ord === 1) out.entro30.push('revisione Legge 104'); else if(v4.manca) out.mancanti.push(v4.manca);
   return out;
+}
+/* Legge 104: stato della voce (ord 0 scaduta, 1 revisione entro 60 giorni, 2 da completare, 4 in regola, 9 non riconosciuta) */
+function _isaL104(s){
+  s = s || {};
+  if(s.l104 !== 'Sì') return { cl:'grigio', txt:s.l104 === 'No' ? 'non riconosciuta' : 'non indicata', ord:9 };
+  var tipo = s.l104Tipo ? s.l104Tipo.replace('Art. 3 ', 'art. 3 ') : '';
+  if(!s.l104Tipo) return { cl:'giallo', txt:'tipo di riconoscimento mancante', ord:2, manca:'tipo Legge 104' };
+  if(!s.l104Rev) return { cl:'giallo', txt:tipo + ' · revisione da indicare', ord:2, manca:'revisione Legge 104' };
+  if(s.l104Rev !== 'Con revisione') return { cl:'verde', txt:tipo + ' · permanente', ord:4 };
+  if(!s.l104Scad) return { cl:'giallo', txt:tipo + ' · data di revisione mancante', ord:2, manca:'data revisione Legge 104' };
+  var g = _imzGG(s.l104Scad);
+  return { cl:g < 0 ? 'rosso' : (g <= 60 ? 'giallo' : 'verde'), txt:tipo + ' · revisione ' + _imzFmt(s.l104Scad) + ' · ' + _imzTesto(g), ord:g < 0 ? 0 : (g <= 60 ? 1 : 3), gg:g };
 }
 function _isaRiepilogo(){
   var r = { presenti:0, scadute:0, entro30:0, mancanti:0, medici:{} };
@@ -17893,6 +17906,7 @@ function iosScheda(id, sez){
       + riga('Medico', s.medico) + (s.medico && typeof _isaMedicoContatti === 'function' && _isaMedicoContatti(s.medico, true) ? '<div style="font-size:13px;margin:-2px 0 8px;padding:8px 10px;background:var(--bg);border-radius:10px">' + _isaMedicoContatti(s.medico, true) + '</div>' : '') + riga('Libretto', s.libretto) + riga('Scadenza libretto', _imzFmt(s.scadLibretto))
       + riga('Esenzione', s.esenzione) + riga('Validità esenzione', s.validitaEsenz) + riga('Scadenza esenzione', _imzFmt(s.scadEsenz))
       + riga('Allergie / intolleranze', s.allergie)
+      + (s.l104 === 'Sì' ? riga('Legge 104', [s.l104Tipo, s.l104Data ? 'verbale del ' + _imzFmt(s.l104Data) : '', s.l104Rev === 'Con revisione' ? (s.l104Scad ? 'revisione ' + _imzFmt(s.l104Scad) : 'revisione da indicare') : s.l104Rev].filter(Boolean).join(' · ')) + riga('Note Legge 104', s.l104Note) : (s.l104 === 'No' ? riga('Legge 104', 'non riconosciuta') : ''))
       + isaVisiteHtml(o) + (typeof _isaDocHtml === 'function' ? _isaDocHtml(o) : '')
       + (s.note ? '<div class="imz-sez" style="display:block">Note sanitarie</div><div style="white-space:pre-wrap;font-size:13px">'+_imzE(s.note)+'</div>' : '');
     piede = (_iosOk('ist_sanita_edit') ? '<button type="button" class="btn btn-teal btn-sm" onclick="isaForm(\''+id+'\')">✏️ Modifica dati sanitari</button>' : '');
@@ -18303,6 +18317,11 @@ function isaForm(id){
     + _imzCampo('isa-esenzione','Esenzione (codice)',s.esenzione,null,es) + _imzCampo('isa-validitaEsenz','Validità esenzione',s.validitaEsenz,null,['Illimitata','A scadenza'])
     + _imzCampo('isa-scadEsenz','Scadenza esenzione',s.scadEsenz,'date') + '<div></div>'
     + _imzCampo('isa-allergie','Allergie / intolleranze',s.allergie,null,null,true)
+    + '<div class="imz-sez pieno" style="display:block;grid-column:1/-1">♿ Legge 104</div>'
+    + _imzCampo('isa-l104','Riconosciuta',s.l104,null,['Sì','No']) + _imzCampo('isa-l104Tipo','Tipo di riconoscimento',s.l104Tipo,null,['Art. 3 comma 1','Art. 3 comma 3 (grave)'])
+    + _imzCampo('isa-l104Data','Data del verbale',s.l104Data,'date') + _imzCampo('isa-l104Rev','Revisione',s.l104Rev,null,['Permanente','Con revisione'])
+    + _imzCampo('isa-l104Scad','Data di revisione',s.l104Scad,'date') + '<div></div>'
+    + _imzCampo('isa-l104Note','Note Legge 104 (sostegno scolastico, invalidità civile…)',s.l104Note,'area',null,true)
     + _imzCampo('isa-note','Note sanitarie',s.note,'area',null,true) + '</div>'
     + ((!med.length || !es.length) ? '<div style="font-size:12px;color:var(--text-muted);margin-top:8px">Gli elenchi di medici ed esenzioni si compilano da ⚙️ Elenchi nella pagina Sanità.</div>' : '');
   _imzModal('🩺 Dati sanitari — '+_imzE(_iosNome(o)), c,
@@ -18310,7 +18329,9 @@ function isaForm(id){
 }
 async function isaSalva(id){
   var s = JSON.parse(JSON.stringify(_isaScheda(id) || {})); s.id = id;
-  ['medico','libretto','scadLibretto','esenzione','validitaEsenz','scadEsenz','allergie','note'].forEach(function(k){ s[k] = _imzV('isa-'+k); });
+  ['medico','libretto','scadLibretto','esenzione','validitaEsenz','scadEsenz','allergie','note','l104','l104Tipo','l104Data','l104Rev','l104Scad','l104Note'].forEach(function(k){ s[k] = _imzV('isa-'+k); });
+  if(s.l104 !== 'Sì'){ s.l104Tipo = ''; s.l104Data = ''; s.l104Rev = ''; s.l104Scad = ''; }
+  if(s.l104Rev !== 'Con revisione') s.l104Scad = '';
   if(s.libretto !== 'A scadenza') s.scadLibretto = '';
   if(s.validitaEsenz !== 'A scadenza') s.scadEsenz = '';
   var b = document.getElementById('isa-btn-salva'); if(b){ b.disabled = true; b.textContent = '⏳ Salvo…'; }
@@ -57482,7 +57503,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 03/11/2026 13:37 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -70722,7 +70743,8 @@ function _hoScadenze(){
   if(vO || vS) _iosOspiti('Presente', true).forEach(function(o){
     if(vS && !o.semi){ var s = _isaScheda(o.id) || {};
       if(s.libretto === 'A scadenza' && s.scadLibretto) sc.push({ gg:_imzGG(s.scadLibretto), cosa:'Libretto sanitario', chi:_iosNome(o), c:"navigate('ist-sanita')" });
-      if(s.validitaEsenz === 'A scadenza' && s.scadEsenz) sc.push({ gg:_imzGG(s.scadEsenz), cosa:'Esenzione', chi:_iosNome(o), c:"navigate('ist-sanita')" }); }
+      if(s.validitaEsenz === 'A scadenza' && s.scadEsenz) sc.push({ gg:_imzGG(s.scadEsenz), cosa:'Esenzione', chi:_iosNome(o), c:"navigate('ist-sanita')" });
+      if(s.l104 === 'Sì' && s.l104Rev === 'Con revisione' && s.l104Scad) sc.push({ gg:_imzGG(s.l104Scad), cosa:'Revisione Legge 104', chi:_iosNome(o), c:"navigate('ist-sanita');setTimeout(function(){isaVai('l104','problemi')},500)" }); }
     if(vO) (o.documenti || []).forEach(function(d){ if(d.scadenza) sc.push({ gg:_imzGG(d.scadenza), cosa:d.tipo || 'Documento', chi:_iosNome(o), c:"navigate('" + (o.semi ? 'ist-semi' : 'ist-ospiti') + "')" }); });
     if(vO && o.pdpScadenza) sc.push({ gg:_imzGG(o.pdpScadenza), cosa:(o.pdp && o.pdp !== 'Nessuno' ? o.pdp : 'PDP / PEI') + ' scuola', chi:_iosNome(o), c:"navigate('ist-scuola')" });
   });
@@ -75464,11 +75486,12 @@ var ISA_VISTE = [
   { k:'visite',    ico:'🗓️', t:'Visite' },
   { k:'libretti',  ico:'📓', t:'Libretti sanitari' },
   { k:'esenzioni', ico:'📑', t:'Esenzioni' },
+  { k:'l104',      ico:'♿', t:'Legge 104' },
   { k:'medici',    ico:'🩺', t:'Medici' },
   { k:'allergie',  ico:'⚠️', t:'Allergie e intolleranze' },
   { k:'tabella',   ico:'📋', t:'Tabella completa' }
 ];
-var ISA_TIPI_DOC = { libretto:'Libretto sanitario', esenzione:'Esenzione', referto:'Referto', certificato:'Certificato medico', altro:'Altro documento' };
+var ISA_TIPI_DOC = { libretto:'Libretto sanitario', esenzione:'Esenzione', l104:'Verbale Legge 104', referto:'Referto', certificato:'Certificato medico', altro:'Altro documento' };
 window._ISA_V = 0;
 var _isaTabellaOrig = _isaRender;
 
@@ -75476,7 +75499,7 @@ window._isaRender = function(){
   var root = document.getElementById('isa-root'); if(!root) return;
   var v = _IOS.sVista || 'home';
   if(v === 'tabella'){ _isaTabellaOrig(); root.insertAdjacentHTML('afterbegin', _isaNav('tabella')); return; }
-  var f = { visite:_isaVVisite, libretti:function(){ return _isaVDoc('libretto'); }, esenzioni:function(){ return _isaVDoc('esenzione'); }, medici:_isaVMedici, allergie:_isaVAllergie }[v];
+  var f = { visite:_isaVVisite, libretti:function(){ return _isaVDoc('libretto'); }, esenzioni:function(){ return _isaVDoc('esenzione'); }, l104:_isaVL104, medici:_isaVMedici, allergie:_isaVAllergie }[v];
   root.innerHTML = _isaNav(f ? v : 'home') + (f ? f() : _isaHome());   // schede in alto in tutte le pagine di Sanità
 };
 function isaVai(v, filtro){ _IOS.sVista = v; _IOS.sDocFiltro = filtro || ''; _isaRender(); try{ window.scrollTo(0, 0); }catch(e){} }
@@ -75519,6 +75542,7 @@ function _isaHome(){
     if(v.ord === 0) r.scad++; else if(v.ord === 1) r.presto++; else if(v.ord === 2 && (tipo === 'libretto' || s.esenzione)) r.manca++;
     if(s[tipo === 'libretto' ? 'fileLibretto' : 'fileEsenzione']) r.file++; }); return r; };
   var L = cnt('libretto'), E = cnt('esenzione');
+  var L4 = { tot:0, scad:0, presto:0, manca:0, file:0 }; osp.forEach(function(o){ var s = _isaScheda(o.id) || {}; if(s.l104 !== 'Sì') return; var v = _isaL104(s); L4.tot++; if(v.ord === 0) L4.scad++; else if(v.ord === 1) L4.presto++; else if(v.ord === 2) L4.manca++; if(s.fileL104) L4.file++; });
   var vSett = V.filter(function(x){ return !x.fatta && x.ds >= oggi && x.ds <= fra7; }), vSosp = V.filter(function(x){ return !x.fatta && x.ds < oggi; }), vProg = V.filter(function(x){ return !x.fatta && x.ds >= oggi; });
   var medici = {}, allerg = 0, senzaMed = 0;
   osp.forEach(function(o){ var s = _isaScheda(o.id) || {}; if(s.medico) medici[s.medico] = 1; else senzaMed++; if(s.allergie) allerg++; });
@@ -75526,7 +75550,9 @@ function _isaHome(){
   var av = [];
   if(L.scad) av.push(['rosso', L.scad + (L.scad === 1 ? ' libretto scaduto' : ' libretti scaduti'), "isaVai('libretti','problemi')"]);
   if(E.scad) av.push(['rosso', E.scad + (E.scad === 1 ? ' esenzione scaduta' : ' esenzioni scadute'), "isaVai('esenzioni','problemi')"]);
+  if(L4.scad) av.push(['rosso', L4.scad + (L4.scad === 1 ? ' revisione Legge 104 scaduta' : ' revisioni Legge 104 scadute'), "isaVai('l104','problemi')"]);
   if(vSosp.length) av.push(['giallo', vSosp.length + (vSosp.length === 1 ? ' visita passata da segnare' : ' visite passate da segnare'), "isaVai('visite')"]);
+  if(L4.presto) av.push(['giallo', L4.presto + (L4.presto === 1 ? ' revisione Legge 104' : ' revisioni Legge 104') + ' entro 60 giorni', "isaVai('l104','problemi')"]);
   if(L.presto) av.push(['giallo', L.presto + (L.presto === 1 ? ' libretto scade' : ' libretti scadono') + ' entro 30 giorni', "isaVai('libretti','problemi')"]);
   if(E.presto) av.push(['giallo', E.presto + (E.presto === 1 ? ' esenzione da rinnovare' : ' esenzioni da rinnovare') + ' entro 60 giorni', "isaVai('esenzioni','problemi')"]);
   if(vSett.length) av.push(['blu', vSett.length + (vSett.length === 1 ? ' visita' : ' visite') + ' nei prossimi 7 giorni', "isaVai('visite')"]);
@@ -75543,11 +75569,12 @@ function _isaHome(){
     visite:    sub([vProg.length ? vProg.length + ' in programma' : 'nessuna in programma', vSosp.length ? vSosp.length + ' da segnare' : '']),
     libretti:  sub([L.scad ? L.scad + (L.scad === 1 ? ' scaduto' : ' scaduti') : '', L.presto ? L.presto + ' in scadenza' : '', L.manca ? L.manca + ' da completare' : '', L.file + ' su ' + osp.length + ' con il file']),
     esenzioni: sub([E.scad ? E.scad + (E.scad === 1 ? ' scaduta' : ' scadute') : '', E.presto ? E.presto + ' da rinnovare' : '', E.manca ? E.manca + ' da completare' : '', E.file + (E.file === 1 ? ' file caricato' : ' file caricati')]),
+    l104:      L4.tot ? sub([L4.tot + (L4.tot === 1 ? ' ragazzo' : ' ragazzi'), L4.scad ? L4.scad + ' revisione scaduta' : '', L4.presto ? L4.presto + ' revisione vicina' : '', L4.manca ? L4.manca + ' da completare' : '', (L4.tot - L4.file) ? (L4.tot - L4.file) + ' senza verbale' : '']) : 'nessun ragazzo indicato',
     medici:    sub([Object.keys(medici).length + ' medici', senzaMed ? senzaMed + ' ragazzi senza medico' : '']),
     allergie:  allerg ? allerg + (allerg === 1 ? ' ragazzo' : ' ragazzi') + ' con allergie o intolleranze' : 'nessuna allergia segnata',
     tabella:   'tutti i dati in una tabella · importa da Excel'
   };
-  var badge = { visite:vSosp.length ? 'giallo' : '', libretti:L.scad ? 'rosso' : (L.presto ? 'giallo' : ''), esenzioni:E.scad ? 'rosso' : (E.presto ? 'giallo' : '') };
+  var badge = { visite:vSosp.length ? 'giallo' : '', libretti:L.scad ? 'rosso' : (L.presto ? 'giallo' : ''), esenzioni:E.scad ? 'rosso' : (E.presto ? 'giallo' : ''), l104:L4.scad ? 'rosso' : (L4.presto ? 'giallo' : '') };
   h += '<div class="idb-t" style="margin:6px 0 8px">📊 Riepilogo per sezione</div><div class="ist-mod-grid">' + ISA_VISTE.map(function(x){
     var b = badge[x.k];
     return '<button type="button" class="ist-mod" onclick="isaVai(\''+x.k+'\')"><div class="im-ico">'+x.ico+'</div><div class="im-tit">'+x.t+'</div><div class="im-sub">'+_imzE(tiles[x.k])+'</div>'
@@ -75596,6 +75623,27 @@ function isaVisitaScegli(){
   var opz = _iosOspiti('Presente').map(function(o){ return '<option value="'+o.id+'">'+_imzE(_iosNome(o))+'</option>'; }).join('');
   _imzModal('➕ Programma visita', '<div class="imz-f pieno"><label>Per quale ragazzo?</label><select id="isa-vis-osp" class="form-control">'+opz+'</select></div>',
     '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" onclick="var i=_imzV(\'isa-vis-osp\');if(i){_ISA_V=1;isaVisitaNuova(i);}">Avanti →</button>');
+}
+
+/* ═══ LEGGE 104 ═══ */
+function _isaVL104(){
+  var edit = _isaEdit(), f = _IOS.sDocFiltro || '';
+  var righe = _iosOspiti('Presente').map(function(o){ var s = _isaScheda(o.id) || {}; return { o:o, s:s, v:_isaL104(s) }; });
+  var si = righe.filter(function(r){ return r.s.l104 === 'Sì'; }), nonInd = righe.filter(function(r){ return !r.s.l104; }).length;
+  var conta = { problemi:si.filter(function(r){ return r.v.ord <= 1; }).length, senzafile:si.filter(function(r){ return !r.s.fileL104; }).length, mancanti:si.filter(function(r){ return r.v.ord === 2; }).length };
+  var lista = (f === 'nonind' ? righe.filter(function(r){ return !r.s.l104; }) : si.filter(function(r){ if(f === 'problemi') return r.v.ord <= 1; if(f === 'senzafile') return !r.s.fileL104; if(f === 'mancanti') return r.v.ord === 2; return true; }))
+    .sort(function(a, b){ return a.v.ord - b.v.ord || (a.v.gg || 0) - (b.v.gg || 0) || _iosNome(a.o).localeCompare(_iosNome(b.o)); });
+  var fb = function(k, lab){ return '<button type="button" class="imz-tab'+(f === k ? ' on' : '')+'" onclick="isaVai(\'l104\',\''+k+'\')">'+lab+'</button>'; };
+  var h = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><div class="imz-tabs">' + fb('', 'Con Legge 104 (' + si.length + ')')
+    + fb('problemi', 'Revisione scaduta o entro 60 gg (' + conta.problemi + ')') + fb('mancanti', 'Da completare (' + conta.mancanti + ')') + fb('senzafile', 'Senza verbale (' + conta.senzafile + ')') + fb('nonind', 'Non indicato (' + nonInd + ')') + '</div>'
+    + (edit ? '<span style="margin-left:auto"><button type="button" class="btn btn-teal btn-sm" onclick="isaCarica(\'\',\'l104\')">📤 Carica verbale</button></span>' : '') + '</div>';
+  h += '<div class="idb-box">' + (lista.length ? lista.map(function(r){
+      var s = r.s, sub = [s.l104Data ? 'Verbale del ' + _imzFmt(s.l104Data) : '', s.l104Note || ''].filter(Boolean).join(' · ');
+      return '<div class="idb-row" onclick="'+(edit ? 'isaForm(\''+r.o.id+'\')' : 'iosScheda(\''+r.o.id+'\',\'sanita\')')+'"><span class="idb-ico">♿</span><div class="idb-txt"><b>'+_imzE(_iosNome(r.o))+'</b>'
+        + '<span>'+(f === 'nonind' ? 'Legge 104 non indicata: apri e scegli Sì o No' : _imzE(sub || 'nessuna nota'))+'</span></div>'
+        + (f === 'nonind' ? '' : _isaChip(r.v)) + (s.fileL104 ? '<button type="button" class="btn btn-outline btn-sm" style="margin-left:6px" onclick="event.stopPropagation();iosFileApri(null,null,false,_isaScheda(\''+r.o.id+'\').fileL104)">📎</button>' : (f === 'nonind' ? '' : '<span class="imz-chip ios-grigio" style="margin-left:6px"><span>senza verbale</span></span>')) + '</div>'; }).join('')
+    : '<div class="idb-vuoto">' + (f ? 'Nessun ragazzo in questo elenco.' : 'Nessun ragazzo con Legge 104. Si indica in ✏️ Modifica dati sanitari di ogni ragazzo.') + '</div>') + '</div>';
+  return h;
 }
 
 /* ═══ LIBRETTI / ESENZIONI ═══ */
@@ -75720,6 +75768,8 @@ async function _isaAttacca(oid, tipo, meta, extra){
   if(tipo === 'libretto'){
     vecchio = s.fileLibretto || null; s.fileLibretto = meta;
     if(extra.scad){ s.libretto = 'A scadenza'; s.scadLibretto = extra.scad; }
+  } else if(tipo === 'l104'){
+    vecchio = s.fileL104 || null; s.fileL104 = meta; if(!s.l104) s.l104 = 'Sì';
   } else if(tipo === 'esenzione'){
     vecchio = s.fileEsenzione || null; s.fileEsenzione = meta;
     if(extra.codice) s.esenzione = String(extra.codice).toUpperCase();
@@ -75753,7 +75803,7 @@ function isaCarica(oid, tipo, daScheda){
 function _isaCaricaCampi(){
   var t = _imzV('isa-c-tipo'), vis = function(id, on){ var e = document.getElementById(id); if(e) e.style.display = on ? '' : 'none'; };
   vis('isa-c-w-cod', t === 'esenzione'); vis('isa-c-w-scad', t === 'libretto' || t === 'esenzione');
-  vis('isa-c-w-descr', t !== 'libretto' && t !== 'esenzione'); vis('isa-c-w-data', t !== 'libretto' && t !== 'esenzione');
+  vis('isa-c-w-descr', t !== 'libretto' && t !== 'esenzione' && t !== 'l104'); vis('isa-c-w-data', t !== 'libretto' && t !== 'esenzione' && t !== 'l104');
 }
 async function isaCaricaSalva(){
   var oid = _imzV('isa-c-osp'), tipo = _imzV('isa-c-tipo'), inp = document.getElementById('isa-c-file'), f = inp && inp.files && inp.files[0];
@@ -75791,7 +75841,7 @@ function _isaDocHtml(o){
       + (f ? bApri('_isaScheda(\''+o.id+'\').'+campo) : '') + (edit ? '<button type="button" class="btn btn-outline btn-sm" onclick="isaCarica(\''+o.id+'\',\''+tipo+'\',true)">'+(f ? 'Sostituisci' : '📤 Carica')+'</button>' : '') + '</div></div>';
   };
   var al = (s.allegati || []).slice().sort(function(a, b){ return String(b.data).localeCompare(String(a.data)); });
-  return '<div class="imz-sez" style="display:block">Documenti sanitari</div>' + voce('📓 Libretto sanitario', 'fileLibretto', 'libretto') + voce('📑 Esenzione', 'fileEsenzione', 'esenzione')
+  return '<div class="imz-sez" style="display:block">Documenti sanitari</div>' + voce('📓 Libretto sanitario', 'fileLibretto', 'libretto') + voce('📑 Esenzione', 'fileEsenzione', 'esenzione') + (s.l104 === 'Sì' || s.fileL104 ? voce('♿ Verbale Legge 104', 'fileL104', 'l104') : '')
     + al.map(function(a){ var i = (s.allegati || []).indexOf((s.allegati || []).filter(function(x){ return x.id === a.id; })[0]);
       return '<div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border)"><div style="flex:1;min-width:0"><b>📄 '+_imzE(a.nome)+'</b><div style="font-size:12px;color:var(--text-muted)">'+_imzE((ISA_TIPI_DOC[a.tipo] || '') + (a.data ? ' · ' + _imzFmt(a.data) : ''))+'</div></div>'
         + '<div style="display:flex;gap:4px;flex-shrink:0">' + bApri('_isaScheda(\''+o.id+'\').allegati['+i+'].file') + (edit ? '<button type="button" class="btn btn-sm" style="background:#fde2e1;color:#b42318" title="Togli" onclick="isaAllegatoTogli(\''+o.id+'\',\''+a.id+'\')">🗑️</button>' : '') + '</div></div>'; }).join('')
@@ -76637,7 +76687,7 @@ function _icScadenze(da, al){
         (o.documenti || []).forEach(function(d){ if(d.scadenza && d.scadenza >= da && d.scadenza <= al) out.push({ fonte:'scad', ds:d.scadenza, titolo:'Scade ' + (d.tipo || 'documento') + ' · ' + _iosNome(o), c:ICAL_C_SCAD, vai:"navigate('" + (o.semi ? 'ist-semi' : 'ist-ospiti') + "')" }); });
         if(_IOS.sdoc && typeof _isaScheda === 'function' && areaHaPermesso('ist_sanita')){
           var s = _isaScheda(o.id) || {};
-          [['scadLibretto', 'libretto sanitario'], ['scadEsenz', 'esenzione']].forEach(function(x){ if(s[x[0]] && s[x[0]] >= da && s[x[0]] <= al) out.push({ fonte:'scad', ds:s[x[0]], titolo:'Scade ' + x[1] + ' · ' + _iosNome(o), c:ICAL_C_SCAD, vai:"navigate('ist-sanita')" }); });
+          [['scadLibretto', 'libretto sanitario'], ['scadEsenz', 'esenzione'], ['l104Scad', 'revisione Legge 104']].forEach(function(x){ if(s[x[0]] && s[x[0]] >= da && s[x[0]] <= al) out.push({ fonte:'scad', ds:s[x[0]], titolo:'Scade ' + x[1] + ' · ' + _iosNome(o), c:ICAL_C_SCAD, vai:"navigate('ist-sanita')" }); });
         }
       });
     }
@@ -90948,9 +90998,10 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     if(!d.gruppi) d.gruppi = [];
     var tutti = (d.iscritti || []).concat(d.animatori || []);
     var nomeId = function(id){ var p = tutti.filter(function(x){ return x.id === id; })[0]; return p ? ((p.nome || '') + ' ' + (p.cognome || '')).trim() : id; };
-    var L = d.gruppi;
+    /* in db.gruppi stanno anche i «gruppi di amici» creati dalla divisione squadre (senza nome, con forma/colore): qui solo i gruppi di lavoro */
+    var L = d.gruppi.map(function(g, i){ return { g:g, i:i }; }).filter(function(x){ return x.g && (x.g.nome || !x.g.forma); });
     el.innerHTML = '<div class="org-sum"><span><b>' + L.length + '</b> ' + (L.length === 1 ? 'gruppo' : 'gruppi') + '</span><button type="button" class="btn btn-teal btn-sm" style="margin-left:auto" onclick="aggiungiGruppo()">➕ Nuovo gruppo</button></div>'
-      + (L.length ? '<div class="org-grid">' + L.map(function(g, i){ var M = (g.membri || []).map(nomeId);
+      + (L.length ? '<div class="org-grid">' + L.map(function(x){ var g = x.g, i = x.i, M = (g.membri || []).map(nomeId);
           return '<div class="org-c"><h4>👥 ' + E(g.nome || '—') + '<small>' + M.length + ' membri</small></h4>' + (g.scopo ? '<div class="org-meta">🎯 ' + E(g.scopo) + '</div>' : '')
             + '<div class="org-chips">' + (g.coordinatore ? chip(g.coordinatore, '', 'resp') : '<span class="org-meta" style="margin:0">Nessun coordinatore</span>') + '</div>'
             + (M.length ? '<div class="org-chips">' + M.map(function(n){ return chip(n); }).join('') + '</div>' : '')
@@ -90972,7 +91023,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       + sez('🎨 Laboratori GREST', tab(['Giorno', 'Gruppo 1', 'Gruppo 2'], (d.labGrest || []).map(function(r){ return tr([E(r.giorno), E(r.gruppo1 || ''), E(r.gruppo2 || '')]); })))
       + sez('🧸 Laboratori Mini GREST', tab(['Giorno', 'Laboratorio', 'Responsabile'], (d.labMini || []).map(function(r){ return tr([E(r.giorno), E(r.laboratorio || ''), E(cap(r.responsabile || ''))]); })))
       + sez('⚽ Attività', tab(['Attività', 'Luogo', 'Responsabile', 'Partecipanti'], (d.attivita || []).map(function(a){ return tr([E(cap(a.nome || '')), E(a.luogo || ''), E(cap(a.responsabile || '')), E((a.partecipanti || []).map(cap).join(', '))]); })))
-      + sez('👥 Gruppi', tab(['Gruppo', 'Coordinatore', 'Membri', 'Scopo'], (d.gruppi || []).map(function(g){ return tr([E(g.nome || ''), E(cap(g.coordinatore || '')), E((g.membri || []).map(nomeId).map(cap).join(', ')), E(g.scopo || '')]); })))
+      + sez('👥 Gruppi', tab(['Gruppo', 'Coordinatore', 'Membri', 'Scopo'], (d.gruppi || []).filter(function(g){ return g && (g.nome || !g.forma); }).map(function(g){ return tr([E(g.nome || ''), E(cap(g.coordinatore || '')), E((g.membri || []).map(nomeId).map(cap).join(', ')), E(g.scopo || '')]); })))
       + '<script>window.onload=function(){window.print();}<\/script></body></html>';
     w.document.write(h); w.document.close();
   };
