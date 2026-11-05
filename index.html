@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 05/11/2026 13:04</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 05/11/2026 13:04 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76800,6 +76800,17 @@ async function icFatto(id, ds){
   if(await _icSalva(e)){ _imzChiudi(); _icRender(); _icAggiornaHome(); }
 }
 
+/* posti (o specialistiche) già usati negli impegni del calendario: i più usati per primi */
+function _icGiaUsati(campo){
+  var c = {}, nomi = {};
+  try{ Object.keys((_ICAL.doc || {}).eventi || {}).forEach(function(k){
+    var e = _ICAL.doc.eventi[k]; if(!e || e._eliminato) return;
+    var v = String(e[campo] || '').replace(/\s+/g, ' ').trim(); if(!v) return;
+    var key = v.toLowerCase(); c[key] = (c[key] || 0) + 1; if(!nomi[key]) nomi[key] = v;
+  }); }catch(err){}
+  return Object.keys(c).sort(function(a, b){ return c[b] - c[a] || a.localeCompare(b); }).map(function(k){ return nomi[k]; });
+}
+
 /* ── modulo ── */
 function icForm(id, ds, opz){
   // opz (facoltativo, es. dalla Sanità): { pre:{valori iniziali di un impegno nuovo}, dopo:function(impegno) chiamata dopo il salvataggio o l'eliminazione }
@@ -76820,12 +76831,12 @@ function icForm(id, ds, opz){
     + '<div class="imz-f"><label>Si ripete</label><select id="ic-rip" class="form-control" onchange="document.getElementById(\'ic-fino-box\').style.display=this.value?\'\':\'none\'">' + [['', 'No'], ['sett', 'Ogni settimana'], ['2sett', 'Ogni 2 settimane'], ['mese', 'Ogni mese']].map(function(r){ return '<option value="' + r[0] + '"' + ((e.rip || '') === r[0] ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select></div>'
     + '<div id="ic-fino-box" style="' + (e.rip ? '' : 'display:none') + '">' + _imzCampo('ic-fino', 'Fino al (facoltativo)', e.ripFino, 'date') + '</div>'
     + '<div class="imz-f"><label>Chi se ne occupa</label><input id="ic-chi" class="form-control" list="ic-chi-l" value="' + _icE(e.chi || '') + '"><datalist id="ic-chi-l">' + utenti.map(function(n){ return '<option value="' + _icE(n) + '">'; }).join('') + '</datalist></div>'
-    + _imzCampo('ic-luogo', 'Dove', e.luogo)
+    + '<div class="imz-f"><label>Dove</label><input id="ic-luogo" class="form-control" list="ic-luogo-l" autocomplete="off" placeholder="scrivi o scegli un posto già usato" value="' + _icE(e.luogo || '') + '"><datalist id="ic-luogo-l">' + _icGiaUsati('luogo').map(function(n){ return '<option value="' + _icE(n) + '">'; }).join('') + '</datalist></div>'
     + '<div class="imz-f"><label>Ragazzo (facoltativo)</label><select id="ic-osp" class="form-control"><option value=""></option>' + osp.map(function(o){ return '<option value="' + o.id + '"' + (o.id === e.ospite ? ' selected' : '') + '>' + _icE(_iosNome(o)) + (o.semi ? ' · semiconvitto' : '') + '</option>'; }).join('') + '</select></div>'
     + '<div class="imz-f"><label>Mezzo (facoltativo)</label><select id="ic-mezzo" class="form-control"><option value=""></option>' + mezzi.map(function(m){ return '<option value="' + m.id + '"' + (m.id === e.mezzo ? ' selected' : '') + '>' + _icE(m.targa + ' · ' + (m.modello || '')) + '</option>'; }).join('') + '</select></div>'
     + _imzCampo('ic-note', 'Note', e.note, 'area', null, true)
     + '<div class="imz-f pieno"><label class="ic-chk" data-no-sobrio><input type="checkbox" id="ic-sanita"' + (e.sanita ? ' checked' : '') + ' onchange="document.getElementById(\'ic-spec-box\').style.display=this.checked?\'\':\'none\'"> 🩺 Visita medica: mostrala anche nella Sanità del ragazzo</label></div>'
-    + '<div id="ic-spec-box" class="imz-f pieno" style="' + (e.sanita ? '' : 'display:none') + '"><label>Ambulatorio / specialistica</label><input id="ic-spec" class="form-control" placeholder="es. Oculistica, ambulatorio ASP di Acireale" value="' + _icE(e.specialistica || '') + '"></div>'
+    + '<div id="ic-spec-box" class="imz-f pieno" style="' + (e.sanita ? '' : 'display:none') + '"><label>Ambulatorio / specialistica</label><input id="ic-spec" class="form-control" list="ic-spec-l" autocomplete="off" placeholder="es. Oculistica, ambulatorio ASP di Acireale" value="' + _icE(e.specialistica || '') + '"><datalist id="ic-spec-l">' + _icGiaUsati('specialistica').map(function(n){ return '<option value="' + _icE(n) + '">'; }).join('') + '</datalist></div>'
     + (_icGoogleOn() && _icImp().gImpegni ? '<div class="imz-f pieno"><label class="ic-chk" data-no-sobrio><input type="checkbox" id="ic-google"' + (e.google !== false ? ' checked' : '') + '> Metti anche su Google Calendar (così arriva sui telefoni)</label></div>' : '')
     + '</div>';
   var piede = (id ? '<button type="button" class="btn btn-sm" style="background:#fde2e1;color:#b42318;margin-right:auto" onclick="icElimina(\'' + id + '\')">🗑️ Elimina</button>' : '')
