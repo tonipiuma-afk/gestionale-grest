@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 04/11/2026 21:58</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 04/11/2026 21:58 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -68888,7 +68888,9 @@ async function arcCopiaGiornaliera(forza){
   } finally { _ARC.inCorso = false; }
   return tuttoOk;
 }
-setTimeout(function(){ arcCopiaGiornaliera(false); }, 25000);
+setTimeout(function(){ _dopoCaricamento(function(){ arcCopiaGiornaliera(false); }); }, 25000);
+/* aspetta che il caricamento d'apertura sia al 100% (stessi controlli della barra), al massimo 2 minuti: così le copie del mattino non rallentano l'apertura */
+function _dopoCaricamento(fn){ var t0 = Date.now(); (function giro(){ var ok = true; try{ ok = typeof window._bcStato !== 'function' || window._bcStato().pct === 100; }catch(e){} if(ok || Date.now() - t0 > 120000) fn(); else setTimeout(giro, 3000); })(); }
 setInterval(function(){ arcCopiaGiornaliera(false); }, 15 * 60 * 1000);
 
 /* ── lettura di tutti gli archivi (per scarica e backup PC) ── */
@@ -81355,6 +81357,8 @@ window.arcRender = async function(){
     b.querySelector('#bc-det').textContent = pct === 100 ? 'Puoi lavorare normalmente.' : (lento ? 'Manca ancora: ' : 'In arrivo: ') + mancano.join(', ');
     return pct;
   }
+  /* l'animazione di apertura è accesa su questo dispositivo? (se sì, è lei a mostrare il caricamento) */
+  function apAttesa(){ try{ if(localStorage.getItem('piuma_apertura') === '0') return false; }catch(e){} try{ if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return false; }catch(e){} return true; }
   function giro(){
     try{
       var u = (typeof AUTH !== 'undefined' && AUTH.currentUser) || null;
@@ -81370,7 +81374,10 @@ window.arcRender = async function(){
       if((BC.homeVisto && !hc) || (!BC.homeVisto && Date.now() - BC.t0 > 5000)) BC.homeFatto = true;
       // archivio SCU non ancora letto in questa sessione: lo leggo subito invece di aspettare il giro dei 60 s
       try{ if(!BC.scuSpinta && puoScu() && getDb() && window.SCA2 && !SCA2.ultimoPull && typeof scaArchivioSync === 'function'){ BC.scuSpinta = true; scaArchivioSync(); } }catch(e){}
-      if(document.getElementById('ap-ov')){ var st = window._bcStato(); if(st.pct === 100) BC.finito = true; return; }   // c'è l'animazione: la barra resta nascosta
+      // c'è l'animazione: la barra resta nascosta (e se era già comparsa un attimo prima dell'animazione, la tolgo)
+      if(document.getElementById('ap-ov')){ var st = window._bcStato(); if(st.pct === 100) BC.finito = true; if(document.getElementById('bc-box')) nascondi(true); return; }
+      // nei primi secondi l'animazione di apertura sta per partire: non disegno la barra (comparirebbe e resterebbe sotto l'animazione)
+      if(Date.now() - BC.t0 < 6000 && apAttesa()) return;
       var pct = disegna(passi());
       if(pct === 100){ BC.finito = true; setTimeout(nascondi, 2200); }
     }catch(e){}
@@ -82339,7 +82346,7 @@ window.eseguiBackupLocalePC = function(tipo){
     var ult = localStorage.getItem('grest_backup_pc_last');
     if(ult && _bkOggi(new Date(ult)) === _bkOggi()) return Promise.resolve();
   }catch(e){}
-  if(!_BKPC.programmato){ _BKPC.programmato = true; setTimeout(function(){ _BKPC.programmato = false; _bkEsegui(tipo); }, 30000); }
+  if(!_BKPC.programmato){ _BKPC.programmato = true; setTimeout(function(){ var fai = function(){ _BKPC.programmato = false; _bkEsegui(tipo); }; if(typeof _dopoCaricamento === 'function') _dopoCaricamento(fai); else fai(); }, 30000); }
   return Promise.resolve();
 };
 async function _bkEsegui(tipo){
