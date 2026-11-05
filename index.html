@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 05/11/2026 12:52</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 05/11/2026 12:52 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -75465,9 +75465,28 @@ window._isaRender = function(){
   root.innerHTML = _isaNav(f ? v : 'home') + (f ? f() : _isaHome());   // schede in alto in tutte le pagine di Sanità
 };
 function isaVai(v, filtro){ _IOS.sVista = v; _IOS.sDocFiltro = filtro || ''; _isaRender(); try{ window.scrollTo(0, 0); }catch(e){} }
+/* cose da sistemare per sezione (numeretti sulle schede e «Da fare» della panoramica) */
+function _isaConteggi(){
+  var oggi = _icOggi(), osp = _iosOspiti('Presente'), V = _isaTutteVisite();
+  var cnt = function(tipo){ var r = { scad:0, presto:0, manca:0, file:0 }; osp.forEach(function(o){ var s = _isaScheda(o.id) || {}, v = _isaVoce(s, tipo);
+    if(v.ord === 0) r.scad++; else if(v.ord === 1) r.presto++; else if(v.ord === 2 && (tipo === 'libretto' || s.esenzione)) r.manca++;
+    if(s[tipo === 'libretto' ? 'fileLibretto' : 'fileEsenzione']) r.file++; }); return r; };
+  var L = cnt('libretto'), E = cnt('esenzione');
+  var L4 = { tot:0, scad:0, presto:0, manca:0, file:0 }; osp.forEach(function(o){ var s = _isaScheda(o.id) || {}; if(s.l104 !== 'Sì') return; var v = _isaL104(s); L4.tot++; if(v.ord === 0) L4.scad++; else if(v.ord === 1) L4.presto++; else if(v.ord === 2) L4.manca++; if(s.fileL104) L4.file++; });
+  var senzaMed = 0; osp.forEach(function(o){ var s = _isaScheda(o.id) || {}; if(!s.medico) senzaMed++; });
+  var vSosp = V.filter(function(x){ return !x.fatta && x.ds < oggi; }).length;
+  return { osp:osp, L:L, E:E, L4:L4, senzaMed:senzaMed, vSosp:vSosp,
+    n:{ visite:vSosp, libretti:L.scad + L.presto + L.manca, esenzioni:E.scad + E.presto + E.manca, l104:L4.scad + L4.presto + L4.manca + (L4.tot - L4.file), medici:senzaMed } };
+}
+/* numeretto: sparisce quando apri la scheda e ricompare solo se le cose da sistemare aumentano */
+function _isaVisto(k, n){ try{ var m = JSON.parse(localStorage.getItem('isa_badge_visti') || '{}'); if(n == null) return m[k] || 0; m[k] = n; localStorage.setItem('isa_badge_visti', JSON.stringify(m)); }catch(e){ return 0; } }
 function _isaNav(v){
+  var C = null; try{ C = _isaConteggi().n; }catch(e){}
+  if(C && C[v] != null) _isaVisto(v, C[v]);
+  var bd = function(k){ if(!C || !C[k] || k === v) return ''; var visto = _isaVisto(k); if(C[k] <= visto) return '';
+    return ' <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#dc2626;color:#fff;font-size:10.5px;font-weight:800;line-height:1;vertical-align:1px">' + C[k] + '</span>'; };
   return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">'
-    + '<div class="imz-tabs" style="flex:1 1 100%;min-width:0"><button type="button" class="imz-tab'+(v === 'home' ? ' on' : '')+'" onclick="isaVai(\'home\')">🏠 Panoramica</button>' + ISA_VISTE.map(function(x){ return '<button type="button" class="imz-tab'+(x.k === v ? ' on' : '')+'" onclick="isaVai(\''+x.k+'\')">'+x.ico+' '+x.t+'</button>'; }).join('') + '</div></div>';
+    + '<div class="imz-tabs" style="flex:1 1 100%;min-width:0"><button type="button" class="imz-tab'+(v === 'home' ? ' on' : '')+'" onclick="isaVai(\'home\')">🏠 Panoramica</button>' + ISA_VISTE.map(function(x){ return '<button type="button" class="imz-tab'+(x.k === v ? ' on' : '')+'" onclick="isaVai(\''+x.k+'\')">'+x.ico+' '+x.t+bd(x.k)+'</button>'; }).join('') + '</div></div>';
 }
 function _isaEdit(){ return _iosOk('ist_sanita_edit'); }
 
@@ -75517,31 +75536,21 @@ function _isaHome(){
   if(L4.presto) av.push(['giallo', L4.presto + (L4.presto === 1 ? ' revisione Legge 104' : ' revisioni Legge 104') + ' entro 60 giorni', "isaVai('l104','problemi')"]);
   if(L.presto) av.push(['giallo', L.presto + (L.presto === 1 ? ' libretto scade' : ' libretti scadono') + ' entro 30 giorni', "isaVai('libretti','problemi')"]);
   if(E.presto) av.push(['giallo', E.presto + (E.presto === 1 ? ' esenzione da rinnovare' : ' esenzioni da rinnovare') + ' entro 60 giorni', "isaVai('esenzioni','problemi')"]);
+  if(L.manca) av.push(['giallo', L.manca + (L.manca === 1 ? ' libretto sanitario da completare' : ' libretti sanitari da completare'), "isaVai('libretti','problemi')"]);
+  if(E.manca) av.push(['giallo', E.manca + (E.manca === 1 ? ' esenzione da completare' : ' esenzioni da completare'), "isaVai('esenzioni','problemi')"]);
+  if(L4.manca) av.push(['giallo', L4.manca + (L4.manca === 1 ? ' scheda Legge 104 da completare' : ' schede Legge 104 da completare'), "isaVai('l104','problemi')"]);
+  if(L4.tot - L4.file) av.push(['giallo', (L4.tot - L4.file) + ((L4.tot - L4.file) === 1 ? ' ragazzo senza verbale Legge 104' : ' ragazzi senza verbale Legge 104'), "isaVai('l104')"]);
+  if(senzaMed) av.push(['giallo', senzaMed + (senzaMed === 1 ? ' ragazzo senza medico' : ' ragazzi senza medico'), "isaVai('medici')"]);
+  if(osp.length - L.file) av.push(['blu', (osp.length - L.file) + ((osp.length - L.file) === 1 ? ' libretto senza file caricato' : ' libretti senza file caricato'), "isaVai('libretti')"]);
   if(vSett.length) av.push(['blu', vSett.length + (vSett.length === 1 ? ' visita' : ' visite') + ' nei prossimi 7 giorni', "isaVai('visite')"]);
   var colori = { rosso:'#b42318', giallo:'#b45309', blu:'#1d4ed8' };
   var h = '<div class="idb-box"><div class="idb-t">📌 Da fare</div>'
     + (av.length ? '<div style="display:flex;gap:8px;flex-wrap:wrap">' + av.map(function(a){ return '<button type="button" class="btn btn-outline btn-sm" style="border-color:'+colori[a[0]]+';color:'+colori[a[0]]+';font-weight:800" onclick="'+a[2]+'">'+_imzE(a[1])+' →</button>'; }).join('') + '</div>'
-      : '<div class="idb-vuoto">✓ Tutto in regola: nessuna scadenza vicina e nessuna visita da segnare</div>') + '</div>';
+      : '<div class="idb-vuoto">✓ Tutto in regola: nessuna scadenza vicina, nessun dato da completare e nessuna visita da segnare</div>') + '</div>';
   // le prossime 3 visite, senza dover entrare in Visite
   if(vProg.length) h += '<div class="idb-box"><div class="idb-t">🗓️ Prossime visite <small><a href="#" onclick="isaVai(\'visite\');return false">tutte →</a></small></div>'
     + vProg.slice(0, 3).map(function(v){ return '<div class="idb-row" onclick="iosScheda(\''+v.o.id+'\',\'sanita\')"><span class="idb-ico">🩺</span><div class="idb-txt"><b>'+_imzFmt(v.ds)+(v.ora ? ' · '+_imzE(v.ora) : '')+' — '+_imzE(_iosNome(v.o))+'</b><span>'
       +_imzE([v.e.specialistica || v.titolo, v.e.luogo ? '📍 ' + v.e.luogo : '', v.e.chi ? 'accompagna ' + v.e.chi : ''].filter(Boolean).join(' · '))+'</span></div></div>'; }).join('') + '</div>';
-  var sub = function(arr){ return arr.filter(Boolean).join(' · ') || 'tutto in regola'; };
-  var tiles = {
-    visite:    sub([vProg.length ? vProg.length + ' in programma' : 'nessuna in programma', vSosp.length ? vSosp.length + ' da segnare' : '']),
-    libretti:  sub([L.scad ? L.scad + (L.scad === 1 ? ' scaduto' : ' scaduti') : '', L.presto ? L.presto + ' in scadenza' : '', L.manca ? L.manca + ' da completare' : '', L.file + ' su ' + osp.length + ' con il file']),
-    esenzioni: sub([E.scad ? E.scad + (E.scad === 1 ? ' scaduta' : ' scadute') : '', E.presto ? E.presto + ' da rinnovare' : '', E.manca ? E.manca + ' da completare' : '', E.file + (E.file === 1 ? ' file caricato' : ' file caricati')]),
-    l104:      L4.tot ? sub([L4.tot + (L4.tot === 1 ? ' ragazzo' : ' ragazzi'), L4.scad ? L4.scad + ' revisione scaduta' : '', L4.presto ? L4.presto + ' revisione vicina' : '', L4.manca ? L4.manca + ' da completare' : '', (L4.tot - L4.file) ? (L4.tot - L4.file) + ' senza verbale' : '']) : 'nessun ragazzo indicato',
-    medici:    sub([Object.keys(medici).length + ' medici', senzaMed ? senzaMed + ' ragazzi senza medico' : '']),
-    allergie:  allerg ? allerg + (allerg === 1 ? ' ragazzo' : ' ragazzi') + ' con allergie o intolleranze' : 'nessuna allergia segnata',
-    tabella:   'tutti i dati in una tabella · importa da Excel'
-  };
-  var badge = { visite:vSosp.length ? 'giallo' : '', libretti:L.scad ? 'rosso' : (L.presto ? 'giallo' : ''), esenzioni:E.scad ? 'rosso' : (E.presto ? 'giallo' : ''), l104:L4.scad ? 'rosso' : (L4.presto ? 'giallo' : '') };
-  h += '<div class="idb-t" style="margin:6px 0 8px">📊 Riepilogo per sezione</div><div class="ist-mod-grid">' + ISA_VISTE.map(function(x){
-    var b = badge[x.k];
-    return '<button type="button" class="ist-mod" onclick="isaVai(\''+x.k+'\')"><div class="im-ico">'+x.ico+'</div><div class="im-tit">'+x.t+'</div><div class="im-sub">'+_imzE(tiles[x.k])+'</div>'
-      + (b ? '<div class="im-badge" style="background:'+(b === 'rosso' ? '#fde2e1;color:#b42318' : '#fef3c7;color:#92400e')+'">'+(b === 'rosso' ? 'da sistemare' : 'da controllare')+'</div>' : '') + '</button>';
-  }).join('') + '</div>';
   if(edit) h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">'
     + '<button type="button" class="btn btn-teal btn-sm" onclick="isaCarica()">📤 Carica un documento</button>'
     + '<button type="button" class="btn btn-outline btn-sm" onclick="isaRaffica()">📚 Carica più documenti insieme</button>'
