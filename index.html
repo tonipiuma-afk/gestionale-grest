@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 05/11/2026 09:02</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 05/11/2026 09:02 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91064,6 +91064,427 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   setTimeout(function(){ try{ if(typeof AUTH !== 'undefined' && AUTH.currentUser) carica(); }catch(e){} }, 8000);
   /* la scheda Aspetto può aprirsi in tanti modi: quando il riquadro diventa visibile lo disegno */
   var _vis = false; setInterval(function(){ var b = document.getElementById('frasi-box'), v = !!(b && b.offsetParent); if(v && !_vis) frasiRender(); _vis = v; }, 800);
+})();
+</script>
+
+<style id="orari-2026-css">
+/* ═══ Servizio Civile › Orari: nuova griglia (novembre 2026) ═══ */
+#sc-tab-orari > .card{display:flex;flex-wrap:wrap;column-gap:10px;align-items:flex-start}
+#sc-tab-orari > .card > *{flex:1 1 100%;min-width:0}
+#sc-tab-orari > .card > #tck-bar{flex:1 1 360px;margin-bottom:10px}
+#sc-tab-orari > .card > #srq-strip{flex:0 1 auto;margin-bottom:10px;padding:0 14px;display:flex;align-items:center;min-height:50px}
+#sc-tab-orari > .card > #srq-strip.srq-vuota .srq-sh{gap:12px}
+#sc-orari-body.orx-on #avs-et{display:none}
+#sc-orari-body.orx-on .bz-bar{padding:7px 12px;margin:0 0 10px;font-size:12.5px}
+.orx-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.orx-seg{display:inline-flex;background:var(--bg,#f1f5f9);border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:3px;gap:2px}
+.orx-seg button{border:0;background:transparent;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--text-muted,#64748b);cursor:pointer}
+.orx-seg button.on{background:var(--card,#fff);color:var(--text,#1e293b);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.orx-chip{font-size:12px;font-weight:700;padding:6px 11px;border-radius:20px;white-space:nowrap}
+.orx-chip.corrente{background:rgba(249,115,22,.13);color:#c2410c}.orx-chip.prossima{background:rgba(34,197,94,.14);color:#15803d}
+.orx-chip.passata{background:rgba(100,116,139,.14);color:var(--text-muted,#64748b)}.orx-chip.futura{background:rgba(59,130,246,.13);color:#1d4ed8}
+.orx-sp{flex:1}
+.orx-b{border:1px solid var(--border,#e2e8f0);background:var(--card,#fff);color:var(--text,#1e293b);border-radius:9px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.orx-b:disabled{opacity:.4;cursor:default}.orx-b.on{background:var(--teal,#0f766e);color:#fff;border-color:transparent}
+.orx-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text-muted,#64748b);margin:0 0 10px;align-items:center}
+.orx-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.orx-leg em{margin-left:auto;font-style:normal}
+.orx-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border,#e2e8f0);border-radius:14px;background:var(--card,#fff)}
+table.orx{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
+table.orx th{position:sticky;top:0;z-index:3;background:var(--card,#fff);border-bottom:1px solid var(--border,#e2e8f0);padding:9px 5px 8px;text-align:center;font-size:10.5px;font-weight:800;color:var(--text-muted,#64748b);text-transform:uppercase;letter-spacing:.04em;vertical-align:top}
+table.orx th b{display:block;font-size:18px;color:var(--text,#0f172a);letter-spacing:0;line-height:1.15}
+table.orx th.oggi b{color:var(--teal,#2563eb)}table.orx th.oggi{box-shadow:inset 0 -3px 0 var(--teal,#2563eb)}
+table.orx th.nm,table.orx td.nm{text-align:left;position:sticky;left:0;z-index:2;background:var(--card,#fff)}
+table.orx th.nm{z-index:4;padding-left:14px}
+.orx-cv{display:flex;justify-content:center;gap:3px;margin-top:6px;flex-wrap:wrap}
+.orx-cv span{font-size:10px;font-weight:800;padding:2px 5px;border-radius:5px;text-transform:none;letter-spacing:0;cursor:default}
+.orx-cv .ok{background:rgba(34,197,94,.16);color:#15803d}.orx-cv .ko{background:rgba(239,68,68,.16);color:#b91c1c}
+.orx-th-az{margin-top:6px}
+.orx-th-az button{border:1px dashed var(--teal,#0f766e);background:transparent;color:var(--teal,#0f766e);border-radius:7px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer}
+table.orx td{padding:4px;border-bottom:1px solid var(--border,#eef2f7);vertical-align:middle}
+table.orx tr.grp td{background:var(--bg,#f8fafc);padding:7px 14px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#64748b)}
+table.orx tr.grp td.M{color:#1d4ed8}table.orx tr.grp td.F{color:#be185d}
+table.orx td.nm{padding:6px 10px 6px 12px;min-width:190px;max-width:220px}
+.orx-n{display:flex;align-items:center;gap:9px}
+.orx-av{width:32px;height:32px;border-radius:50%;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;background:linear-gradient(135deg,var(--teal,#0f766e),#66BB6A)}
+.orx-av img{width:100%;height:100%;object-fit:cover}
+.orx-n b{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.orx-n small button{margin-top:3px;border:1px dashed var(--teal,#0f766e);background:transparent;color:var(--teal,#0f766e);border-radius:7px;padding:2px 7px;font-size:11px;font-weight:800;cursor:pointer}
+.orx-s{position:relative;text-align:left !important;border-radius:9px;padding:6px 8px 6px 9px;border-left:4px solid;min-height:46px;cursor:pointer;transition:transform .08s,box-shadow .12s;color:var(--text,#1e293b)}
+.orx-s:hover{box-shadow:0 2px 8px rgba(15,23,42,.12)}
+.orx-s .o{font-weight:800;font-size:13px;white-space:nowrap}
+.orx-s .t{font-size:11px;margin-top:2px;opacity:.8;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.orx-compatta .orx-s .t{display:none}.orx-compatta .orx-s{min-height:32px;padding-top:6px;padding-bottom:6px}
+.orx-compatta table.orx td.nm{padding-top:3px;padding-bottom:3px}.orx-compatta .orx-av{width:26px;height:26px;font-size:10.5px}
+.orx-s.mat{background:rgba(59,130,246,.11);border-color:#3b82f6}.orx-s.mat .o{color:#1d4ed8}
+.orx-s.gir,.orx-s.gp{background:rgba(249,115,22,.11);border-color:#f97316}.orx-s.gir .o,.orx-s.gp .o{color:#c2410c}
+.orx-s.pom{background:rgba(34,197,94,.11);border-color:#22c55e}.orx-s.pom .o{color:#15803d}
+.orx-s.por{background:rgba(139,92,246,.12);border-color:#8b5cf6}.orx-s.por .o{color:#6d28d9}
+.orx-s.dop{background:rgba(100,116,139,.10);border-color:#94a3b8}.orx-s.dop .o{color:var(--text,#334155)}
+.orx-s.asi{background:rgba(236,72,153,.10);border-color:#ec4899}.orx-s.asi .o{color:#be185d}
+.orx-s.alt{background:rgba(20,184,166,.10);border-color:#14b8a6}.orx-s.alt .o{color:#0f766e}
+.orx-s.mal{background:rgba(239,68,68,.11);border-color:#ef4444}.orx-s.mal .o{color:#b91c1c}
+.orx-s.prm{background:rgba(245,158,11,.13);border-color:#f59e0b}.orx-s.prm .o{color:#b45309}
+.orx-s.lib{border:1px dashed var(--border,#cbd5e1);background:transparent;display:flex;align-items:center;justify-content:center;color:var(--text-muted,#94a3b8);font-weight:600;font-size:12px}
+.orx-s.lib:hover{border-color:var(--teal,#0f766e);color:var(--teal,#0f766e)}
+.orx-s.sel{box-shadow:0 0 0 2px var(--teal,#2563eb)}
+.orx-incolla .orx-s{cursor:copy;outline:1px dashed rgba(15,118,110,.45);outline-offset:1px}
+.orx-rapido .orx-s{cursor:copy}
+td.orx-h{min-width:104px;padding:6px 12px !important}
+td.orx-h b{font-size:14px;display:block}
+.orx-bar5{height:5px;border-radius:3px;background:var(--border,#e2e8f0);margin-top:5px;overflow:hidden}
+.orx-bar5 i{display:block;height:100%;background:#22c55e;border-radius:3px}
+td.orx-h small{display:block;color:var(--text-muted,#64748b);font-size:11px;margin-top:3px}
+td.orx-h.poco{background:rgba(249,115,22,.08)}td.orx-h.poco .orx-bar5 i{background:#f97316}td.orx-h.poco small{color:#c2410c;font-weight:700}
+table.orx tfoot td{font-size:11.5px;font-weight:800;color:var(--text-muted,#64748b);text-align:center;border-bottom:0;padding:8px 4px}
+table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.05em;padding-left:14px}
+.orx-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.3);border-radius:12px;padding:9px 12px;margin:0 0 10px;font-size:13px}
+.orx-banner .tx{flex:1;min-width:220px}.orx-banner .tx span{color:var(--text-muted,#64748b);font-size:12px}
+.orx-banner select{padding:5px 8px;border-radius:8px;border:1px solid var(--border,#e2e8f0);font-weight:700}
+.orx-rap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.3);font-size:13px;font-weight:700}
+.orx-rap select{padding:6px 8px;border-radius:8px;border:1px solid var(--border,#cbd5e1);font-weight:700;max-width:280px}
+/* pannello di modifica */
+#orx-pan{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:100vw;background:var(--card,#fff);color:var(--text,#1e293b);box-shadow:-12px 0 40px rgba(15,23,42,.18);z-index:480;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .18s ease}
+#orx-pan.on{transform:none}
+.orxp-h{display:flex;align-items:flex-start;gap:10px;padding:16px 16px 12px;border-bottom:1px solid var(--border,#e2e8f0)}
+.orxp-h h3{margin:0;font-size:16px}.orxp-h .sub{color:var(--text-muted,#64748b);font-size:12.5px;margin-top:2px;display:flex;align-items:center;gap:6px}
+.orxp-h .sub button{border:1px solid var(--border,#e2e8f0);background:var(--card,#fff);border-radius:7px;width:26px;height:24px;cursor:pointer;font-weight:800;color:var(--text,#1e293b)}
+.orxp-x{margin-left:auto;border:0;background:transparent;font-size:20px;cursor:pointer;color:var(--text-muted,#94a3b8)}
+.orxp-b{flex:1;overflow-y:auto;padding:12px 16px 16px}
+.orxp-l{font-size:11px;font-weight:800;color:var(--text-muted,#64748b);letter-spacing:.05em;text-transform:uppercase;margin:14px 0 6px}
+.orxp-l:first-child{margin-top:2px}
+.orxp-g{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.orxp-g button{border:1px solid var(--border,#e2e8f0);background:var(--card,#fff);color:var(--text,#1e293b);border-radius:9px;padding:8px 6px;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center}
+.orxp-g button:hover{border-color:var(--teal,#0f766e)}
+.orxp-g button.on{border-color:var(--teal,#2563eb);background:rgba(37,99,235,.08);box-shadow:0 0 0 1px var(--teal,#2563eb) inset}
+.orxp-g.ass button.on{border-color:#ef4444;background:rgba(239,68,68,.08);box-shadow:0 0 0 1px #ef4444 inset}
+.orxp-g button i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+.orxp-ore{font-size:12.5px;color:var(--text-muted,#64748b);margin-top:8px}
+.orxp-ore b{color:var(--text,#1e293b)}
+#orx-pan textarea,#orx-pan select{width:100%;border:1px solid var(--border,#e2e8f0);border-radius:9px;padding:8px 10px;font-size:13px;font-family:inherit;background:var(--card,#fff);color:var(--text,#1e293b);text-transform:none}
+#orx-pan textarea{min-height:76px;resize:vertical;line-height:1.45}
+.orxp-row{display:flex;gap:6px;margin-top:6px}.orxp-row .orx-b{flex:1}
+.orxp-f{padding:12px 16px;border-top:1px solid var(--border,#e2e8f0);display:flex;gap:6px}
+.orxp-f .orx-b{flex:1}
+.orxp-note{font-size:11.5px;color:var(--text-muted,#64748b);margin-top:6px;line-height:1.4}
+/* menu piccoli (⋯ e tasto destro) */
+#orx-menu{position:fixed;z-index:9100;background:var(--card,#fff);color:var(--text,#1e293b);border:1px solid var(--border,#e2e8f0);border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,.2);padding:6px;min-width:230px}
+#orx-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:inherit}
+#orx-menu button:hover{background:var(--bg,#f1f5f9)}
+#orx-menu .tt{font-size:11px;font-weight:800;color:var(--text-muted,#64748b);padding:6px 10px 4px;text-transform:uppercase;letter-spacing:.05em}
+#orx-menu hr{border:0;border-top:1px solid var(--border,#e2e8f0);margin:4px 0}
+</style>
+<script id="orari-2026-js">
+/* ═════════════════════════════════════════════════════════════════════
+   SERVIZIO CIVILE › ORARI · NUOVA GRIGLIA (novembre 2026)
+   Da computer: caselle colorate per tipo di turno (orario grande, compito
+   sotto), copertura del giorno sotto la data, colonna ore con giorni
+   lavorati, pannello laterale per modificare una casella, copia/incolla
+   col tasto destro e nel menu ⋯. Da telefono resta la vista di prima.
+   Usa le stesse funzioni di sempre per salvare (turniCambiaTurno,
+   turniCambiaCompito, Annulla/Ripeti, conferma settimana in corso, copia).
+   Nessun dato nuovo: legge e scrive sc.orariCal / sc.compiti / sc.giornate.
+   ═════════════════════════════════════════════════════════════════════ */
+(function(){
+  var prev = window._turniRender;
+  if(typeof prev !== 'function' || prev._orx) return;
+  var mq = window.matchMedia ? window.matchMedia('(max-width:716px)') : null;
+  function mobile(){ return mq ? mq.matches : window.innerWidth <= 716; }
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  var NOMI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+  var TIPI = {
+    mat:['Mattina','#3b82f6'], gir:['Giro','#f97316'], gp:['Giro + pomeriggio','#f97316'], pom:['Pomeriggio','#22c55e'],
+    por:['Portineria','#8b5cf6'], dop:['Doposcuola','#94a3b8'], asi:['Asilo','#ec4899'], alt:['Altro','#14b8a6'],
+    mal:['Malattia','#ef4444'], prm:['Permesso','#f59e0b']
+  };
+  var ASS = { malattia:'mal', perm_ord:'prm', perm_str:'prm' };
+  var ASS_N = { malattia:'Malattia', perm_ord:'Permesso ordinario', perm_str:'Permesso straordinario' };
+  var ASS_C = { malattia:'mal', perm_ord:'po', perm_str:'ps' };
+  window._ORX = window._ORX || { sel:null };
+  function compatta(){ try{ return localStorage.getItem('orx_compatta') === '1'; }catch(e){ return false; } }
+  window.orxCompatta = function(v){ try{ localStorage.setItem('orx_compatta', v ? '1' : '0'); }catch(e){} scRenderOrari(); };
+
+  function min(hhmm){ var p = String(hhmm).split(/[:.]/); return (+p[0]) * 60 + (+p[1] || 0); }
+  function orari(val){ return String(val || '').match(/\d{1,2}[:.]\d{2}/g) || []; }
+  function fmtOr(val){ return String(val || '').replace(/(\d{1,2})[:.](\d{2})/g, function(m, h, mm){ return ('0' + h).slice(-2) + '.' + mm; }).replace(/\s*-\s*/g, '–').replace(/ \+ /g, ' · '); }
+  /* tipo di turno: dal compito (portineria/asilo/doposcuola) e dagli orari */
+  function tipo(val, comp, tipoG){
+    if(ASS[tipoG]) return ASS[tipoG];
+    if(!val) return comp ? 'alt' : 'lib';
+    var c = String(comp || '').trim().toLowerCase();
+    if(/^portineria\b/.test(c)) return 'por';
+    if(/\basilo\b/.test(c)) return 'asi';
+    if(/^doposcuola\b/.test(c)) return 'dop';
+    var o = orari(val); if(!o.length) return 'alt';
+    var a = min(o[0]), b = min(o[o.length - 1]);
+    if(a < 11 * 60) return 'mat';
+    if(a < 13 * 60 + 20 && b >= 19 * 60) return 'gp';
+    if(a < 14 * 60 && b <= 18 * 60) return 'gir';
+    if(a < 14 * 60 && b >= 19 * 60) return 'por';
+    if(a >= 14 * 60) return 'pom';
+    return 'alt';
+  }
+  window._orxTipo = tipo;
+  function nome(op){ var n = (op.cognome || '') + ' ' + (op.nome || ''); return (typeof _scNomeCap === 'function') ? _scNomeCap(n) : n; }
+  function nomeN(op){ var n = (op.nome || '') + ' ' + (op.cognome || ''); return (typeof _scNomeCap === 'function') ? _scNomeCap(n) : n; }
+  function ini(op){ return ((op.nome || '').charAt(0) + (op.cognome || '').charAt(0)).toUpperCase(); }
+  function festa(ds){ try{ return typeof _iprFestivo === 'function' && !!_iprFestivo(ds); }catch(e){ return false; } }
+  function dsDate(ds){ var p = ds.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function fmtG(ds){ var d = dsDate(ds), w = d.getDay(); return NOMI[w === 0 ? 6 : w - 1] + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
+  function cella(sc, op, ds){
+    var k = ds + '_' + op.id, val = (sc.orariCal || {})[k] || '', tg = (sc.giornate || {})[k] || 'normale', comp = (sc.compiti || {})[k] || '';
+    var ass = !!ASS[tg], ore = 0;
+    try{ ore = ass ? scOreTipoGiornata(tg, op.id, ds) : scOreOrario(val); }catch(e){}
+    return { k:k, val:val, tg:tg, comp:comp, ass:ass, ore:ore || 0, tipo:tipo(val, comp, tg) };
+  }
+  function tipoSett(giorni){
+    var l = scDataLocale(giorni[0]), oggi = new Date(); var w = oggi.getDay(); oggi.setDate(oggi.getDate() - (w === 0 ? 6 : w - 1));
+    var lo = scDataLocale(oggi), n = Math.round((dsDate(l) - dsDate(lo)) / 6048e5);
+    if(n < 0) return ['passata', 'Settimana passata'];
+    if(n === 0) return ['corrente', 'Settimana in corso'];
+    if(n === 1) return ['prossima', 'Settimana prossima'];
+    return ['futura', 'Tra ' + n + ' settimane'];
+  }
+
+  /* ── griglia da computer ── */
+  function griglia(container, sc, ops, giorni){
+    var oggi = scDataLocale(new Date()), dss = giorni.map(function(d){ return scDataLocale(d); });
+    var TC = window._TC || null, R = (typeof _TURNI_RAPIDO !== 'undefined') ? _TURNI_RAPIDO : null;
+    var comp = compatta(), sel = _ORX.sel;
+    var dati = {}, usati = {}, cop = dss.map(function(){ return { M:[], G:[], P:[], Port:[], n:0 }; }), totG = dss.map(function(){ return 0; });
+    ops.forEach(function(op){
+      dati[op.id] = dss.map(function(ds, i){
+        var c = cella(sc, op, ds);
+        if(c.tipo !== 'lib') usati[c.tipo] = 1;
+        totG[i] += c.ore;
+        if(!c.ass && c.val){
+          var cv = cop[i], n = nomeN(op); cv.n++;
+          if(c.tipo === 'mat') cv.M.push(n);
+          if(c.tipo === 'gir' || c.tipo === 'gp') cv.G.push(n);
+          if(c.tipo === 'pom' || c.tipo === 'gp') cv.P.push(n);
+          if(c.tipo === 'por') cv.Port.push(n);
+        }
+        return c;
+      });
+    });
+    var ts = tipoSett(giorni);
+    var h = '<div class="orx-bar">'
+      + '<div class="orx-seg"><button type="button" class="on">Settimana</button><button type="button" onclick="scSetVistaOrari(\'mese\')">Mese</button></div>'
+      + '<div class="orx-seg"><button type="button"' + (comp ? '' : ' class="on"') + ' onclick="orxCompatta(false)">Dettaglio</button><button type="button"' + (comp ? ' class="on"' : '') + ' onclick="orxCompatta(true)">Compatta</button></div>'
+      + '<span class="orx-chip ' + ts[0] + '">' + ts[1] + (ts[0] === 'corrente' || ts[0] === 'passata' ? ' · le modifiche chiedono conferma' : '') + '</span>'
+      + '<span class="orx-sp"></span>'
+      + '<button type="button" class="orx-b" onclick="turniCopiaSettimanaPrecedente()">📋 Copia sett. precedente</button>'
+      + '<button type="button" class="orx-b" title="Annulla" onclick="turniAnnulla()"' + (_TURNI_STORIA.length ? '' : ' disabled') + '>↶ Annulla</button>'
+      + '<button type="button" class="orx-b" title="Ripeti" onclick="turniRifai()"' + (_TURNI_RIFAI.length ? '' : ' disabled') + '>↷</button>'
+      + '<button type="button" class="orx-b' + (R ? ' on' : '') + '" onclick="orxMenuAltro(event)">⋯</button>'
+      + '</div><div id="sc-scambi-box"></div>';
+    setTimeout(function(){ if(typeof scScambiRiempi === 'function') try{ scScambiRiempi(); }catch(e){} }, 0);
+    // appunti (copia/incolla)
+    if(TC){
+      var dove = { cella:'clicca la casella dove vuoi incollarlo', giorno:'premi «📥 Incolla» sotto il giorno', riga:'premi «📥 Incolla» sotto il nome della persona', settimana:'premi «Incolla su questa settimana»' }[TC.tipo] || '';
+      var opz = ''; for(var r = 0; r <= 8; r++) opz += '<option value="' + r + '"' + ((window._TC_RIP || 0) === r ? ' selected' : '') + '>' + (r ? 'e nelle ' + r + ' settimane dopo' : 'solo qui') + '</option>';
+      h += '<div class="orx-banner"><div class="tx"><b>📋 Copiato:</b> ' + E(TC.label) + '<br><span>Puoi cambiare settimana: ' + dove + ', anche più volte.</span></div>'
+        + '<label style="font-size:12.5px;font-weight:700">Incolla <select onchange="tcRip(this.value)">' + opz + '</select></label>'
+        + (TC.tipo === 'settimana' ? '<button type="button" class="orx-b on" onclick="tcIncollaSettimana()">📥 Incolla su questa settimana</button>' : '')
+        + '<button type="button" class="orx-b" onclick="tcSvuota()">✕ Fine</button></div>';
+    }
+    // modifica rapida
+    if(R){
+      var turni = _turniOpzioniTurno(), compiti = _turniCompitiLista();
+      h += '<div class="orx-rap"><span>⚡ Modifica rapida: scegli cosa applicare, poi clicca le caselle</span>'
+        + '<select onchange="turniRapidoImposta(\'turno\', this.value)"><option value="">— turno invariato —</option><option value="__libero"' + (R.turno === '__libero' ? ' selected' : '') + '>Libero</option>'
+        + turni.map(function(t){ return '<option value="' + E(t.v) + '"' + (R.turno === t.v ? ' selected' : '') + '>' + E(t.l) + '</option>'; }).join('')
+        + '<option value="po"' + (R.turno === 'po' ? ' selected' : '') + '>Permesso ordinario</option><option value="ps"' + (R.turno === 'ps' ? ' selected' : '') + '>Permesso straordinario</option><option value="mal"' + (R.turno === 'mal' ? ' selected' : '') + '>Malattia</option></select>'
+        + '<select onchange="turniRapidoImposta(\'compito\', this.value)"><option value="">— compito invariato —</option><option value="__nessuno"' + (R.compito === '__nessuno' ? ' selected' : '') + '>Nessun compito</option>'
+        + compiti.map(function(c){ return '<option value="' + E(c) + '"' + (R.compito === c ? ' selected' : '') + '>' + E(c) + '</option>'; }).join('') + '</select>'
+        + '<button type="button" class="orx-b" onclick="turniRapidoToggle()">✋ Fine</button></div>';
+    }
+    // legenda
+    h += '<div class="orx-leg">' + Object.keys(TIPI).filter(function(t){ return usati[t] && t !== 'gp'; }).map(function(t){ return '<span><i style="background:' + TIPI[t][1] + '"></i>' + TIPI[t][0] + '</span>'; }).join('')
+      + '<em>' + (R ? 'Clicca le caselle per applicare' : (TC && TC.tipo === 'cella' ? 'Clicca una casella per incollare' : 'Clicca una casella per modificarla · tasto destro per copiare e incollare')) + '</em></div>';
+    // tabella
+    var cls = (comp ? ' orx-compatta' : '') + (TC && TC.tipo === 'cella' ? ' orx-incolla' : '') + (R ? ' orx-rapido' : '');
+    h += '<div class="orx-wrap' + cls + '"><table class="orx"><thead><tr><th class="nm">Volontario</th>';
+    dss.forEach(function(ds, i){
+      var cv = cop[i], sab = i === 5, fe = festa(ds), chips = '';
+      if(fe) chips = '<span class="ok" style="background:rgba(100,116,139,.14);color:var(--text-muted,#64748b)">Festivo</span>';
+      else if(cv.n){
+        var voci = sab ? [['M', cv.M, 'Mattina']] : [['M', cv.M, 'Mattina'], ['G', cv.G, 'Giro'], ['P', cv.P, 'Pomeriggio'], ['Port', cv.Port, 'Portineria']];
+        if(sab) [['G', cv.G, 'Giro'], ['P', cv.P, 'Pomeriggio'], ['Port', cv.Port, 'Portineria']].forEach(function(v){ if(v[1].length) voci.push(v); });
+        chips = voci.map(function(v){ return '<span class="' + (v[1].length ? 'ok' : 'ko') + '" title="' + E(v[2] + ': ' + (v[1].length ? v[1].join(', ') : 'nessuno')) + '">' + v[0] + '</span>'; }).join('');
+      }
+      h += '<th class="' + (ds === oggi ? 'oggi' : '') + '" oncontextmenu="orxMenuGiorno(event,\'' + ds + '\')">' + NOMI[i] + '<b>' + giorni[i].getDate() + '</b>'
+        + (chips ? '<div class="orx-cv">' + chips + '</div>' : '')
+        + (TC && TC.tipo === 'giorno' ? '<div class="orx-th-az"><button type="button" onclick="tcIncollaGiorno(\'' + ds + '\')">📥 Incolla</button></div>' : '')
+        + '</th>';
+    });
+    h += '<th>Ore</th></tr></thead><tbody>';
+    var gPrec = -1, gNomi = ['👦 Maschi', '👧 Femmine', 'Sesso non indicato'], gCls = ['M', 'F', ''];
+    var soglia = 5 - dss.slice(0, 6).filter(function(ds){ return festa(ds); }).length;
+    ops.forEach(function(op){
+      var g = (typeof _scSessoGruppo === 'function') ? _scSessoGruppo(op) : -1;
+      if(g >= 0 && g !== gPrec){ h += '<tr class="grp"><td colspan="' + (dss.length + 2) + '" class="' + gCls[g] + '">' + gNomi[g] + '</td></tr>'; gPrec = g; }
+      var tot = 0, gg = 0;
+      h += '<tr><td class="nm" oncontextmenu="orxMenuPersona(event,\'' + E(op.id) + '\')"><div class="orx-n"><span class="orx-av">' + (op.foto ? '<img src="' + E(op.foto) + '" alt="">' : E(ini(op))) + '</span>'
+        + '<div style="min-width:0"><b data-no-sobrio>' + E(nome(op)) + '</b>' + (TC && TC.tipo === 'riga' ? '<small><button type="button" onclick="tcIncollaRiga(\'' + E(op.id) + '\')">📥 Incolla settimana</button></small>' : '') + '</div></div></td>';
+      dati[op.id].forEach(function(c, i){
+        var ds = dss[i]; tot += c.ore; if(c.val || c.ass) gg++;
+        var on = sel && sel.op === op.id && sel.ds === ds;
+        var click = R ? 'turniRapidoTocca(\'' + E(op.id) + '\',\'' + ds + '\')' : (TC && TC.tipo === 'cella' ? 'tcIncollaCella(\'' + E(op.id) + '\',\'' + ds + '\')' : 'orxApri(\'' + E(op.id) + '\',\'' + ds + '\')');
+        var att = ' onclick="' + click + '" oncontextmenu="orxMenuCella(event,\'' + E(op.id) + '\',\'' + ds + '\')"';
+        var inner;
+        if(c.tipo === 'lib') inner = (i === 5 && !c.comp ? '' : 'libero');
+        else if(c.ass) inner = '<div class="o">' + E(ASS_N[c.tg]) + '</div><div class="t">conta ' + E(scFmtOre(c.ore)) + (c.tg === 'malattia' && !c.ore ? ' (oltre il limite retribuito)' : '') + '</div>';
+        else inner = '<div class="o">' + E(fmtOr(c.val) || '—') + '</div>' + (c.comp ? '<div class="t" title="' + E(c.comp) + '">' + E(c.comp) + '</div>' : '');
+        var vuoto = c.tipo === 'lib' && i === 5 && !c.comp;
+        h += '<td><div class="orx-s ' + c.tipo + (on ? ' sel' : '') + '"' + att + (vuoto ? ' style="border-color:transparent"' : '') + '>' + inner + '</div></td>';
+      });
+      var poco = gg < soglia;
+      h += '<td class="orx-h' + (poco ? ' poco' : '') + '"><b>' + E(scFmtOre(tot)) + '</b><div class="orx-bar5"><i style="width:' + Math.min(100, Math.round(gg / Math.max(1, soglia) * 100)) + '%"></i></div><small>' + gg + (gg === 1 ? ' giorno' : ' giorni') + (poco ? ' ⚠️' : ' ✓') + '</small></td></tr>';
+    });
+    h += '</tbody><tfoot><tr><td class="nm">Ore nel giorno</td>' + totG.map(function(t){ return '<td>' + (t ? E(scFmtOre(t)) : '') + '</td>'; }).join('') + '<td></td></tr></tfoot></table></div>';
+    container.innerHTML = h;
+    container.classList.add('orx-on');
+  }
+
+  var f = function(container, sc, ops, giorni){
+    if(mobile()){ container.classList.remove('orx-on'); return prev.apply(this, arguments); }
+    try{ griglia(container, sc, ops, giorni); }
+    catch(e){ console.warn('[orari 2026]', e); container.classList.remove('orx-on'); return prev.apply(this, arguments); }
+  };
+  f._orx = true; f._tm = prev._tm; f._tc = prev._tc; window._turniRender = f;
+
+  /* ═══ PANNELLO DI MODIFICA ═══ */
+  function opDi(id){ return scGetOperatori().filter(function(o){ return String(o.id) === String(id); })[0]; }
+  function pan(){
+    var p = document.getElementById('orx-pan');
+    if(!p){
+      p = document.createElement('div'); p.id = 'orx-pan'; document.body.appendChild(p);
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && p.classList.contains('on')) orxChiudi(); });
+    }
+    return p;
+  }
+  window.orxApri = function(opId, ds){ _ORX.sel = { op:opId, ds:ds }; disegnaPan(); pan().classList.add('on'); evidenzia(); };
+  window.orxChiudi = function(){ _ORX.sel = null; var p = document.getElementById('orx-pan'); if(p) p.classList.remove('on'); evidenzia(); };
+  function evidenzia(){
+    document.querySelectorAll('.orx-s.sel').forEach(function(x){ x.classList.remove('sel'); });
+    var s = _ORX.sel; if(!s) return;
+    document.querySelectorAll('.orx-s[onclick*="orxApri(\'' + s.op + '\',\'' + s.ds + '\')"]').forEach(function(x){ x.classList.add('sel'); });
+  }
+  window.orxSposta = function(d){
+    var s = _ORX.sel; if(!s) return;
+    var dss = scGetSettimana(_scSettOffset).map(function(x){ return scDataLocale(x); }), i = dss.indexOf(s.ds) + d;
+    if(i < 0 || i >= dss.length) return;
+    s.ds = dss[i]; disegnaPan(); evidenzia();
+  };
+  function disegnaPan(){
+    var s = _ORX.sel, p = pan(); if(!s) return;
+    var sc = scGetDb(), op = opDi(s.op); if(!sc || !op){ orxChiudi(); return; }
+    var c = cella(sc, op, s.ds), turni = _turniOpzioniTurno(), compiti = _turniCompitiLista();
+    var noto = turni.some(function(t){ return t.v === c.val; });
+    var bt = function(v, label, on, col){ return '<button type="button"' + (on ? ' class="on"' : '') + ' onclick="orxTurno(\'' + E(v) + '\')">' + (col ? '<i style="background:' + col + '"></i>' : '') + E(label) + '</button>'; };
+    var dss = scGetSettimana(_scSettOffset).map(function(x){ return scDataLocale(x); }), i = dss.indexOf(s.ds);
+    var h = '<div class="orxp-h"><span class="orx-av" style="width:40px;height:40px">' + (op.foto ? '<img src="' + E(op.foto) + '" alt="">' : E(ini(op))) + '</span><div><h3 data-no-sobrio>' + E(nomeN(op)) + '</h3>'
+      + '<div class="sub"><button type="button" onclick="orxSposta(-1)"' + (i > 0 ? '' : ' disabled') + ' title="Giorno prima">‹</button><span>' + E(fmtG(s.ds)) + '</span><button type="button" onclick="orxSposta(1)"' + (i >= 0 && i < dss.length - 1 ? '' : ' disabled') + ' title="Giorno dopo">›</button></div></div>'
+      + '<button type="button" class="orxp-x" onclick="orxChiudi()" aria-label="Chiudi">✕</button></div><div class="orxp-b">';
+    h += '<div class="orxp-l">Orario</div><div class="orxp-g">'
+      + turni.map(function(t){ var tp = tipo(t.v, '', 'normale'); return bt(t.v, t.l, !c.ass && c.val === t.v, (TIPI[tp] || TIPI.alt)[1]); }).join('')
+      + (!c.ass && c.val && !noto ? bt(c.val, fmtOr(c.val), true, (TIPI[c.tipo] || TIPI.alt)[1]) : '')
+      + bt('', 'Libero', !c.ass && !c.val) + bt('__altro', 'Altro orario…', false) + '</div>'
+      + '<div class="orxp-ore">' + (c.ass ? 'Conta <b>' + E(scFmtOre(c.ore)) + '</b> (' + E(ASS_N[c.tg]) + ')' : (c.val ? 'Turno di <b>' + E(scFmtOre(c.ore)) + '</b> · ' + E((TIPI[c.tipo] || TIPI.alt)[0]) : 'Nessun turno')) + '</div>';
+    h += '<div class="orxp-l">Compito</div>'
+      + '<select onchange="orxCompito(this.value);this.value=\'\'"><option value="">Scegli dall\'elenco…</option>'
+      + compiti.map(function(x){ return '<option value="' + E(x) + '"' + (x === c.comp ? ' style="font-weight:800"' : '') + '>' + E(x) + '</option>'; }).join('')
+      + '<option value="__nuovo">+ nuovo compito…</option><option value="__elenco">⚙️ gestisci elenco compiti…</option></select>'
+      + '<textarea id="orxp-comp" placeholder="Scrivi o correggi il compito di questo giorno…">' + E(c.comp) + '</textarea>'
+      + '<div class="orxp-row"><button type="button" class="orx-b" onclick="orxCompitoTesto(\'\')"' + (c.comp ? '' : ' disabled') + '>Togli compito</button><button type="button" class="orx-b on" onclick="orxCompitoTesto(document.getElementById(\'orxp-comp\').value)">Salva compito</button></div>';
+    h += '<div class="orxp-l">Assenza</div><div class="orxp-g ass">'
+      + [['po', 'perm_ord', 'Permesso ord.'], ['ps', 'perm_str', 'Permesso straord.'], ['mal', 'malattia', 'Malattia']].map(function(a){ return '<button type="button"' + (c.tg === a[1] ? ' class="on"' : '') + ' onclick="orxTurno(\'' + a[0] + '\')">' + a[2] + '</button>'; }).join('')
+      + '</div>' + (c.ass ? '<div class="orxp-note">Per togliere l\'assenza scegli un orario o «Libero».</div>' : '');
+    h += '</div><div class="orxp-f"><button type="button" class="orx-b" onclick="orxMenuCella(event,\'' + E(op.id) + '\',\'' + s.ds + '\')">📋 Copia…</button><button type="button" class="orx-b on" onclick="orxChiudi()">Fatto</button></div>';
+    p.innerHTML = h;
+  }
+  window._orxPanAggiorna = function(){ var p = document.getElementById('orx-pan'); if(p && p.classList.contains('on') && _ORX.sel){ disegnaPan(); evidenzia(); } };
+  window.orxTurno = async function(v){ var s = _ORX.sel; if(!s) return; await window.turniCambiaTurno({ value:v }, s.op, s.ds); window._orxPanAggiorna(); };
+  window.orxCompito = async function(v){ var s = _ORX.sel; if(!s || !v) return; await window.turniCambiaCompito({ value:v }, s.op, s.ds); window._orxPanAggiorna(); };
+  window.orxCompitoTesto = async function(t){
+    var s = _ORX.sel; if(!s) return;
+    t = String(t || '').trim();
+    var sc = scGetDb(), k = s.ds + '_' + s.op;
+    if(((sc.compiti || {})[k] || '') === t){ showToast(t ? 'Compito già salvato' : 'Nessun compito da togliere', 'info'); return; }
+    if(typeof window._avsPermesso === 'function' && !(await window._avsPermesso(s.ds))) return;
+    _turniPrimaDiModificare();
+    if(!sc.compiti) sc.compiti = {};
+    if(t) sc.compiti[k] = t; else delete sc.compiti[k];
+    saveStorage(); scRenderOrari();
+    showToast(t ? 'Compito salvato' : 'Compito tolto', 'success');
+  };
+
+  /* ═══ MENU (tasto destro e ⋯) ═══ */
+  function menu(ev, html){
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+    var m = document.getElementById('orx-menu'); if(m) m.remove();
+    m = document.createElement('div'); m.id = 'orx-menu'; m.innerHTML = html;
+    document.body.appendChild(m);
+    var x = ev ? ev.clientX : 100, y = ev ? ev.clientY : 100, r = m.getBoundingClientRect();
+    if(ev && ev.type === 'click' && ev.currentTarget && ev.currentTarget.getBoundingClientRect){ var b = ev.currentTarget.getBoundingClientRect(); x = b.right - r.width; y = b.bottom + 6; }
+    m.style.left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8)) + 'px';
+    m.style.top = Math.max(8, Math.min(y, window.innerHeight - r.height - 8)) + 'px';
+    setTimeout(function(){
+      var chiudi = function(e){ if(e && m.contains(e.target)) return; m.remove(); document.removeEventListener('mousedown', chiudi, true); document.removeEventListener('scroll', chiudi, true); };
+      document.addEventListener('mousedown', chiudi, true); document.addEventListener('scroll', chiudi, true);
+    }, 0);
+    m.addEventListener('click', function(e){ if(e.target.closest('button')) m.remove(); });
+  }
+  function voce(fn, txt){ return '<button type="button" onclick="' + fn + '">' + txt + '</button>'; }
+  function incolla(opId, ds){
+    var TC = window._TC; if(!TC) return '';
+    if(TC.tipo === 'cella' && opId && ds) return voce('tcIncollaCella(\'' + E(opId) + '\',\'' + ds + '\')', '📥 Incolla qui');
+    if(TC.tipo === 'giorno' && ds) return voce('tcIncollaGiorno(\'' + ds + '\')', '📥 Incolla il giorno su ' + E(fmtG(ds)));
+    if(TC.tipo === 'riga' && opId) return voce('tcIncollaRiga(\'' + E(opId) + '\')', '📥 Incolla la settimana qui');
+    if(TC.tipo === 'settimana') return voce('tcIncollaSettimana()', '📥 Incolla su questa settimana');
+    return '';
+  }
+  window.orxMenuCella = function(ev, opId, ds){
+    var op = opDi(opId); if(!op) return;
+    var inc = incolla(opId, ds);
+    menu(ev, '<div class="tt">' + E(nomeN(op)) + ' · ' + E(fmtG(ds)) + '</div>' + (inc ? inc + '<hr>' : '')
+      + voce('tcCopiaCella(\'' + E(opId) + '\',\'' + ds + '\')', '📋 Copia questa casella')
+      + voce('tcCopiaRiga(\'' + E(opId) + '\')', '🗓️ Copia la sua settimana')
+      + voce('tcCopiaGiorno(\'' + ds + '\')', '📅 Copia tutto il giorno (tutti)')
+      + '<hr>' + voce('orxApri(\'' + E(opId) + '\',\'' + ds + '\')', '✏️ Modifica la casella')
+      + voce('tcSvuotaGiorno(\'' + ds + '\')', '🧹 Svuota tutto il giorno…'));
+  };
+  window.orxMenuPersona = function(ev, opId){
+    var op = opDi(opId); if(!op) return;
+    var inc = incolla(opId, null);
+    menu(ev, '<div class="tt">' + E(nomeN(op)) + '</div>' + (inc ? inc + '<hr>' : '') + voce('tcCopiaRiga(\'' + E(opId) + '\')', '🗓️ Copia la sua settimana'));
+  };
+  window.orxMenuGiorno = function(ev, ds){
+    var inc = incolla(null, ds);
+    menu(ev, '<div class="tt">' + E(fmtG(ds)) + '</div>' + (inc ? inc + '<hr>' : '') + voce('tcCopiaGiorno(\'' + ds + '\')', '📅 Copia tutto il giorno') + voce('tcSvuotaGiorno(\'' + ds + '\')', '🧹 Svuota il giorno…'));
+  };
+  window.orxMenuAltro = function(ev){
+    var R = (typeof _TURNI_RAPIDO !== 'undefined') ? _TURNI_RAPIDO : null;
+    var inc = window._TC && window._TC.tipo === 'settimana' ? incolla(null, null) : '';
+    menu(ev, (inc ? inc + '<hr>' : '')
+      + voce('tcCopiaSettimana()', '📋 Copia la settimana intera')
+      + voce('turniRapidoToggle()', R ? '✋ Fine modifica rapida' : '⚡ Modifica rapida (applica a più caselle)')
+      + voce('turniElencoApri()', '⚙️ Elenco compiti')
+      + '<hr><div class="tt">Suggerimento</div><div style="padding:0 10px 8px;font-size:12px;color:var(--text-muted,#64748b);max-width:250px">Tasto destro su una casella, un nome o un giorno per copiare e incollare.</div>');
+  };
+
+  /* dopo ogni ridisegno: aggiorno il pannello aperto */
+  var oR = window.scRenderOrari;
+  if(typeof oR === 'function' && !oR._orx){
+    var fR = function(){ var r = oR.apply(this, arguments); try{ window._orxPanAggiorna(); var b = document.getElementById('sc-orari-body'); if(b && (typeof _scOrariVista !== 'undefined' && _scOrariVista === 'mese')) b.classList.remove('orx-on'); }catch(e){} return r; };
+    fR._orx = true; fR._bz = oR._bz; window.scRenderOrari = scRenderOrari = fR;
+  }
+  /* uscendo dagli Orari chiudo il pannello */
+  var oN = window.navigate;
+  if(typeof oN === 'function' && !oN._orx){ var fN = function(){ try{ orxChiudi(); }catch(e){} return oN.apply(this, arguments); }; fN._orx = true; fN._avs = oN._avs; window.navigate = fN; }
+  var oT = window.scSwitchTab;
+  if(typeof oT === 'function' && !oT._orx){ var fT = function(){ try{ orxChiudi(); }catch(e){} return oT.apply(this, arguments); }; fT._orx = true; window.scSwitchTab = fT; }
 })();
 </script>
 
