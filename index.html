@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 05/11/2026 13:14</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 05/11/2026 13:14 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -89816,7 +89816,8 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
     var nome = cap(u.nome || u.username), ora = new Date().getHours();
     var sal = (ora < 13 ? 'Buongiorno' : (ora < 18 ? 'Buon pomeriggio' : 'Buonasera')) + (nome ? ', ' + nome : '');
     var fr = '«La gioia è la più bella creatura uscita dalle mani di Dio» — Don Bosco';
-    try{ var f = document.querySelector('.ho-frase'); if(f && f.textContent.trim()) fr = f.textContent.trim(); }catch(e){}
+    try{ var f = document.querySelector('.ho-frase'); if(f && f.textContent.trim()) fr = f.textContent.trim();
+      else if(typeof window._frasiScegli === 'function'){ var sc0 = window._frasiScegli(); if(sc0 && sc0.testo) fr = '«' + sc0.testo + '»' + (sc0.autore ? ' — ' + sc0.autore : ''); } }catch(e){}
     var ov = crea('ap-g', '<div class="ap-bx"><div class="ap-sole' + (ora >= 19 || ora < 6 ? ' ap-luna' : '') + '"></div><div class="ap-rg"><h1>' + E(sal) + '</h1><svg viewBox="0 0 600 30" preserveAspectRatio="none"><path d="M4 18 C 80 6, 150 28, 230 16 S 380 8, 450 20 S 560 22, 596 12"/></svg>'
       + (piuma() ? '<img class="ap-pen" src="' + piuma() + '" alt="">' : '') + '</div><p>' + E(oggi()) + '</p><i>' + E(fr) + '</i><div class="ap-load"><span></span></div></div>', 32000);
     try{ var h1 = ov.querySelector('h1'), bxx = ov.querySelector('.ap-bx'), lim = Math.min(window.innerWidth * .9, bxx ? bxx.clientWidth - 8 : 9999); if(h1 && h1.scrollWidth > lim){ var fs = parseFloat(getComputedStyle(h1).fontSize); h1.style.fontSize = Math.max(20, Math.floor(fs * lim / h1.scrollWidth)) + 'px'; } }catch(e){}
@@ -91048,8 +91049,16 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
       if(f.area){ try{ if(typeof areaAccesso === 'function' && !areaAccesso(f.area)) return false; }catch(e){} }
       return true; });
     if(!ok.length) return null;
-    var s = ok[Math.floor(Math.random() * ok.length)];
-    return { msg: s.autore ? '"' + s.testo + '" — ' + s.autore : s.testo };
+    /* la stessa frase per tutta la sessione (animazione d'ingresso e home uguali), e niente ripetizioni delle ultime uscite */
+    if(window._FRASE_SCELTA && ok.some(function(f){ return f.id === window._FRASE_SCELTA.id; })) return window._FRASE_SCELTA;
+    var rec = []; try{ rec = JSON.parse(localStorage.getItem('piuma_frasi_recenti') || '[]'); }catch(e){}
+    var nuove = ok.filter(function(f){ return rec.indexOf(f.id) < 0; });
+    if(!nuove.length){ rec = []; nuove = ok; }
+    var s = nuove[Math.floor(Math.random() * nuove.length)];
+    rec.push(s.id); rec = rec.slice(-Math.max(1, Math.min(30, ok.length - 1)));
+    try{ localStorage.setItem('piuma_frasi_recenti', JSON.stringify(rec)); }catch(e){}
+    window._FRASE_SCELTA = { id:s.id, testo:s.testo, autore:s.autore || '', msg: s.autore ? '"' + s.testo + '" — ' + s.autore : s.testo };
+    return window._FRASE_SCELTA;
   };
   async function salva(nuova){
     var ids = {}; nuova.forEach(function(f){ if(f.id) ids[f.id] = 1; });
