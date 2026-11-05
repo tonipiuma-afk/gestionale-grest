@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 05/11/2026 12:33</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 05/11/2026 12:33 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91143,6 +91143,35 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
 .orx-banner select{padding:5px 8px;border-radius:8px;border:1px solid var(--border,#e2e8f0);font-weight:700}
 .orx-rap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.3);font-size:13px;font-weight:700}
 .orx-rap select{padding:6px 8px;border-radius:8px;border:1px solid var(--border,#cbd5e1);font-weight:700;max-width:280px}
+table.orx th.sab,table.orx td.sab{width:118px;max-width:130px}
+table.orx td.sab .orx-s{padding-left:7px;padding-right:6px}
+table.orx td.sab .orx-s .o{font-size:12px}
+.orx-s[draggable="true"]{cursor:grab}
+.orx-s.drag{opacity:.4}
+.orx-trascino .orx-s:not(.drag){outline:1px dashed rgba(100,116,139,.35);outline-offset:1px}
+.orx-s.drop{box-shadow:0 0 0 2px var(--teal,#2563eb),0 6px 16px rgba(37,99,235,.25) !important;transform:scale(1.03)}
+/* telefono */
+.orxm-tit{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 2px 8px}
+.orxm-tit b{font-size:16px;display:block}.orxm-tit small{color:var(--text-muted,#64748b);font-size:12px}
+.orxm-tit .orx-cv{margin:0}
+.orxm-az{display:flex;gap:6px;margin:0 0 10px}.orxm-az .orx-b{flex:1;font-size:12px;padding:7px 8px}
+.orxm-grp{margin:12px 2px 6px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#64748b)}
+.orxm-grp.M{color:#1d4ed8}.orxm-grp.F{color:#be185d}
+.orxm-c{background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:9px 10px 10px;margin-bottom:8px}
+.orxm-h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.orxm-h b{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orxm-ore{font-size:13px;font-weight:800;color:var(--text,#1e293b)}
+.orxm-cp{border:1px solid var(--border,#e2e8f0);background:var(--card,#fff);border-radius:8px;width:32px;height:30px;font-weight:800;color:var(--text,#1e293b);cursor:pointer}
+.orxm-in{border:1px dashed var(--teal,#0f766e);background:transparent;color:var(--teal,#0f766e);border-radius:8px;padding:4px 8px;font-size:12px;font-weight:800}
+.orxm-c .orx-s{min-height:44px;padding:8px 10px}
+.orxm-c .orx-s .o{font-size:15px}.orxm-c .orx-s .o .tp{font-size:11px;font-weight:700;opacity:.75;margin-left:4px}
+.orxm-c .orx-s .t{font-size:12.5px;-webkit-line-clamp:4;margin-top:3px}
+.orxm-c .orx-s.lib{min-height:40px;font-size:12.5px}
+.orxm-sett{background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:10px 12px;margin-top:14px}
+.orxm-st{font-size:13px;font-weight:700;color:var(--text-muted,#64748b);margin-bottom:4px}
+.orxm-r{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border,#e2e8f0);font-size:13.5px}
+.orxm-r:first-of-type{border-top:0}.orxm-r span{flex:1;min-width:0}.orxm-r small{color:var(--text-muted,#64748b);font-size:11.5px}
+.orxm-r.poco small{color:#c2410c;font-weight:700}
 /* pannello di modifica */
 #orx-pan{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:100vw;background:var(--card,#fff);color:var(--text,#1e293b);box-shadow:-12px 0 40px rgba(15,23,42,.18);z-index:480;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .18s ease}
 #orx-pan.on{transform:none}
@@ -91173,6 +91202,12 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
 #orx-menu button:hover{background:var(--bg,#f1f5f9)}
 #orx-menu .tt{font-size:11px;font-weight:800;color:var(--text-muted,#64748b);padding:6px 10px 4px;text-transform:uppercase;letter-spacing:.05em}
 #orx-menu hr{border:0;border-top:1px solid var(--border,#e2e8f0);margin:4px 0}
+@media (max-width:716px){
+  .orx-bar{gap:6px}.orx-bar .orx-b{padding:7px 9px}.orx-seg button{padding:6px 10px}
+  #orx-pan{width:100vw;top:auto;max-height:88vh;border-radius:18px 18px 0 0;transform:translateY(105%);z-index:12000;box-shadow:0 -12px 40px rgba(15,23,42,.25)}
+  #orx-pan.on{transform:none}
+  .orxp-f{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+}
 </style>
 <script id="orari-2026-js">
 /* ═════════════════════════════════════════════════════════════════════
@@ -91193,7 +91228,7 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
   var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
   var NOMI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
   var TIPI = {
-    mat:['Mattina','#3b82f6'], gir:['Giro','#f97316'], gp:['Giro + pomeriggio','#f97316'], pom:['Pomeriggio','#22c55e'],
+    mat:['Mattina','#3b82f6'], gir:['Mezzogiorno','#f97316'], gp:['Mezzogiorno + pomeriggio','#f97316'], pom:['Pomeriggio','#22c55e'],
     por:['Portineria','#8b5cf6'], dop:['Doposcuola','#94a3b8'], asi:['Asilo','#ec4899'], alt:['Altro','#14b8a6'],
     mal:['Malattia','#ef4444'], prm:['Permesso','#f59e0b']
   };
@@ -91246,6 +91281,60 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
     return ['futura', 'Tra ' + n + ' settimane'];
   }
 
+  function covChips(cv, sab){
+    var voci = sab ? [['M', cv.M, 'Mattina']] : [['M', cv.M, 'Mattina'], ['Mz', cv.G, 'Mezzogiorno'], ['P', cv.P, 'Pomeriggio'], ['Port', cv.Port, 'Portineria']];
+    if(sab) [['Mz', cv.G, 'Mezzogiorno'], ['P', cv.P, 'Pomeriggio'], ['Port', cv.Port, 'Portineria']].forEach(function(v){ if(v[1].length) voci.push(v); });
+    return voci.map(function(v){ return '<span class="' + (v[1].length ? 'ok' : 'ko') + '" title="' + E(v[2] + ': ' + (v[1].length ? v[1].join(', ') : 'nessuno')) + '">' + v[0] + '</span>'; }).join('');
+  }
+  function copertura(sc, ops, ds){
+    var cv = { M:[], G:[], P:[], Port:[], n:0 };
+    ops.forEach(function(op){
+      var c = cella(sc, op, ds); if(c.ass || !c.val) return;
+      var n = nomeN(op); cv.n++;
+      if(c.tipo === 'mat') cv.M.push(n);
+      if(c.tipo === 'gir' || c.tipo === 'gp') cv.G.push(n);
+      if(c.tipo === 'pom' || c.tipo === 'gp') cv.P.push(n);
+      if(c.tipo === 'por') cv.Port.push(n);
+    });
+    return cv;
+  }
+  function bannerHtml(TC){
+    if(!TC) return '';
+    var dove = { cella:'tocca la casella dove vuoi incollarlo', giorno:'premi «📥 Incolla» sul giorno', riga:'premi «📥 Incolla» vicino al nome della persona', settimana:'premi «Incolla su questa settimana»' }[TC.tipo] || '';
+    var opz = ''; for(var r = 0; r <= 8; r++) opz += '<option value="' + r + '"' + ((window._TC_RIP || 0) === r ? ' selected' : '') + '>' + (r ? 'e nelle ' + r + ' settimane dopo' : 'solo qui') + '</option>';
+    return '<div class="orx-banner"><div class="tx"><b>📋 Copiato:</b> ' + E(TC.label) + '<br><span>Puoi cambiare settimana: ' + dove + ', anche più volte.</span></div>'
+      + '<label style="font-size:12.5px;font-weight:700">Incolla <select onchange="tcRip(this.value)">' + opz + '</select></label>'
+      + (TC.tipo === 'settimana' ? '<button type="button" class="orx-b on" onclick="tcIncollaSettimana()">📥 Incolla su questa settimana</button>' : '')
+      + '<button type="button" class="orx-b" onclick="tcSvuota()">✕ Fine</button></div>';
+  }
+  function rapHtml(R){
+    if(!R) return '';
+    var turni = _turniOpzioniTurno(), compiti = _turniCompitiLista();
+    return '<div class="orx-rap"><span>⚡ Modifica rapida: scegli cosa applicare, poi tocca le caselle</span>'
+      + '<select onchange="turniRapidoImposta(\'turno\', this.value)"><option value="">— turno invariato —</option><option value="__libero"' + (R.turno === '__libero' ? ' selected' : '') + '>Libero</option>'
+      + turni.map(function(t){ return '<option value="' + E(t.v) + '"' + (R.turno === t.v ? ' selected' : '') + '>' + E(t.l) + '</option>'; }).join('')
+      + '<option value="po"' + (R.turno === 'po' ? ' selected' : '') + '>Permesso ordinario</option><option value="ps"' + (R.turno === 'ps' ? ' selected' : '') + '>Permesso straordinario</option><option value="mal"' + (R.turno === 'mal' ? ' selected' : '') + '>Malattia</option></select>'
+      + '<select onchange="turniRapidoImposta(\'compito\', this.value)"><option value="">— compito invariato —</option><option value="__nessuno"' + (R.compito === '__nessuno' ? ' selected' : '') + '>Nessun compito</option>'
+      + compiti.map(function(c){ return '<option value="' + E(c) + '"' + (R.compito === c ? ' selected' : '') + '>' + E(c) + '</option>'; }).join('') + '</select>'
+      + '<button type="button" class="orx-b" onclick="turniRapidoToggle()">✋ Fine</button></div>';
+  }
+  function barraHtml(mob){
+    var R = (typeof _TURNI_RAPIDO !== 'undefined') ? _TURNI_RAPIDO : null;
+    return '<div class="orx-bar">'
+      + '<div class="orx-seg"><button type="button" class="on">Settimana</button><button type="button" onclick="scSetVistaOrari(\'mese\')">Mese</button></div>'
+      + (mob ? '' : '<div class="orx-seg"><button type="button"' + (compatta() ? '' : ' class="on"') + ' onclick="orxCompatta(false)">Dettaglio</button><button type="button"' + (compatta() ? ' class="on"' : '') + ' onclick="orxCompatta(true)">Compatta</button></div>')
+      + '<span class="orx-sp"></span>'
+      + '<button type="button" class="orx-b" onclick="turniCopiaSettimanaPrecedente()">📋 ' + (mob ? 'Prec.' : 'Copia sett. precedente') + '</button>'
+      + '<button type="button" class="orx-b" title="Annulla" onclick="turniAnnulla()"' + (_TURNI_STORIA.length ? '' : ' disabled') + '>↶' + (mob ? '' : ' Annulla') + '</button>'
+      + '<button type="button" class="orx-b" title="Ripeti" onclick="turniRifai()"' + (_TURNI_RIFAI.length ? '' : ' disabled') + '>↷</button>'
+      + '<button type="button" class="orx-b' + (R ? ' on' : '') + '" onclick="orxMenuAltro(event)">⋯</button>'
+      + '</div><div id="sc-scambi-box"></div>';
+  }
+  function clickDi(op, ds){
+    var TC = window._TC || null, R = (typeof _TURNI_RAPIDO !== 'undefined') ? _TURNI_RAPIDO : null;
+    return R ? 'turniRapidoTocca(\'' + E(op.id) + '\',\'' + ds + '\')' : (TC && TC.tipo === 'cella' ? 'tcIncollaCella(\'' + E(op.id) + '\',\'' + ds + '\')' : 'orxApri(\'' + E(op.id) + '\',\'' + ds + '\')');
+  }
+
   /* ── griglia da computer ── */
   function griglia(container, sc, ops, giorni){
     var oggi = scDataLocale(new Date()), dss = giorni.map(function(d){ return scDataLocale(d); });
@@ -91268,40 +91357,12 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
       });
     });
     var ts = tipoSett(giorni);
-    var h = '<div class="orx-bar">'
-      + '<div class="orx-seg"><button type="button" class="on">Settimana</button><button type="button" onclick="scSetVistaOrari(\'mese\')">Mese</button></div>'
-      + '<div class="orx-seg"><button type="button"' + (comp ? '' : ' class="on"') + ' onclick="orxCompatta(false)">Dettaglio</button><button type="button"' + (comp ? ' class="on"' : '') + ' onclick="orxCompatta(true)">Compatta</button></div>'
-      + '<span class="orx-chip ' + ts[0] + '">' + ts[1] + (ts[0] === 'corrente' || ts[0] === 'passata' ? ' · le modifiche chiedono conferma' : '') + '</span>'
-      + '<span class="orx-sp"></span>'
-      + '<button type="button" class="orx-b" onclick="turniCopiaSettimanaPrecedente()">📋 Copia sett. precedente</button>'
-      + '<button type="button" class="orx-b" title="Annulla" onclick="turniAnnulla()"' + (_TURNI_STORIA.length ? '' : ' disabled') + '>↶ Annulla</button>'
-      + '<button type="button" class="orx-b" title="Ripeti" onclick="turniRifai()"' + (_TURNI_RIFAI.length ? '' : ' disabled') + '>↷</button>'
-      + '<button type="button" class="orx-b' + (R ? ' on' : '') + '" onclick="orxMenuAltro(event)">⋯</button>'
-      + '</div><div id="sc-scambi-box"></div>';
+    var h = barraHtml(false).replace('<span class="orx-sp"></span>', '<span class="orx-chip ' + ts[0] + '">' + ts[1] + (ts[0] === 'corrente' || ts[0] === 'passata' ? ' · le modifiche chiedono conferma' : '') + '</span><span class="orx-sp"></span>');
     setTimeout(function(){ if(typeof scScambiRiempi === 'function') try{ scScambiRiempi(); }catch(e){} }, 0);
-    // appunti (copia/incolla)
-    if(TC){
-      var dove = { cella:'clicca la casella dove vuoi incollarlo', giorno:'premi «📥 Incolla» sotto il giorno', riga:'premi «📥 Incolla» sotto il nome della persona', settimana:'premi «Incolla su questa settimana»' }[TC.tipo] || '';
-      var opz = ''; for(var r = 0; r <= 8; r++) opz += '<option value="' + r + '"' + ((window._TC_RIP || 0) === r ? ' selected' : '') + '>' + (r ? 'e nelle ' + r + ' settimane dopo' : 'solo qui') + '</option>';
-      h += '<div class="orx-banner"><div class="tx"><b>📋 Copiato:</b> ' + E(TC.label) + '<br><span>Puoi cambiare settimana: ' + dove + ', anche più volte.</span></div>'
-        + '<label style="font-size:12.5px;font-weight:700">Incolla <select onchange="tcRip(this.value)">' + opz + '</select></label>'
-        + (TC.tipo === 'settimana' ? '<button type="button" class="orx-b on" onclick="tcIncollaSettimana()">📥 Incolla su questa settimana</button>' : '')
-        + '<button type="button" class="orx-b" onclick="tcSvuota()">✕ Fine</button></div>';
-    }
-    // modifica rapida
-    if(R){
-      var turni = _turniOpzioniTurno(), compiti = _turniCompitiLista();
-      h += '<div class="orx-rap"><span>⚡ Modifica rapida: scegli cosa applicare, poi clicca le caselle</span>'
-        + '<select onchange="turniRapidoImposta(\'turno\', this.value)"><option value="">— turno invariato —</option><option value="__libero"' + (R.turno === '__libero' ? ' selected' : '') + '>Libero</option>'
-        + turni.map(function(t){ return '<option value="' + E(t.v) + '"' + (R.turno === t.v ? ' selected' : '') + '>' + E(t.l) + '</option>'; }).join('')
-        + '<option value="po"' + (R.turno === 'po' ? ' selected' : '') + '>Permesso ordinario</option><option value="ps"' + (R.turno === 'ps' ? ' selected' : '') + '>Permesso straordinario</option><option value="mal"' + (R.turno === 'mal' ? ' selected' : '') + '>Malattia</option></select>'
-        + '<select onchange="turniRapidoImposta(\'compito\', this.value)"><option value="">— compito invariato —</option><option value="__nessuno"' + (R.compito === '__nessuno' ? ' selected' : '') + '>Nessun compito</option>'
-        + compiti.map(function(c){ return '<option value="' + E(c) + '"' + (R.compito === c ? ' selected' : '') + '>' + E(c) + '</option>'; }).join('') + '</select>'
-        + '<button type="button" class="orx-b" onclick="turniRapidoToggle()">✋ Fine</button></div>';
-    }
+    h += bannerHtml(TC) + rapHtml(R);
     // legenda
     h += '<div class="orx-leg">' + Object.keys(TIPI).filter(function(t){ return usati[t] && t !== 'gp'; }).map(function(t){ return '<span><i style="background:' + TIPI[t][1] + '"></i>' + TIPI[t][0] + '</span>'; }).join('')
-      + '<em>' + (R ? 'Clicca le caselle per applicare' : (TC && TC.tipo === 'cella' ? 'Clicca una casella per incollare' : 'Clicca una casella per modificarla · tasto destro per copiare e incollare')) + '</em></div>';
+      + '<em>' + (R ? 'Clicca le caselle per applicare' : (TC && TC.tipo === 'cella' ? 'Clicca una casella per incollare' : 'Clicca una casella per modificarla · trascinala su un\'altra per scambiarle · tasto destro per copiare e incollare')) + '</em></div>';
     // tabella
     var cls = (comp ? ' orx-compatta' : '') + (TC && TC.tipo === 'cella' ? ' orx-incolla' : '') + (R ? ' orx-rapido' : '');
     h += '<div class="orx-wrap' + cls + '"><table class="orx"><thead><tr><th class="nm">Volontario</th>';
@@ -91309,11 +91370,9 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
       var cv = cop[i], sab = i === 5, fe = festa(ds), chips = '';
       if(fe) chips = '<span class="ok" style="background:rgba(100,116,139,.14);color:var(--text-muted,#64748b)">Festivo</span>';
       else if(cv.n){
-        var voci = sab ? [['M', cv.M, 'Mattina']] : [['M', cv.M, 'Mattina'], ['G', cv.G, 'Giro'], ['P', cv.P, 'Pomeriggio'], ['Port', cv.Port, 'Portineria']];
-        if(sab) [['G', cv.G, 'Giro'], ['P', cv.P, 'Pomeriggio'], ['Port', cv.Port, 'Portineria']].forEach(function(v){ if(v[1].length) voci.push(v); });
-        chips = voci.map(function(v){ return '<span class="' + (v[1].length ? 'ok' : 'ko') + '" title="' + E(v[2] + ': ' + (v[1].length ? v[1].join(', ') : 'nessuno')) + '">' + v[0] + '</span>'; }).join('');
+        chips = covChips(cv, sab);
       }
-      h += '<th class="' + (ds === oggi ? 'oggi' : '') + '" oncontextmenu="orxMenuGiorno(event,\'' + ds + '\')">' + NOMI[i] + '<b>' + giorni[i].getDate() + '</b>'
+      h += '<th class="' + (ds === oggi ? 'oggi' : '') + (sab ? ' sab' : '') + '" oncontextmenu="orxMenuGiorno(event,\'' + ds + '\')">' + NOMI[i] + '<b>' + giorni[i].getDate() + '</b>'
         + (chips ? '<div class="orx-cv">' + chips + '</div>' : '')
         + (TC && TC.tipo === 'giorno' ? '<div class="orx-th-az"><button type="button" onclick="tcIncollaGiorno(\'' + ds + '\')">📥 Incolla</button></div>' : '')
         + '</th>';
@@ -91330,14 +91389,17 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
       dati[op.id].forEach(function(c, i){
         var ds = dss[i]; tot += c.ore; if(c.val || c.ass) gg++;
         var on = sel && sel.op === op.id && sel.ds === ds;
-        var click = R ? 'turniRapidoTocca(\'' + E(op.id) + '\',\'' + ds + '\')' : (TC && TC.tipo === 'cella' ? 'tcIncollaCella(\'' + E(op.id) + '\',\'' + ds + '\')' : 'orxApri(\'' + E(op.id) + '\',\'' + ds + '\')');
-        var att = ' onclick="' + click + '" oncontextmenu="orxMenuCella(event,\'' + E(op.id) + '\',\'' + ds + '\')"';
+        var att = ' onclick="' + clickDi(op, ds) + '" oncontextmenu="orxMenuCella(event,\'' + E(op.id) + '\',\'' + ds + '\')"';
+        if(!R && !TC){
+          att += ' ondragover="orxSopra(event)" ondragleave="this.classList.remove(\'drop\')" ondrop="orxLascia(event,\'' + E(op.id) + '\',\'' + ds + '\')"';
+          if(!c.ass && (c.val || c.comp)) att += ' draggable="true" ondragstart="orxPrendi(event,\'' + E(op.id) + '\',\'' + ds + '\')" ondragend="orxFineDrag()"';
+        }
         var inner;
         if(c.tipo === 'lib') inner = (i === 5 && !c.comp ? '' : 'libero');
         else if(c.ass) inner = '<div class="o">' + E(ASS_N[c.tg]) + '</div><div class="t">conta ' + E(scFmtOre(c.ore)) + (c.tg === 'malattia' && !c.ore ? ' (oltre il limite retribuito)' : '') + '</div>';
         else inner = '<div class="o">' + E(fmtOr(c.val) || '—') + '</div>' + (c.comp ? '<div class="t" title="' + E(c.comp) + '">' + E(c.comp) + '</div>' : '');
         var vuoto = c.tipo === 'lib' && i === 5 && !c.comp;
-        h += '<td><div class="orx-s ' + c.tipo + (on ? ' sel' : '') + '"' + att + (vuoto ? ' style="border-color:transparent"' : '') + '>' + inner + '</div></td>';
+        h += '<td' + (i === 5 ? ' class="sab"' : '') + '><div class="orx-s ' + c.tipo + (on ? ' sel' : '') + '"' + att + (vuoto ? ' style="border-color:transparent"' : '') + '>' + inner + '</div></td>';
       });
       var poco = gg < soglia;
       h += '<td class="orx-h' + (poco ? ' poco' : '') + '"><b>' + E(scFmtOre(tot)) + '</b><div class="orx-bar5"><i style="width:' + Math.min(100, Math.round(gg / Math.max(1, soglia) * 100)) + '%"></i></div><small>' + gg + (gg === 1 ? ' giorno' : ' giorni') + (poco ? ' ⚠️' : ' ✓') + '</small></td></tr>';
@@ -91347,12 +91409,96 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
     container.classList.add('orx-on');
   }
 
+  /* ── vista da telefono: un giorno alla volta, schede colorate ── */
+  function telefono(container, sc, ops, giorni){
+    var oggi = scDataLocale(new Date()), dss = giorni.map(function(d){ return scDataLocale(d); });
+    var TC = window._TC || null, R = (typeof _TURNI_RAPIDO !== 'undefined') ? _TURNI_RAPIDO : null;
+    var NC = ['Lun','Mar','Mer','Gio','Ven','Sab'];
+    var g = window._TURNI_MOB_G;
+    if(g == null || g < 0 || g > 5) g = Math.max(0, dss.indexOf(oggi));
+    window._TURNI_MOB_G = g;
+    var ds = dss[g], sel = _ORX.sel;
+    var h = barraHtml(true);
+    setTimeout(function(){ if(typeof scScambiRiempi === 'function') try{ scScambiRiempi(); }catch(e){} }, 0);
+    h += bannerHtml(TC) + rapHtml(R);
+    h += '<div class="tm-giorni">' + giorni.map(function(d, i){
+      var n = ops.filter(function(op){ var c = cella(sc, op, dss[i]); return c.val && !c.ass; }).length;
+      return '<button type="button" class="tm-g' + (i === g ? ' on' : '') + (dss[i] === oggi ? ' oggi' : '') + '" onclick="window._TURNI_MOB_G=' + i + ';scRenderOrari()"><span>' + NC[i] + '</span><b>' + d.getDate() + '</b><i>' + (n ? n + ' in turno' : '') + '</i></button>';
+    }).join('') + '</div>';
+    var cv = copertura(sc, ops, ds), totG = 0, schede = '', gPrec = -1, gNomi = ['👦 Maschi', '👧 Femmine', 'Sesso non indicato'], gCls = ['M', 'F', ''];
+    ops.forEach(function(op){
+      var gr = (typeof _scSessoGruppo === 'function') ? _scSessoGruppo(op) : -1;
+      if(gr >= 0 && gr !== gPrec){ schede += '<div class="orxm-grp ' + gCls[gr] + '">' + gNomi[gr] + '</div>'; gPrec = gr; }
+      var c = cella(sc, op, ds); totG += c.ore;
+      var on = sel && sel.op === op.id && sel.ds === ds;
+      var inner;
+      if(c.tipo === 'lib') inner = 'libero · tocca per assegnare';
+      else if(c.ass) inner = '<div class="o">' + E(ASS_N[c.tg]) + '</div><div class="t">conta ' + E(scFmtOre(c.ore)) + '</div>';
+      else inner = '<div class="o">' + E(fmtOr(c.val) || '—') + ' <span class="tp">' + E((TIPI[c.tipo] || TIPI.alt)[0]) + '</span></div>' + (c.comp ? '<div class="t">' + E(c.comp) + '</div>' : '');
+      schede += '<div class="orxm-c"><div class="orxm-h"><span class="orx-av">' + (op.foto ? '<img src="' + E(op.foto) + '" alt="">' : E(ini(op))) + '</span><b data-no-sobrio>' + E(nome(op)) + '</b>'
+        + (TC && TC.tipo === 'riga' ? '<button type="button" class="orxm-in" onclick="tcIncollaRiga(\'' + E(op.id) + '\')">📥 Incolla sett.</button>' : (c.ore ? '<span class="orxm-ore">' + E(scFmtOre(c.ore)) + '</span>' : ''))
+        + '<button type="button" class="orxm-cp" onclick="orxMenuCella(event,\'' + E(op.id) + '\',\'' + ds + '\')" aria-label="Copia">⋯</button></div>'
+        + '<div class="orx-s ' + c.tipo + (on ? ' sel' : '') + '" onclick="' + clickDi(op, ds) + '">' + inner + '</div></div>';
+    });
+    h += '<div class="orxm-tit"><div><b>' + NOMI[g] + ' ' + giorni[g].getDate() + '</b><small>' + (totG ? scFmtOre(totG) + ' previste' : 'nessun turno') + '</small></div>'
+      + (festa(ds) ? '<div class="orx-cv"><span class="ok">Festivo</span></div>' : (cv.n ? '<div class="orx-cv">' + covChips(cv, g === 5) + '</div>' : '')) + '</div>';
+    h += '<div class="orxm-az">' + (TC && TC.tipo === 'giorno' ? '<button type="button" class="orx-b on" onclick="tcIncollaGiorno(\'' + ds + '\')">📥 Incolla su ' + NC[g] + ' ' + giorni[g].getDate() + '</button>'
+      : '<button type="button" class="orx-b" onclick="tcCopiaGiorno(\'' + ds + '\')">📋 Copia ' + NC[g] + ' (tutti)</button>')
+      + '<button type="button" class="orx-b" onclick="tcSvuotaGiorno(\'' + ds + '\')">🧹 Svuota</button></div>';
+    h += '<div class="' + (TC && TC.tipo === 'cella' ? 'orx-incolla' : '') + (R ? ' orx-rapido' : '') + '">' + schede + '</div>';
+    var soglia = 5 - dss.filter(function(d){ return festa(d); }).length;
+    h += '<div class="orxm-sett"><div class="orxm-st">Ore della settimana</div>' + ops.map(function(op){
+      var tot = 0, gg = 0;
+      dss.forEach(function(d){ var c = cella(sc, op, d); tot += c.ore; if(c.val || c.ass) gg++; });
+      var poco = gg < soglia;
+      return '<div class="orxm-r' + (poco ? ' poco' : '') + '"><span data-no-sobrio>' + E(nome(op)) + '</span><small>' + gg + ' gg' + (poco ? ' ⚠️' : '') + '</small><b>' + (tot ? E(scFmtOre(tot)) : '—') + '</b></div>';
+    }).join('') + '</div>';
+    container.innerHTML = h;
+    container.classList.add('orx-on');
+  }
+
   var f = function(container, sc, ops, giorni){
-    if(mobile()){ container.classList.remove('orx-on'); return prev.apply(this, arguments); }
-    try{ griglia(container, sc, ops, giorni); }
+    try{ if(mobile()) telefono(container, sc, ops, giorni); else griglia(container, sc, ops, giorni); }
     catch(e){ console.warn('[orari 2026]', e); container.classList.remove('orx-on'); return prev.apply(this, arguments); }
   };
   f._orx = true; f._tm = prev._tm; f._tc = prev._tc; window._turniRender = f;
+
+  /* ═══ TRASCINA PER SCAMBIARE ═══ */
+  var _drag = null;
+  window.orxPrendi = function(ev, opId, ds){
+    _drag = { op:opId, ds:ds };
+    try{ ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', opId + '|' + ds); }catch(e){}
+    var t = ev.currentTarget; setTimeout(function(){ t.classList.add('drag'); }, 0);
+    document.body.classList.add('orx-trascino');
+  };
+  window.orxFineDrag = function(){
+    _drag = null; document.body.classList.remove('orx-trascino');
+    document.querySelectorAll('.orx-s.drag,.orx-s.drop').forEach(function(x){ x.classList.remove('drag', 'drop'); });
+  };
+  window.orxSopra = function(ev){ if(!_drag) return; ev.preventDefault(); try{ ev.dataTransfer.dropEffect = 'move'; }catch(e){} ev.currentTarget.classList.add('drop'); };
+  window.orxLascia = function(ev, opId, ds){
+    ev.preventDefault();
+    var a = _drag; orxFineDrag();
+    if(!a || (a.op === opId && a.ds === ds)) return;
+    orxScambia(a, { op:opId, ds:ds });
+  };
+  window.orxScambia = async function(a, b){
+    var sc = scGetDb(); if(!sc) return;
+    var opA = opDi(a.op), opB = opDi(b.op); if(!opA || !opB) return;
+    var ca = cella(sc, opA, a.ds), cb = cella(sc, opB, b.ds);
+    if(ca.ass || cb.ass){ showToast('Con malattie e permessi non si scambia: toglili prima dal pannello', 'warning'); return; }
+    if(typeof window._avsPermesso === 'function'){
+      if(!(await window._avsPermesso(a.ds))) return;
+      if(b.ds !== a.ds && !(await window._avsPermesso(b.ds))) return;
+    }
+    _turniPrimaDiModificare();
+    if(!sc.orariCal) sc.orariCal = {}; if(!sc.compiti) sc.compiti = {};
+    var put = function(k, o, t){ if(o) sc.orariCal[k] = o; else delete sc.orariCal[k]; if(t) sc.compiti[k] = t; else delete sc.compiti[k]; };
+    put(cb.k, ca.val, ca.comp); put(ca.k, cb.val, cb.comp);
+    saveStorage(); scRenderOrari();
+    var chi = function(op, ds){ return nomeN(op) + (a.ds !== b.ds ? ' (' + fmtG(ds) + ')' : ''); };
+    showToast((cb.val || cb.comp ? '🔄 Scambiati: ' + chi(opA, a.ds) + ' ↔ ' + chi(opB, b.ds) : '➡️ Spostato da ' + chi(opA, a.ds) + ' a ' + chi(opB, b.ds)) + ' · puoi annullare', 'success');
+  };
 
   /* ═══ PANNELLO DI MODIFICA ═══ */
   function opDi(id){ return scGetOperatori().filter(function(o){ return String(o.id) === String(id); })[0]; }
@@ -91434,7 +91580,7 @@ table.orx tfoot td.nm{text-transform:uppercase;font-size:10.5px;letter-spacing:.
       var chiudi = function(e){ if(e && m.contains(e.target)) return; m.remove(); document.removeEventListener('mousedown', chiudi, true); document.removeEventListener('scroll', chiudi, true); };
       document.addEventListener('mousedown', chiudi, true); document.addEventListener('scroll', chiudi, true);
     }, 0);
-    m.addEventListener('click', function(e){ if(e.target.closest('button')) m.remove(); });
+    m.addEventListener('click', function(e){ if(e.target.closest('button')){ m.remove(); if(mobile() && !/orxApri/.test(e.target.closest('button').getAttribute('onclick') || '')) orxChiudi(); } });
   }
   function voce(fn, txt){ return '<button type="button" onclick="' + fn + '">' + txt + '</button>'; }
   function incolla(opId, ds){
