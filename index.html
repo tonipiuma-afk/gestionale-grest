@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 06/11/2026 10:55</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 06/11/2026 10:55 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91893,6 +91893,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
     b.onclick = function(){ try{ localStorage.removeItem(LSK); }catch(e){} avvia(); };
     document.body.appendChild(b);
   }
+  window._tqVideo = function(){ return (stream && video && video.readyState >= 2 && video.videoWidth) ? video : null; };
   window.totemQrSpegni = function(){ try{ localStorage.setItem(LSK, '1'); }catch(e){} ferma(); uiSpento(); };
 
   async function avvia(){
@@ -91945,6 +91946,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
     var p = qrParsePayload(raw);
     if(!p){ var m = document.getElementById('tq-msg'); if(m){ m.textContent = '⚠️ QR non del gestionale'; setTimeout(function(){ if(m) m.textContent = '📱 Mostra qui il QR'; }, 2500); } return; }
     var r = trova(p);
+    if(!r){ try{ if(typeof window._ftSconosciuto === 'function') window._ftSconosciuto('QR ' + p.tipo + ' ' + p.id); }catch(e){} }
     if(r && r.persona.rfid && typeof _totemProcessa === 'function'){ _totemProcessa(r.persona.rfid); return; }   // come il braccialetto
     if(r && !r.iscritto && r.persona.servizioCivile && typeof scRegistraTimbraturaNFC === 'function' && typeof _totemMostraSCU === 'function'){
       if(typeof _totemScuTornaOggi === 'function') _totemScuTornaOggi();
@@ -91992,6 +91994,199 @@ table.orx td.sab .orx-s .o{font-size:12px}
     };
     fQ._tq = true; window.paQrInit = paQrInit = fQ;
   }
+})();
+</script>
+
+<style id="foto-timbrature-css">
+#ft-ov{ position:fixed; inset:0; z-index:10050; background:rgba(15,23,42,.55); display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 12px }
+#ft-win{ background:var(--card, #fff); color:var(--text, #0f172a); border-radius:16px; width:100%; max-width:860px; padding:18px; box-shadow:0 20px 50px rgba(0,0,0,.3) }
+#ft-win h3{ margin:0 0 12px; font-size:18px }
+#ft-win .ft-imp{ border:1px solid var(--border, #dbe3ef); border-radius:12px; padding:10px 12px; margin-bottom:14px; display:grid; gap:8px }
+#ft-win .ft-barra{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
+#ft-win .ft-op{ margin:14px 0 6px; font-weight:800; font-size:14px }
+#ft-win .ft-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px }
+#ft-win .ft-f{ border-radius:10px; overflow:hidden; border:1px solid var(--border, #dbe3ef); cursor:pointer; background:#000 }
+#ft-win .ft-f img{ width:100%; display:block; aspect-ratio:4/3; object-fit:cover }
+#ft-win .ft-f div{ background:var(--card, #fff); font-size:12px; padding:4px 6px; font-weight:700 }
+#ft-win .ft-hint{ font-size:12.5px; color:var(--text-muted, #64748b); line-height:1.45 }
+#ft-big{ position:fixed; inset:0; z-index:10060; background:rgba(0,0,0,.85); display:flex; align-items:center; justify-content:center; cursor:zoom-out }
+#ft-big img{ max-width:94vw; max-height:90vh; border-radius:12px }
+#tq-foto-nota{ font-size:10.5px; opacity:.85; margin:4px 2px 0 }
+</style>
+<script id="foto-timbrature-js">
+/* ═══ FOTO ALLE TIMBRATURE DEL SERVIZIO CIVILE (novembre 2026) ═══
+   • interruttore in Servizio Civile › Presenze › "📷 Foto timbrature" (spento all'inizio; lo cambiano Admin e Responsabile Generale)
+   • se acceso, a ogni timbratura SCU fatta dal TOTEM (braccialetto o QR) la webcam scatta una foto piccola (~15 KB)
+   • foto sul NAS, una chiave per giorno: _scu_foto_AAAA-MM-GG → { v:1, foto:{ idVolontario:[{ts,tipo,nome,img}] } }
+   • cancellazione automatica dopo i giorni scelti (7/15/30/60), fatta dal totem una volta al giorno
+   • solo timbrature SCU: mai foto alle presenze dei bambini del GREST
+   • facoltativo (spunta a parte): foto anche ai tentativi con braccialetto o QR NON registrato → raccolte sotto "_sconosciuti"
+   • server.js non si tocca */
+(function(){
+  var IMP_KEY = '_scu_foto_imp', IMP = { on:false, giorni:30, sconosciuti:true }, coda = [], salvando = false;
+  var io = function(){ try{ return (typeof AUTH !== 'undefined' && AUTH.currentUser) || null; }catch(e){ return null; } };
+  var ruolo = function(){ var u = io(); return u ? u.ruolo : ''; };
+  var puoVedere = function(){ return ['Admin', 'Responsabile Generale', 'OLP'].indexOf(ruolo()) >= 0; };
+  var puoCambiare = function(){ return ['Admin', 'Responsabile Generale'].indexOf(ruolo()) >= 0; };
+  var E = function(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var dsDi = function(d){ return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+  var keyDi = function(ds){ return '_scu_foto_' + ds; };
+
+  async function caricaImp(){
+    if(typeof _scuGet !== 'function') return IMP;
+    var r = await _scuGet(IMP_KEY, 10000);
+    if(r && r.ok){ IMP = Object.assign({ on:false, giorni:30, sconosciuti:true }, (!r.vuoto && r.db) || {}); }
+    return IMP;
+  }
+
+  /* ── scatto ── */
+  function disegna(v){
+    var w = 320, h = Math.round(w * (v.videoHeight || 240) / (v.videoWidth || 320)), c = document.createElement('canvas');
+    c.width = w; c.height = h; c.getContext('2d').drawImage(v, 0, 0, w, h);
+    return c.toDataURL('image/jpeg', 0.6);
+  }
+  async function foto(){
+    var v = (typeof window._tqVideo === 'function') ? window._tqVideo() : null;
+    if(v) return disegna(v);
+    // fotocamera del QR spenta: la accendo solo per lo scatto
+    var st = null;
+    try{
+      st = await navigator.mediaDevices.getUserMedia({ video:{ width:{ ideal:640 }, height:{ ideal:480 } }, audio:false });
+      var t = document.createElement('video'); t.muted = true; t.playsInline = true; t.srcObject = st; await t.play();
+      await new Promise(function(r){ setTimeout(r, 700); });
+      return disegna(t);
+    }catch(e){ return null; }
+    finally{ if(st) try{ st.getTracks().forEach(function(x){ x.stop(); }); }catch(e){} }
+  }
+  async function scatta(ris){
+    try{
+      var img = await foto(); if(!img) return;
+      var op = ris.op || {};
+      coda.push({ ds:dsDi(new Date(ris.ts)), opId:op.id, voce:{ ts:ris.ts, tipo:ris.tipo, nome:((op.nome || '') + ' ' + (op.cognome || '')).trim(), img:img } });
+      salvaCoda();
+    }catch(e){ console.warn('[foto timbrature]', e); }
+  }
+  var ultSc = {};
+  async function scattaSconosciuto(codice){
+    try{
+      if(!IMP.on || IMP.sconosciuti === false || ruolo() !== 'Totem') return;
+      var k = String(codice || '?'), t = Date.now(); if(ultSc[k] && t - ultSc[k] < 20000) return; ultSc[k] = t;
+      var img = await foto(); if(!img) return;
+      var ts = new Date().toISOString();
+      coda.push({ ds:dsDi(new Date()), opId:'_sconosciuti', voce:{ ts:ts, tipo:'sconosciuto', nome:'Codice non registrato', codice:k, img:img } });
+      salvaCoda();
+    }catch(e){ console.warn('[foto timbrature] sconosciuto', e); }
+  }
+  window._ftSconosciuto = scattaSconosciuto;
+  async function salvaCoda(){
+    if(salvando || !coda.length) return; salvando = true;
+    try{
+      while(coda.length){
+        var x = coda[0], r = await _scuGet(keyDi(x.ds), 15000); if(!r || !r.ok) break;
+        var doc = (!r.vuoto && r.db) || { v:1, foto:{} }; doc.foto = doc.foto || {};
+        (doc.foto[x.opId] = doc.foto[x.opId] || []).push(x.voce);
+        if(!(await _scuPost(keyDi(x.ds), doc, 30000))) break;
+        coda.shift();
+      }
+    }catch(e){ console.warn('[foto timbrature] salvataggio', e); }
+    finally{ salvando = false; }
+  }
+  setInterval(salvaCoda, 60000);   // se il NAS non rispondeva, riprova
+
+  var oR = window.scRegistraTimbraturaNFC;
+  if(typeof oR === 'function' && !oR._ft){
+    var fR = function(){
+      var r = oR.apply(this, arguments);
+      try{ if(r && !r.ripetuta && r.op && IMP.on && ruolo() === 'Totem') scatta(r); }catch(e){}
+      return r;
+    };
+    fR._ft = true; window.scRegistraTimbraturaNFC = scRegistraTimbraturaNFC = fR;
+  }
+
+  var _codiceInCorso = null;
+  var oP = window._totemProcessa;
+  if(typeof oP === 'function' && !oP._ft){ var fP = function(c){ _codiceInCorso = c; try{ return oP.apply(this, arguments); } finally{ _codiceInCorso = null; } }; fP._ft = true; window._totemProcessa = _totemProcessa = fP; }
+  var oM = window._totemMostra;
+  if(typeof oM === 'function' && !oM._ft){ var fM = function(tipo, persona, nome){ try{ if(tipo === 'sconosciuto' && !persona && /non riconosciut/i.test(String(nome || '')) && _codiceInCorso != null) scattaSconosciuto('Braccialetto ' + _codiceInCorso); }catch(e){} return oM.apply(this, arguments); }; fM._ft = true; window._totemMostra = _totemMostra = fM; }
+
+  /* ── sul totem: impostazione, nota nel riquadro, pulizia giornaliera ── */
+  async function pulizia(){
+    var oggi = dsDi(new Date()), k = 'ft_pulito_' + oggi;
+    try{ if(localStorage.getItem(k)) return; }catch(e){ return; }
+    var g = +IMP.giorni || 30;
+    for(var i = g + 1; i <= g + 45; i++){
+      var d = new Date(); d.setDate(d.getDate() - i); var key = keyDi(dsDi(d));
+      var r = await _scuGet(key, 10000);
+      if(r && r.ok && !r.vuoto && r.db && r.db.foto && Object.keys(r.db.foto).length) await _scuPost(key, { v:1, foto:{}, cancellato:new Date().toISOString() }, 15000);
+    }
+    try{ localStorage.setItem(k, '1'); }catch(e){}
+  }
+  function nota(){
+    var box = document.getElementById('tq-box'), n = document.getElementById('tq-foto-nota');
+    if(box && IMP.on && ruolo() === 'Totem'){ if(!n){ n = document.createElement('div'); n.id = 'tq-foto-nota'; n.textContent = '📷 A ogni timbratura viene scattata una foto'; box.appendChild(n); } }
+    else if(n) n.remove();
+  }
+  async function giroTotem(){
+    if(ruolo() !== 'Totem') return;
+    await caricaImp(); nota();
+    pulizia();   // anche a foto spente: cancella quelle vecchie
+  }
+  setTimeout(giroTotem, 15000); setInterval(giroTotem, 10 * 60000); setInterval(nota, 3000);
+
+  /* ── visualizzazione: Servizio Civile › Presenze ── */
+  function pulsante(){
+    try{
+      var reg = document.getElementById('sc-btn-registro'); if(!reg || !reg.parentNode) return;
+      var b = document.getElementById('sc-btn-foto');
+      if(!b){ b = document.createElement('button'); b.type = 'button'; b.id = 'sc-btn-foto'; b.className = 'btn btn-sm'; b.setAttribute('onclick', 'ftApri()');
+        b.style.cssText = 'background:#fff;color:#7c3aed;border:1.5px solid #7c3aed;border-radius:10px;padding:8px 14px;font-weight:800;font-size:12px';
+        b.textContent = '📷 Foto timbrature'; reg.parentNode.insertBefore(b, reg.nextSibling); }
+      b.style.display = puoVedere() ? '' : 'none';
+    }catch(e){}
+  }
+  setInterval(pulsante, 5000); setTimeout(pulsante, 1500);
+
+  window.ftApri = async function(ds){
+    if(!puoVedere()) return;
+    ds = ds || dsDi(new Date());
+    var ov = document.getElementById('ft-ov'); if(!ov){ ov = document.createElement('div'); ov.id = 'ft-ov'; ov.onclick = function(e){ if(e.target === ov) ov.remove(); }; document.body.appendChild(ov); }
+    ov.innerHTML = '<div id="ft-win"><h3>📷 Foto timbrature</h3><div class="ft-hint">⏳ Carico…</div></div>';
+    await caricaImp();
+    var r = await _scuGet(keyDi(ds), 20000), doc = (r && r.ok && !r.vuoto && r.db) || null;
+    var imp = '<div class="ft-imp">'
+      + '<label class="ic-chk" data-no-sobrio style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ft-on"' + (IMP.on ? ' checked' : '') + (puoCambiare() ? '' : ' disabled') + '> Scatta una foto a ogni timbratura del totem</label>'
+      + '<label class="ic-chk" data-no-sobrio style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ft-sc"' + (IMP.sconosciuti !== false ? ' checked' : '') + (puoCambiare() ? '' : ' disabled') + '> Fotografa anche chi prova con un braccialetto o un QR non registrato</label>'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:13px">Cancella le foto dopo</span><select id="ft-gg" class="form-control" style="width:auto"' + (puoCambiare() ? '' : ' disabled') + '>' + [7, 15, 30, 60].map(function(g){ return '<option value="' + g + '"' + (+IMP.giorni === g ? ' selected' : '') + '>' + g + ' giorni</option>'; }).join('') + '</select>'
+      + (puoCambiare() ? '<button type="button" class="btn btn-teal btn-sm" onclick="ftSalvaImp()">💾 Salva</button>' : '') + '</div>'
+      + '<div class="ft-hint">Prima di accenderlo serve l\'informativa privacy e il consenso dei volontari. Le foto si fanno solo alle timbrature del Servizio Civile, mai alle presenze del GREST. Durante il GREST togli la spunta dei codici non registrati: potrebbe fotografare bambini con un braccialetto non ancora abbinato. Attenzione: i backup del NAS possono conservarle più a lungo.</div></div>';
+    var barra = '<div class="ft-barra"><button type="button" class="btn btn-gray btn-sm" onclick="ftApri(\'' + _ftPiu(ds, -1) + '\')">◀</button><input type="date" class="form-control" style="width:auto" value="' + ds + '" onchange="ftApri(this.value)"><button type="button" class="btn btn-gray btn-sm" onclick="ftApri(\'' + _ftPiu(ds, 1) + '\')">▶</button><button type="button" class="btn btn-gray btn-sm" style="margin-left:auto" onclick="document.getElementById(\'ft-ov\').remove()">Chiudi</button></div>';
+    var corpo = '';
+    if(!r || !r.ok) corpo = '<div class="ft-hint">⚠️ NAS non raggiungibile, riprova.</div>';
+    else if(!doc || !doc.foto || !Object.keys(doc.foto).length) corpo = '<div class="ft-hint">Nessuna foto per questo giorno.</div>';
+    else {
+      var ops = Object.keys(doc.foto).map(function(id){ var l = doc.foto[id].slice().sort(function(a, b){ return String(a.ts).localeCompare(String(b.ts)); }); return { nome:(l[0] && l[0].nome) || id, l:l }; })
+        .sort(function(a, b){ var x = a.l[0] && a.l[0].tipo === 'sconosciuto', y = b.l[0] && b.l[0].tipo === 'sconosciuto'; return x !== y ? (x ? -1 : 1) : a.nome.localeCompare(b.nome); });
+      window._ftImgs = [];
+      corpo = ops.map(function(o){
+        var sc = o.l[0] && o.l[0].tipo === 'sconosciuto';
+        return '<div class="ft-op"' + (sc ? ' style="color:#b45309"' : '') + '>' + (sc ? '⚠️ Codici non registrati' : E(o.nome)) + '</div><div class="ft-grid">' + o.l.map(function(v){
+          var n = window._ftImgs.push(v.img) - 1, ora = new Date(v.ts).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+          return '<div class="ft-f" onclick="ftGrande(' + n + ')"><img src="' + v.img + '" alt=""><div>' + (v.tipo === 'sconosciuto' ? '⚠️ ' + ora + '<br><span style="font-weight:500">' + E(v.codice || '') + '</span>' : (v.tipo === 'entrata' ? '🟢 Entrata ' : '🔴 Uscita ') + ora) + '</div></div>';
+        }).join('') + '</div>';
+      }).join('');
+    }
+    ov.innerHTML = '<div id="ft-win"><h3>📷 Foto timbrature</h3>' + imp + barra + corpo + '</div>';
+  };
+  window._ftPiu = function(ds, n){ var p = ds.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2], 12); d.setDate(d.getDate() + n); return dsDi(d); };
+  window.ftGrande = function(n){ var src = (window._ftImgs || [])[n]; if(!src) return; var b = document.createElement('div'); b.id = 'ft-big'; b.innerHTML = '<img src="' + src + '" alt="">'; b.onclick = function(){ b.remove(); }; document.body.appendChild(b); };
+  window.ftSalvaImp = async function(){
+    if(!puoCambiare()) return;
+    var on = document.getElementById('ft-on').checked, g = +document.getElementById('ft-gg').value || 30;
+    if(on && !IMP.on && typeof xConferma === 'function' && !(await xConferma('Accendere le foto alle timbrature? Assicurati di avere l\'informativa privacy e il consenso dei volontari.'))) return;
+    var nuovo = { on:on, giorni:g, sconosciuti:!!document.getElementById('ft-sc').checked, _ts:new Date().toISOString(), _by:(io() || {}).username || '' };
+    if(await _scuPost(IMP_KEY, nuovo, 15000)){ IMP = nuovo; showToast(on ? '📷 Foto alle timbrature accese (il totem le vede entro 10 minuti)' : 'Foto alle timbrature spente', 'success'); }
+    else showToast('⚠️ Salvataggio sul NAS non riuscito, riprova', 'warning');
+  };
 })();
 </script>
 
