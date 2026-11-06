@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 06/11/2026 11:09</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 06/11/2026 11:09 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92032,8 +92032,10 @@ table.orx td.sab .orx-s .o{font-size:12px}
   var dsDi = function(d){ return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
   var keyDi = function(ds){ return '_scu_foto_' + ds; };
 
+  var impT = 0;
   async function caricaImp(){
     if(typeof _scuGet !== 'function') return IMP;
+    impT = Date.now();
     var r = await _scuGet(IMP_KEY, 10000);
     if(r && r.ok){ IMP = Object.assign({ on:false, giorni:30, sconosciuti:true }, (!r.vuoto && r.db) || {}); }
     return IMP;
@@ -92058,8 +92060,11 @@ table.orx td.sab .orx-s .o{font-size:12px}
     }catch(e){ return null; }
     finally{ if(st) try{ st.getTracks().forEach(function(x){ x.stop(); }); }catch(e){} }
   }
+  // impostazione riletta dal NAS a ogni scatto (è minuscola): così "Salva" vale subito anche sul totem già aperto
+  async function impFresca(){ if(Date.now() - impT > 3000) await caricaImp(); return IMP; }
   async function scatta(ris){
     try{
+      await impFresca(); if(!IMP.on) return;
       var img = await foto(); if(!img) return;
       var op = ris.op || {};
       coda.push({ ds:dsDi(new Date(ris.ts)), opId:op.id, voce:{ ts:ris.ts, tipo:ris.tipo, nome:((op.nome || '') + ' ' + (op.cognome || '')).trim(), img:img } });
@@ -92069,8 +92074,9 @@ table.orx td.sab .orx-s .o{font-size:12px}
   var ultSc = {};
   async function scattaSconosciuto(codice){
     try{
-      if(!IMP.on || IMP.sconosciuti === false || ruolo() !== 'Totem') return;
+      if(ruolo() !== 'Totem') return;
       var k = String(codice || '?'), t = Date.now(); if(ultSc[k] && t - ultSc[k] < 20000) return; ultSc[k] = t;
+      await impFresca(); if(!IMP.on || IMP.sconosciuti === false) return;
       var img = await foto(); if(!img) return;
       var ts = new Date().toISOString();
       coda.push({ ds:dsDi(new Date()), opId:'_sconosciuti', voce:{ ts:ts, tipo:'sconosciuto', nome:'Codice non registrato', codice:k, img:img } });
@@ -92097,7 +92103,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
   if(typeof oR === 'function' && !oR._ft){
     var fR = function(){
       var r = oR.apply(this, arguments);
-      try{ if(r && !r.ripetuta && r.op && IMP.on && ruolo() === 'Totem') scatta(r); }catch(e){}
+      try{ if(r && !r.ripetuta && r.op && ruolo() === 'Totem') scatta(r); }catch(e){}
       return r;
     };
     fR._ft = true; window.scRegistraTimbraturaNFC = scRegistraTimbraturaNFC = fR;
@@ -92150,7 +92156,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
     if(!puoVedere()) return;
     ds = ds || dsDi(new Date());
     var ov = document.getElementById('ft-ov'); if(!ov){ ov = document.createElement('div'); ov.id = 'ft-ov'; ov.onclick = function(e){ if(e.target === ov) ov.remove(); }; document.body.appendChild(ov); }
-    ov.innerHTML = '<div id="ft-win"><h3>📷 Foto timbrature</h3><div class="ft-hint">⏳ Carico…</div></div>';
+    if(!window._ftAuto) ov.innerHTML = '<div id="ft-win"><h3>📷 Foto timbrature</h3><div class="ft-hint">⏳ Carico…</div></div>';
     await caricaImp();
     var r = await _scuGet(keyDi(ds), 20000), doc = (r && r.ok && !r.vuoto && r.db) || null;
     var imp = '<div class="ft-imp">'
@@ -92175,7 +92181,12 @@ table.orx td.sab .orx-s .o{font-size:12px}
         }).join('') + '</div>';
       }).join('');
     }
-    ov.innerHTML = '<div id="ft-win"><h3>📷 Foto timbrature</h3>' + imp + barra + corpo + '</div>';
+    var aperta = document.activeElement && document.activeElement.closest && document.activeElement.closest('#ft-win .ft-imp');
+    var nuovoHtml = '<div id="ft-win"><h3>📷 Foto timbrature</h3>' + imp + barra + corpo + (ds === dsDi(new Date()) ? '<div class="ft-hint" style="margin-top:10px">🔄 Si aggiorna da solo ogni 15 secondi</div>' : '') + '</div>';
+    if(!(window._ftAuto && aperta)) ov.innerHTML = nuovoHtml;
+    ov._ds = ds;
+    if(ov._t) clearTimeout(ov._t);
+    if(ds === dsDi(new Date())) ov._t = setTimeout(function(){ var o = document.getElementById('ft-ov'); if(o && o._ds === ds && !document.getElementById('ft-big')){ window._ftAuto = true; ftApri(ds).finally(function(){ window._ftAuto = false; }); } }, 15000);
   };
   window._ftPiu = function(ds, n){ var p = ds.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2], 12); d.setDate(d.getDate() + n); return dsDi(d); };
   window.ftGrande = function(n){ var src = (window._ftImgs || [])[n]; if(!src) return; var b = document.createElement('div'); b.id = 'ft-big'; b.innerHTML = '<img src="' + src + '" alt="">'; b.onclick = function(){ b.remove(); }; document.body.appendChild(b); };
