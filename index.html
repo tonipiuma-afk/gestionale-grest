@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 06/11/2026 10:13</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 06/11/2026 10:13 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91684,6 +91684,14 @@ table.orx td.sab .orx-s .o{font-size:12px}
   if(typeof window.icForm !== 'function' || typeof window.icSalva !== 'function' || typeof window._icSalva !== 'function') return;
   var QUANDO = [['0', 'All\'ora dell\'impegno'], ['-15', '15 minuti prima'], ['-30', '30 minuti prima'], ['-60', '1 ora prima'], ['-120', '2 ore prima'],
     ['g0@08:00', 'La mattina stessa alle 8:00'], ['g-1@18:00', 'Il giorno prima alle 18:00'], ['g-1@09:00', 'Il giorno prima alle 9:00'], ['abs', 'Giorno e ora precisi…']];
+  var GRUPPI = [
+    { k:'adm',  l:'Amministratori e responsabili', ruoli:['Admin', 'Responsabile Generale', 'Responsabile GREST', 'Responsabile Mini GREST'] },
+    { k:'edu',  l:'Educatori',                      ruoli:['Educatore'] },
+    { k:'scu',  l:'Volontari del Servizio Civile',  ruoli:[] },
+    { k:'olp',  l:'OLP',                            ruoli:['OLP'] },
+    { k:'anim', l:'Animatori GREST',                ruoli:['Animatore', 'Caposquadra', 'Animatore Laboratorio'] },
+    { k:'gen',  l:'Genitori (portale famiglie)',    ruoli:['Genitore'] }
+  ];
   var E = function(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
   var cap = function(s){ return (typeof _npCap === 'function') ? _npCap(s) : String(s || ''); };
   var io = function(){ try{ return (typeof AUTH !== 'undefined' && AUTH.currentUser) || null; }catch(e){ return null; } };
@@ -91713,7 +91721,8 @@ table.orx td.sab .orx-s .o{font-size:12px}
       + '<div class="ic-prom-riga"><div class="imz-f"><label>Quando</label><select id="ic-prom-q" class="form-control">' + QUANDO.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === q ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>'
       + '<div class="imz-f" id="ic-prom-abs-box" style="' + (q === 'abs' ? '' : 'display:none') + '"><label>Giorno e ora</label><input id="ic-prom-abs" class="form-control" type="datetime-local" value="' + E(p.abs || '') + '"></div></div>'
       + '<div class="imz-f"><label>Messaggio (facoltativo)</label><input id="ic-prom-txt" class="form-control" placeholder="es. Chiamare il medico per confermare" value="' + E(p.testo || '') + '"></div>'
-      + '<div class="imz-f"><label>A chi</label>'
+      + '<div class="imz-f"><label>A interi gruppi</label><div id="ic-prom-gruppi">' + GRUPPI.map(function(g){ return '<label class="ic-chk" data-no-sobrio><input type="checkbox" class="ic-prom-g" value="' + g.k + '"' + ((p.gruppi || []).indexOf(g.k) >= 0 ? ' checked' : '') + ' onchange="_icPromConta()"> ' + E(g.l) + '</label>'; }).join('') + '</div></div>'
+      + '<div class="imz-f"><label>A singole persone</label>'
       + '<label class="ic-chk" data-no-sobrio><input type="checkbox" id="ic-prom-acc"' + (p.acc !== false ? ' checked' : '') + ' onchange="_icPromConta()"> Anche a chi accompagna / se ne occupa (se ha un account)</label>'
       + '<input id="ic-prom-cerca" class="form-control" placeholder="🔍 cerca una persona" style="margin:6px 0" oninput="_icPromCerca(this.value)">'
       + '<div id="ic-prom-lista">' + (lista || '<div class="ic-hint">Nessun utente nella lista</div>') + '</div>'
@@ -91726,8 +91735,9 @@ table.orx td.sab .orx-s .o{font-size:12px}
     window._icPromConta();
   }
   window._icPromConta = function(){
-    var n = document.querySelectorAll('.ic-prom-u:checked').length, acc = document.getElementById('ic-prom-acc'), el = document.getElementById('ic-prom-n');
-    if(el) el.textContent = (n ? n + (n === 1 ? ' persona scelta' : ' persone scelte') : 'Nessuna persona scelta') + (acc && acc.checked ? ' + chi accompagna' : '');
+    var n = document.querySelectorAll('.ic-prom-u:checked').length, ng = Array.prototype.map.call(document.querySelectorAll('.ic-prom-g:checked'), function(c){ return c.parentNode.textContent.trim(); }), acc = document.getElementById('ic-prom-acc'), el = document.getElementById('ic-prom-n');
+    var parti = ng.slice(); if(n) parti.push(n + (n === 1 ? ' persona' : ' persone')); if(acc && acc.checked) parti.push('chi accompagna');
+    if(el) el.textContent = 'Riceveranno: ' + (parti.length ? parti.join(' + ') : 'nessuno');
   };
   window._icPromCerca = function(t){
     t = String(t || '').toLowerCase().trim();
@@ -91749,7 +91759,8 @@ table.orx td.sab .orx-s .o{font-size:12px}
   function leggiForm(){
     var on = document.getElementById('ic-prom-on'); if(!on) return null;
     var p = { on:on.checked, quando:(document.getElementById('ic-prom-q') || {}).value || '-60', abs:'', testo:String((document.getElementById('ic-prom-txt') || {}).value || '').trim(),
-      acc:!!(document.getElementById('ic-prom-acc') || {}).checked, a:Array.prototype.map.call(document.querySelectorAll('.ic-prom-u:checked'), function(c){ return c.value; }), aAcc:[] };
+      acc:!!(document.getElementById('ic-prom-acc') || {}).checked, a:Array.prototype.map.call(document.querySelectorAll('.ic-prom-u:checked'), function(c){ return c.value; }), aAcc:[],
+      gruppi:Array.prototype.map.call(document.querySelectorAll('.ic-prom-g:checked'), function(c){ return c.value; }) };
     if(p.quando === 'abs') p.abs = String((document.getElementById('ic-prom-abs') || {}).value || '');
     if(p.acc) p.aAcc = nomiAcc();
     return p;
@@ -91763,7 +91774,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
   window.icSalva = async function(id){
     var p = leggiForm();
     if(p && p.on){
-      if(!p.a.length && !(p.acc && p.aAcc.length)){ showToast(p.acc ? 'Promemoria: scegli a chi mandarlo (chi accompagna non ha un account)' : 'Promemoria: scegli a chi mandarlo', 'warning'); return; }
+      if(!p.a.length && !p.gruppi.length && !(p.acc && p.aAcc.length)){ showToast(p.acc ? 'Promemoria: scegli a chi mandarlo (chi accompagna non ha un account)' : 'Promemoria: scegli a chi mandarlo', 'warning'); return; }
       if(p.quando === 'abs' && !p.abs){ showToast('Promemoria: scegli giorno e ora', 'warning'); return; }
     }
     _daForm = p;
@@ -91818,9 +91829,16 @@ table.orx td.sab .orx-s .o{font-size:12px}
           var k = (ev.gruppo || id) + '|' + (ev.prom.quando === 'abs' ? 'abs' : ds) + '|' + t.toISOString();
           if(fatti[k] || loc[k]) return;
           var a = {}; (ev.prom.a || []).concat(ev.prom.acc ? (ev.prom.aAcc || []) : []).forEach(function(n){ if(n) a[String(n).toUpperCase()] = 1; });
-          if(!Object.keys(a).length) return;
+          var ruoli = [];
+          (ev.prom.gruppi || []).forEach(function(gk){
+            var g = GRUPPI.filter(function(x){ return x.k === gk; })[0]; if(!g) return;
+            g.ruoli.forEach(function(r){ if(ruoli.indexOf(r) < 0) ruoli.push(r); });
+            if(gk === 'scu'){ try{ (scGetOperatori() || []).forEach(function(o){ if(o && !o._eliminato && typeof window._nfNomiOperatore === 'function') window._nfNomiOperatore(o.id).forEach(function(n){ a[String(n).toUpperCase()] = 1; }); }); }catch(e){} }
+            if(gk === 'edu'){ try{ var ed = window._ED && _ED.doc && _ED.doc.educatori; if(ed) Object.keys(ed).forEach(function(i){ var x = ed[i]; if(x && x.account && !x._eliminato) a[String(x.account).toUpperCase()] = 1; }); }catch(e){} }
+          });
+          if(!Object.keys(a).length && !ruoli.length) return;
           var m = testo(ev, ds);
-          nfInvia({ a:Object.keys(a), titolo:m.titolo, corpo:m.corpo, tag:'prom-' + k, vai:'g:ist-cal', app:'grest', ancheIo:true });
+          nfInvia({ a:Object.keys(a), ruoli:ruoli, titolo:m.titolo, corpo:m.corpo, tag:'prom-' + k, vai:'g:ist-cal', app:'grest', ancheIo:true });
           loc[k] = adesso; nuovi.push(k);
         });
       });
