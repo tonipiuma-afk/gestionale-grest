@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 05/11/2026 13:24</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 05/11/2026 13:24 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91660,6 +91660,186 @@ table.orx td.sab .orx-s .o{font-size:12px}
   if(typeof oN === 'function' && !oN._orx){ var fN = function(){ try{ orxChiudi(); }catch(e){} return oN.apply(this, arguments); }; fN._orx = true; fN._avs = oN._avs; window.navigate = fN; }
   var oT = window.scSwitchTab;
   if(typeof oT === 'function' && !oT._orx){ var fT = function(){ try{ orxChiudi(); }catch(e){} return oT.apply(this, arguments); }; fT._orx = true; window.scSwitchTab = fT; }
+})();
+</script>
+
+<style id="promemoria-calendario-css">
+#ic-prom-box{ border:1px solid var(--border, #dbe3ef); border-radius:12px; padding:12px 14px; background:rgba(37,99,235,0.04) }
+#ic-prom-det{ margin-top:10px; display:grid; gap:10px }
+#ic-prom-det .ic-prom-riga{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+@media (max-width:560px){ #ic-prom-det .ic-prom-riga{ grid-template-columns:1fr } }
+#ic-prom-lista{ max-height:220px; overflow:auto; border:1px solid var(--border, #dbe3ef); border-radius:10px; padding:6px 10px; background:var(--card, #fff) }
+#ic-prom-lista .ic-prom-gr{ font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted, #64748b); margin:8px 0 2px }
+#ic-prom-lista label{ display:flex !important; align-items:center; gap:8px; padding:4px 0; font-size:14px !important; font-weight:500 !important; text-transform:none !important; letter-spacing:0 !important; cursor:pointer }
+#ic-prom-n{ font-size:12px; color:var(--text-muted, #64748b) }
+</style>
+<script id="promemoria-calendario-js">
+/* ═══ PROMEMORIA NEGLI IMPEGNI DEL CALENDARIO (novembre 2026) ═══
+   • nel modulo dell'impegno: "Manda un promemoria", quando e a chi (persone della lista utenti, + chi accompagna)
+   • salvato dentro l'impegno (campo prom); gli invii fatti in _ist_calendario.promInviati (così modificare l'impegno non li perde)
+   • lo invia il TOTEM (controllo ogni minuto). Se il totem è spento, dopo 10 minuti di ritardo lo manda chi ha il gestionale
+     aperto con il permesso di modificare il calendario. Oltre 6 ore di ritardo non parte più.
+   • server.js non si tocca: usa le notifiche push che ci sono già (nfInvia) */
+(function(){
+  if(typeof window.icForm !== 'function' || typeof window.icSalva !== 'function' || typeof window._icSalva !== 'function') return;
+  var QUANDO = [['0', 'All\'ora dell\'impegno'], ['-15', '15 minuti prima'], ['-30', '30 minuti prima'], ['-60', '1 ora prima'], ['-120', '2 ore prima'],
+    ['g0@08:00', 'La mattina stessa alle 8:00'], ['g-1@18:00', 'Il giorno prima alle 18:00'], ['g-1@09:00', 'Il giorno prima alle 9:00'], ['abs', 'Giorno e ora precisi…']];
+  var E = function(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var cap = function(s){ return (typeof _npCap === 'function') ? _npCap(s) : String(s || ''); };
+  var io = function(){ try{ return (typeof AUTH !== 'undefined' && AUTH.currentUser) || null; }catch(e){ return null; } };
+  var simulo = function(){ try{ return typeof _SIMULA !== 'undefined' && !!_SIMULA.attiva; }catch(e){ return false; } };
+  function utenti(){
+    try{ return ((window.APP && APP.utenti) || []).filter(function(u){ return u && u.username && !u._eliminato && u.attivo !== false && u.ruolo !== 'Genitore' && u.ruolo !== 'Totem'; }); }catch(e){ return []; }
+  }
+
+  /* ── modulo ── */
+  function monta(id){
+    var tit = document.getElementById('ic-tit'), griglia = tit && tit.closest('.imz-grid');
+    if(!griglia || document.getElementById('ic-prom-box')) return;
+    var e = (id && _ICAL.doc && _ICAL.doc.eventi[id]) || {}, p = e.prom || {}, sc = {};
+    (p.a || []).forEach(function(n){ sc[String(n).toUpperCase()] = 1; });
+    var gruppi = {};
+    utenti().forEach(function(u){ var r = u.ruolo || 'Altri'; (gruppi[r] = gruppi[r] || []).push(u); });
+    var lista = Object.keys(gruppi).sort().map(function(r){
+      return '<div class="ic-prom-gr">' + E(r) + '</div>' + gruppi[r].sort(function(a, b){ return String(a.nome || a.username).localeCompare(String(b.nome || b.username)); }).map(function(u){
+        var k = String(u.username).toUpperCase();
+        return '<label data-no-sobrio data-cerca="' + E(String((u.nome || '') + ' ' + u.username).toLowerCase()) + '"><input type="checkbox" class="ic-prom-u" value="' + E(k) + '"' + (sc[k] ? ' checked' : '') + ' onchange="_icPromConta()"> ' + E(cap(u.nome || u.username)) + '</label>';
+      }).join('');
+    }).join('');
+    var q = p.quando || '-60';
+    var box = document.createElement('div'); box.id = 'ic-prom-box'; box.className = 'imz-f pieno';
+    box.innerHTML = '<label class="ic-chk" data-no-sobrio><input type="checkbox" id="ic-prom-on"' + (p.on ? ' checked' : '') + '> 🔔 Manda un promemoria sul telefono</label>'
+      + '<div id="ic-prom-det" style="' + (p.on ? '' : 'display:none') + '">'
+      + '<div class="ic-prom-riga"><div class="imz-f"><label>Quando</label><select id="ic-prom-q" class="form-control">' + QUANDO.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === q ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>'
+      + '<div class="imz-f" id="ic-prom-abs-box" style="' + (q === 'abs' ? '' : 'display:none') + '"><label>Giorno e ora</label><input id="ic-prom-abs" class="form-control" type="datetime-local" value="' + E(p.abs || '') + '"></div></div>'
+      + '<div class="imz-f"><label>Messaggio (facoltativo)</label><input id="ic-prom-txt" class="form-control" placeholder="es. Chiamare il medico per confermare" value="' + E(p.testo || '') + '"></div>'
+      + '<div class="imz-f"><label>A chi</label>'
+      + '<label class="ic-chk" data-no-sobrio><input type="checkbox" id="ic-prom-acc"' + (p.acc !== false ? ' checked' : '') + ' onchange="_icPromConta()"> Anche a chi accompagna / se ne occupa (se ha un account)</label>'
+      + '<input id="ic-prom-cerca" class="form-control" placeholder="🔍 cerca una persona" style="margin:6px 0" oninput="_icPromCerca(this.value)">'
+      + '<div id="ic-prom-lista">' + (lista || '<div class="ic-hint">Nessun utente nella lista</div>') + '</div>'
+      + '<div id="ic-prom-n"></div></div>'
+      + '<div class="ic-hint">Arriva solo a chi ha attivato le notifiche sul telefono. Lo invia il totem: se è spento, parte appena qualcuno apre il gestionale.</div>'
+      + '</div>';
+    griglia.appendChild(box);
+    document.getElementById('ic-prom-on').onchange = function(){ document.getElementById('ic-prom-det').style.display = this.checked ? '' : 'none'; };
+    document.getElementById('ic-prom-q').onchange = function(){ document.getElementById('ic-prom-abs-box').style.display = this.value === 'abs' ? '' : 'none'; };
+    window._icPromConta();
+  }
+  window._icPromConta = function(){
+    var n = document.querySelectorAll('.ic-prom-u:checked').length, acc = document.getElementById('ic-prom-acc'), el = document.getElementById('ic-prom-n');
+    if(el) el.textContent = (n ? n + (n === 1 ? ' persona scelta' : ' persone scelte') : 'Nessuna persona scelta') + (acc && acc.checked ? ' + chi accompagna' : '');
+  };
+  window._icPromCerca = function(t){
+    t = String(t || '').toLowerCase().trim();
+    Array.prototype.forEach.call(document.querySelectorAll('#ic-prom-lista label'), function(l){ l.style.display = !t || (l.getAttribute('data-cerca') || '').indexOf(t) >= 0 ? '' : 'none'; });
+  };
+
+  /* chi accompagna → nomi utente (dalla tendina "chi accompagna", se c'è) */
+  function nomiAcc(){
+    var s = document.getElementById('ic-chi-sel'), v = s ? s.value : '', out = [];
+    try{
+      if(v.indexOf('scu:') === 0 && typeof window._nfNomiOperatore === 'function') out = window._nfNomiOperatore(v.slice(4));
+      else if(v.indexOf('edu:') === 0){ var x = window._ED && _ED.doc && _ED.doc.educatori[v.slice(4)];
+        if(x){ if(x.account) out = [String(x.account).toUpperCase()]; else if(typeof window._nfNomiDi === 'function') out = window._nfNomiDi({ nome:x.nome, cognome:x.cognome }); } }
+      else if(!s){ var t = String((document.getElementById('ic-chi') || {}).value || '').toLowerCase().trim();
+        if(t){ var c = utenti().filter(function(u){ return String(u.nome || '').toLowerCase().trim() === t; }); if(c.length === 1) out = [String(c[0].username).toUpperCase()]; } }
+    }catch(e){}
+    return out || [];
+  }
+  function leggiForm(){
+    var on = document.getElementById('ic-prom-on'); if(!on) return null;
+    var p = { on:on.checked, quando:(document.getElementById('ic-prom-q') || {}).value || '-60', abs:'', testo:String((document.getElementById('ic-prom-txt') || {}).value || '').trim(),
+      acc:!!(document.getElementById('ic-prom-acc') || {}).checked, a:Array.prototype.map.call(document.querySelectorAll('.ic-prom-u:checked'), function(c){ return c.value; }), aAcc:[] };
+    if(p.quando === 'abs') p.abs = String((document.getElementById('ic-prom-abs') || {}).value || '');
+    if(p.acc) p.aAcc = nomiAcc();
+    return p;
+  }
+
+  var oF = window.icForm;
+  window.icForm = function(id){ var r = oF.apply(this, arguments); try{ monta(id); }catch(e){ console.warn('[promemoria]', e); } return r; };
+
+  var _daForm = null;
+  var oSalva = window.icSalva;
+  window.icSalva = async function(id){
+    var p = leggiForm();
+    if(p && p.on){
+      if(!p.a.length && !(p.acc && p.aAcc.length)){ showToast(p.acc ? 'Promemoria: scegli a chi mandarlo (chi accompagna non ha un account)' : 'Promemoria: scegli a chi mandarlo', 'warning'); return; }
+      if(p.quando === 'abs' && !p.abs){ showToast('Promemoria: scegli giorno e ora', 'warning'); return; }
+    }
+    _daForm = p;
+    try{ return await oSalva.apply(this, arguments); } finally { _daForm = null; }
+  };
+  var oS = window._icSalva;
+  window._icSalva = async function(rec){
+    if(_daForm && rec && !rec._del){
+      if(_daForm.on) rec.prom = _daForm; else if(rec.prom) rec.prom = { on:false };
+      _daForm = null;
+    }
+    return oS.apply(this, arguments);
+  };
+
+  /* ── invio ── */
+  function hm(s, d){ var m = String(s || '').match(/(\d{1,2}):(\d{2})/); return m ? [+m[1], +m[2]] : d; }
+  function scatto(ev, ds){
+    var p = ev.prom, q = p.quando || '-60', d = _icD(ds);
+    if(q === 'abs'){ if(!p.abs) return null; var t = new Date(p.abs); return isNaN(t) ? null : t; }
+    var g = String(q).match(/^g(-?\d+)@(\d{1,2}:\d{2})$/);
+    if(g){ var o = hm(g[2], [8, 0]); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (+g[1]), o[0], o[1]); }
+    var a = hm(ev.tutto ? '08:00' : ev.ora, [8, 0]);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), a[0], a[1] + (+q || 0));
+  }
+  function testo(ev, ds){
+    var gg = _icD(ds).toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'short' }), osp = null;
+    try{ osp = ev.ospite && window._IOS && _IOS.doc && _IOS.doc.ospiti[ev.ospite]; }catch(e){}
+    var info = gg + (ev.tutto ? '' : (ev.ora ? ' alle ' + ev.ora : '')) + (ev.luogo ? ' · ' + ev.luogo : '') + (osp && typeof _iosNome === 'function' ? ' · ' + _iosNome(osp) : '') + (ev.chi ? ' · accompagna ' + ev.chi : '');
+    return { titolo:'⏰ ' + (ev.prom.testo || ev.titolo || 'Promemoria'), corpo:(ev.prom.testo ? (ev.titolo || '') + ' · ' : '') + info };
+  }
+  var LSK = 'prom_inviati';
+  function lsLeggi(){ try{ return JSON.parse(localStorage.getItem(LSK) || '{}') || {}; }catch(e){ return {}; } }
+  function lsScrivi(o){ try{ var t = Date.now(); Object.keys(o).forEach(function(k){ if(t - o[k] > 3 * 864e5) delete o[k]; }); localStorage.setItem(LSK, JSON.stringify(o)); }catch(e){} }
+  var _lavoro = false;
+  async function controlla(){
+    if(_lavoro || simulo() || !navigator.onLine || typeof nfInvia !== 'function' || typeof _icLeggi !== 'function') return;
+    var u = io(); if(!u) return;
+    var totem = u.ruolo === 'Totem';
+    var aiuto = !totem && typeof areaHaPermesso === 'function' && areaHaPermesso('ist_ospiti_edit');
+    if(!totem && !aiuto) return;
+    _lavoro = true;
+    try{
+      var base = await _icLeggi(); if(!base) return;
+      var adesso = Date.now(), oggi = _icOggi(), da = _icPiu(oggi, -1), al = _icPiu(oggi, 2), fatti = base.promInviati || {}, loc = lsLeggi(), nuovi = [];
+      Object.keys(base.eventi || {}).forEach(function(id){
+        var ev = base.eventi[id]; if(!ev || ev._del || ev._eliminato || !ev.prom || !ev.prom.on) return;
+        var giorni = ev.prom.quando === 'abs' ? [ev.data] : _icOccorrenze(ev, da, al);
+        giorni.forEach(function(ds){
+          var t = scatto(ev, ds); if(!t) return;
+          var ritardo = adesso - t.getTime(); if(ritardo < 0 || ritardo > 6 * 36e5) return;
+          if(!totem && ritardo < 10 * 6e4) return;   // prima tocca al totem
+          var k = (ev.gruppo || id) + '|' + (ev.prom.quando === 'abs' ? 'abs' : ds) + '|' + t.toISOString();
+          if(fatti[k] || loc[k]) return;
+          var a = {}; (ev.prom.a || []).concat(ev.prom.acc ? (ev.prom.aAcc || []) : []).forEach(function(n){ if(n) a[String(n).toUpperCase()] = 1; });
+          if(!Object.keys(a).length) return;
+          var m = testo(ev, ds);
+          nfInvia({ a:Object.keys(a), titolo:m.titolo, corpo:m.corpo, tag:'prom-' + k, vai:'g:ist-cal', app:'grest', ancheIo:true });
+          loc[k] = adesso; nuovi.push(k);
+        });
+      });
+      if(!nuovi.length) return;
+      lsScrivi(loc);
+      // segno sul NAS che è partito (rilette fresche, per non pestare modifiche fatte nel frattempo)
+      var b2 = await _icLeggi(); if(!b2) return;
+      b2.promInviati = b2.promInviati || {};
+      nuovi.forEach(function(k){ b2.promInviati[k] = new Date().toISOString(); });
+      var lim = new Date(adesso - 30 * 864e5).toISOString();
+      Object.keys(b2.promInviati).forEach(function(k){ if(String(b2.promInviati[k]) < lim) delete b2.promInviati[k]; });
+      if(await _scuPost(ICAL_KEY, b2, 20000)){ try{ if(window._ICAL && _ICAL.doc) _ICAL.doc.promInviati = b2.promInviati; }catch(e){} }
+    }catch(e){ console.warn('[promemoria] invio', e); }
+    finally{ _lavoro = false; }
+  }
+  window._icPromControlla = controlla;
+  setTimeout(controlla, 20000);
+  setInterval(function(){ var u = io(); if(u && u.ruolo === 'Totem') controlla(); }, 60000);
+  setInterval(function(){ var u = io(); if(u && u.ruolo !== 'Totem') controlla(); }, 5 * 60000);
 })();
 </script>
 
