@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 06/11/2026 11:21</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 06/11/2026 11:21 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92007,6 +92007,8 @@ table.orx td.sab .orx-s .o{font-size:12px}
 #ft-win .ft-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px }
 #ft-win .ft-f{ border-radius:10px; overflow:hidden; border:1px solid var(--border, #dbe3ef); cursor:pointer; background:#000 }
 #ft-win .ft-f img{ width:100%; display:block; aspect-ratio:4/3; object-fit:cover }
+#ft-win .ft-f{ position:relative }
+#ft-win .ft-del{ position:absolute; top:6px; right:6px; background:rgba(220,38,38,.92); color:#fff; border:0; border-radius:8px; padding:3px 7px; font-size:13px; cursor:pointer; line-height:1.2 }
 #ft-win .ft-f div{ background:var(--card, #fff); font-size:12px; padding:4px 6px; font-weight:700 }
 #ft-win .ft-hint{ font-size:12.5px; color:var(--text-muted, #64748b); line-height:1.45 }
 #ft-big{ position:fixed; inset:0; z-index:10060; background:rgba(0,0,0,.85); display:flex; align-items:center; justify-content:center; cursor:zoom-out }
@@ -92165,28 +92167,47 @@ table.orx td.sab .orx-s .o{font-size:12px}
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:13px">Cancella le foto dopo</span><select id="ft-gg" class="form-control" style="width:auto"' + (puoCambiare() ? '' : ' disabled') + '>' + [7, 15, 30, 60].map(function(g){ return '<option value="' + g + '"' + (+IMP.giorni === g ? ' selected' : '') + '>' + g + ' giorni</option>'; }).join('') + '</select>'
       + (puoCambiare() ? '<button type="button" class="btn btn-teal btn-sm" onclick="ftSalvaImp()">💾 Salva</button>' : '') + '</div>'
       + '<div class="ft-hint">Prima di accenderlo serve l\'informativa privacy e il consenso dei volontari. Le foto si fanno solo alle timbrature del Servizio Civile, mai alle presenze del GREST. Durante il GREST togli la spunta dei codici non registrati: potrebbe fotografare bambini con un braccialetto non ancora abbinato. Attenzione: i backup del NAS possono conservarle più a lungo.</div></div>';
-    var barra = '<div class="ft-barra"><button type="button" class="btn btn-gray btn-sm" onclick="ftApri(\'' + _ftPiu(ds, -1) + '\')">◀</button><input type="date" class="form-control" style="width:auto" value="' + ds + '" onchange="ftApri(this.value)"><button type="button" class="btn btn-gray btn-sm" onclick="ftApri(\'' + _ftPiu(ds, 1) + '\')">▶</button><button type="button" class="btn btn-gray btn-sm" style="margin-left:auto" onclick="document.getElementById(\'ft-ov\').remove()">Chiudi</button></div>';
+    var barra = '<div class="ft-barra"><button type="button" class="btn btn-gray btn-sm" onclick="ftApri(\'' + _ftPiu(ds, -1) + '\')">◀</button><input type="date" class="form-control" style="width:auto" value="' + ds + '" onchange="ftApri(this.value)"><button type="button" class="btn btn-gray btn-sm" onclick="ftApri(\'' + _ftPiu(ds, 1) + '\')">▶</button><button type="button" class="btn btn-sm" id="ft-del-tutte" style="margin-left:auto;background:#fde2e1;color:#b42318;display:none" onclick="ftEliminaGiorno(\'' + ds + '\')">🗑️ Elimina tutte del giorno</button><button type="button" class="btn btn-gray btn-sm" onclick="document.getElementById(\'ft-ov\').remove()">Chiudi</button></div>';
     var corpo = '';
     if(!r || !r.ok) corpo = '<div class="ft-hint">⚠️ NAS non raggiungibile, riprova.</div>';
     else if(!doc || !doc.foto || !Object.keys(doc.foto).length) corpo = '<div class="ft-hint">Nessuna foto per questo giorno.</div>';
     else {
-      var ops = Object.keys(doc.foto).map(function(id){ var l = doc.foto[id].slice().sort(function(a, b){ return String(a.ts).localeCompare(String(b.ts)); }); return { nome:(l[0] && l[0].nome) || id, l:l }; })
+      var ops = Object.keys(doc.foto).filter(function(id){ return (doc.foto[id] || []).length; }).map(function(id){ var l = doc.foto[id].slice().sort(function(a, b){ return String(a.ts).localeCompare(String(b.ts)); }); return { id:id, nome:(l[0] && l[0].nome) || id, l:l }; })
         .sort(function(a, b){ var x = a.l[0] && a.l[0].tipo === 'sconosciuto', y = b.l[0] && b.l[0].tipo === 'sconosciuto'; return x !== y ? (x ? -1 : 1) : a.nome.localeCompare(b.nome); });
-      window._ftImgs = [];
+      window._ftImgs = []; window._ftRif = [];
       corpo = ops.map(function(o){
         var sc = o.l[0] && o.l[0].tipo === 'sconosciuto';
         return '<div class="ft-op"' + (sc ? ' style="color:#b45309"' : '') + '>' + (sc ? '⚠️ Codici non registrati' : E(o.nome)) + '</div><div class="ft-grid">' + o.l.map(function(v){
-          var n = window._ftImgs.push(v.img) - 1, ora = new Date(v.ts).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
-          return '<div class="ft-f" onclick="ftGrande(' + n + ')"><img src="' + v.img + '" alt=""><div>' + (v.tipo === 'sconosciuto' ? '⚠️ ' + ora + '<br><span style="font-weight:500">' + E(v.codice || '') + '</span>' : (v.tipo === 'entrata' ? '🟢 Entrata ' : '🔴 Uscita ') + ora) + '</div></div>';
+          var n = window._ftImgs.push(v.img) - 1; window._ftRif[n] = { ds:ds, op:o.id, ts:v.ts };
+          var ora = new Date(v.ts).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+          return '<div class="ft-f" onclick="ftGrande(' + n + ')">' + (puoCambiare() ? '<button type="button" class="ft-del" title="Elimina questa foto" onclick="event.stopPropagation();ftElimina(' + n + ')">🗑️</button>' : '') + '<img src="' + v.img + '" alt=""><div>' + (v.tipo === 'sconosciuto' ? '⚠️ ' + ora + '<br><span style="font-weight:500">' + E(v.codice || '') + '</span>' : (v.tipo === 'entrata' ? '🟢 Entrata ' : '🔴 Uscita ') + ora) + '</div></div>';
         }).join('') + '</div>';
       }).join('');
     }
     var aperta = document.activeElement && document.activeElement.closest && document.activeElement.closest('#ft-win .ft-imp');
     var nuovoHtml = '<div id="ft-win"><h3>📷 Foto timbrature</h3>' + imp + barra + corpo + (ds === dsDi(new Date()) ? '<div class="ft-hint" style="margin-top:10px">🔄 Si aggiorna da solo ogni 15 secondi</div>' : '') + '</div>';
     if(!(window._ftAuto && aperta)) ov.innerHTML = nuovoHtml;
+    var bt = document.getElementById('ft-del-tutte'); if(bt) bt.style.display = (puoCambiare() && doc && doc.foto && Object.keys(doc.foto).some(function(k){ return (doc.foto[k] || []).length; })) ? '' : 'none';
     ov._ds = ds;
     if(ov._t) clearTimeout(ov._t);
     if(ds === dsDi(new Date())) ov._t = setTimeout(function(){ var o = document.getElementById('ft-ov'); if(o && o._ds === ds && !document.getElementById('ft-big')){ window._ftAuto = true; ftApri(ds).finally(function(){ window._ftAuto = false; }); } }, 15000);
+  };
+  window.ftElimina = async function(n){
+    var x = (window._ftRif || [])[n]; if(!x || !puoCambiare()) return;
+    if(typeof xConferma === 'function' && !(await xConferma('Eliminare questa foto? Non si potrà recuperare.'))) return;
+    var r = await _scuGet(keyDi(x.ds), 15000);
+    if(!r || !r.ok){ showToast('⚠️ NAS non raggiungibile, riprova', 'warning'); return; }
+    var doc = (!r.vuoto && r.db) || null; if(!doc || !doc.foto || !doc.foto[x.op]){ ftApri(x.ds); return; }
+    doc.foto[x.op] = doc.foto[x.op].filter(function(v){ return v.ts !== x.ts; });
+    if(!doc.foto[x.op].length) delete doc.foto[x.op];
+    if(await _scuPost(keyDi(x.ds), doc, 20000)){ showToast('Foto eliminata', 'success'); ftApri(x.ds); }
+    else showToast('⚠️ Eliminazione non riuscita, riprova', 'warning');
+  };
+  window.ftEliminaGiorno = async function(ds){
+    if(!puoCambiare()) return;
+    if(typeof xConferma === 'function' && !(await xConferma('Eliminare TUTTE le foto del ' + ds.split('-').reverse().join('/') + '? Non si potranno recuperare.'))) return;
+    if(await _scuPost(keyDi(ds), { v:1, foto:{}, cancellato:new Date().toISOString() }, 20000)){ showToast('Foto del giorno eliminate', 'success'); ftApri(ds); }
+    else showToast('⚠️ Eliminazione non riuscita, riprova', 'warning');
   };
   window._ftPiu = function(ds, n){ var p = ds.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2], 12); d.setDate(d.getDate() + n); return dsDi(d); };
   window.ftGrande = function(n){ var src = (window._ftImgs || [])[n]; if(!src) return; var b = document.createElement('div'); b.id = 'ft-big'; b.innerHTML = '<img src="' + src + '" alt="">'; b.onclick = function(){ b.remove(); }; document.body.appendChild(b); };
