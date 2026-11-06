@@ -9389,7 +9389,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 06/11/2026 10:23</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57463,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 06/11/2026 10:23 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -91858,6 +91858,140 @@ table.orx td.sab .orx-s .o{font-size:12px}
   setTimeout(controlla, 20000);
   setInterval(function(){ var u = io(); if(u && u.ruolo === 'Totem') controlla(); }, 60000);
   setInterval(function(){ var u = io(); if(u && u.ruolo !== 'Totem') controlla(); }, 5 * 60000);
+})();
+</script>
+
+<style id="totem-qr-auto-css">
+#tq-box{ position:fixed; right:16px; bottom:16px; z-index:9000; width:200px; background:rgba(15,23,42,0.88); border-radius:16px; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,.35); color:#fff; font-family:'Poppins',sans-serif }
+#tq-box video{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:10px; display:block; background:#000; transform:scaleX(-1) }
+#tq-box .tq-t{ display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; margin:6px 2px 0 }
+#tq-box button{ background:rgba(255,255,255,.15); color:#fff; border:0; border-radius:8px; padding:3px 8px; font-size:11px; cursor:pointer }
+#tq-box.tq-ok{ outline:4px solid #22c55e }
+#tq-off{ position:fixed; right:16px; bottom:16px; z-index:9000; background:rgba(15,23,42,0.75); color:#fff; border:0; border-radius:12px; padding:8px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif }
+</style>
+<script id="totem-qr-auto-js">
+/* ═══ TOTEM: QR SEMPRE ATTIVO INSIEME AL BRACCIALETTO (novembre 2026) ═══
+   • quando il totem è aperto, la fotocamera si accende da sola in un riquadro in basso a destra e legge i QR del gestionale
+   • il braccialetto continua a funzionare come prima: vale quello che arriva per primo
+   • chi ha un braccialetto registrato → stessa identica schermata del braccialetto; volontario SCU → timbratura SCU;
+     gli altri → risultato nella finestra QR di sempre, che si chiude da sola
+   • lo stesso QR non vale di nuovo per 20 secondi (niente entrata e uscita doppie tenendo il telefono davanti)
+   • "Spegni" nel riquadro: la fotocamera resta spenta su questo PC finché non la riaccendi
+   • corretto anche "Il mio QR" del portale: per i volontari usa la scheda del Servizio Civile */
+(function(){
+  if(typeof jsQR !== 'function' || typeof qrParsePayload !== 'function') return;
+  var LSK = 'totem_qr_auto_off', stream = null, timer = null, video = null, canvas = null, ultimo = '', ultimoT = 0, chiudiT = null;
+  var spento = function(){ try{ return localStorage.getItem(LSK) === '1'; }catch(e){ return false; } };
+  var totemVisibile = function(){ var el = document.getElementById('portale-totem'); return typeof _totemAttivo !== 'undefined' && _totemAttivo && el && el.style.display !== 'none'; };
+  var overlayAperto = function(){ var o = document.getElementById('pt-qr-overlay'); return o && o.style.display && o.style.display !== 'none'; };
+
+  function togliUi(){ ['tq-box', 'tq-off'].forEach(function(id){ var x = document.getElementById(id); if(x) x.remove(); }); video = null; }
+  function ferma(){ if(timer){ clearInterval(timer); timer = null; } if(stream){ try{ stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){} stream = null; } }
+  function uiSpento(){
+    togliUi(); if(!totemVisibile()) return;
+    var b = document.createElement('button'); b.id = 'tq-off'; b.type = 'button'; b.textContent = '📷 Accendi lettura QR';
+    b.onclick = function(){ try{ localStorage.removeItem(LSK); }catch(e){} avvia(); };
+    document.body.appendChild(b);
+  }
+  window.totemQrSpegni = function(){ try{ localStorage.setItem(LSK, '1'); }catch(e){} ferma(); uiSpento(); };
+
+  async function avvia(){
+    if(stream || !totemVisibile() || overlayAperto()) return;
+    if(spento()){ if(!document.getElementById('tq-off')) uiSpento(); return; }
+    togliUi();
+    var box = document.createElement('div'); box.id = 'tq-box';
+    box.innerHTML = '<video playsinline muted></video><div class="tq-t"><span id="tq-msg">📱 Mostra qui il QR</span><button type="button" onclick="totemQrSpegni()">Spegni</button></div>';
+    document.body.appendChild(box);
+    video = box.querySelector('video'); canvas = canvas || document.createElement('canvas');
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ width:{ ideal:640 }, height:{ ideal:480 } }, audio:false });
+      if(!totemVisibile() || overlayAperto()){ ferma(); togliUi(); return; }
+      video.srcObject = stream; await video.play().catch(function(){});
+      timer = setInterval(leggi, 180);
+    }catch(err){
+      ferma(); var m = document.getElementById('tq-msg'); if(m) m.textContent = '❌ Fotocamera non disponibile';
+      setTimeout(function(){ if(!stream) uiSpento(); }, 5000);
+    }
+  }
+  function leggi(){
+    if(!totemVisibile()){ ferma(); togliUi(); return; }
+    if(overlayAperto() || !video || video.readyState < 2) return;
+    var w = video.videoWidth, h = video.videoHeight; if(!w || !h) return;
+    var k = Math.min(1, 480 / w); canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
+    var ctx = canvas.getContext('2d', { willReadFrequently:true }); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    var code = null; try{ code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height, { inversionAttempts:'dontInvert' }); }catch(e){}
+    if(!code || !code.data) return;
+    var t = Date.now();
+    if(code.data === ultimo && t - ultimoT < 20000) return;
+    ultimo = code.data; ultimoT = t;
+    var box = document.getElementById('tq-box'); if(box){ box.classList.add('tq-ok'); setTimeout(function(){ box.classList.remove('tq-ok'); }, 700); }
+    try{ gestisci(code.data); }catch(e){ console.warn('[totem QR]', e); }
+  }
+
+  function trova(p){
+    var db = getDb(); if(!db) return null;
+    if(p.tipo === 'iscritto'){ var i = (db.iscritti || []).find(function(x){ return x.id === p.id && !x._eliminato && !x.ritirato; }); return i ? { persona:i, iscritto:true } : null; }
+    if(p.tipo === 'animatore'){
+      var lista = ((typeof _scuTuttiConGrest === 'function') ? _scuTuttiConGrest(db) : (db.animatori || [])).filter(function(a){ return a && !a._eliminato; });
+      var a = lista.find(function(x){ return x.id === p.id; }) || lista.find(function(x){ return x.userId && x.userId === p.id; });
+      if(!a){ var id = String(p.id || '').toLowerCase(); a = lista.find(function(x){ return x.username && String(x.username).toLowerCase() === id; }); }
+      if(!a){ try{ var u = ((window.APP && APP.utenti) || []).find(function(x){ return x && (x.id === p.id || String(x.username || '').toLowerCase() === String(p.id).toLowerCase()); });
+        if(u) a = lista.find(function(x){ return (x.userId && x.userId === u.id) || (x.username && String(x.username).toLowerCase() === String(u.username).toLowerCase()) || (u.animatoreId && u.animatoreId === x.id); }); }catch(e){} }
+      return a ? { persona:a, iscritto:false } : null;
+    }
+    return null;
+  }
+  function gestisci(raw){
+    var p = qrParsePayload(raw);
+    if(!p){ var m = document.getElementById('tq-msg'); if(m){ m.textContent = '⚠️ QR non del gestionale'; setTimeout(function(){ if(m) m.textContent = '📱 Mostra qui il QR'; }, 2500); } return; }
+    var r = trova(p);
+    if(r && r.persona.rfid && typeof _totemProcessa === 'function'){ _totemProcessa(r.persona.rfid); return; }   // come il braccialetto
+    if(r && !r.iscritto && r.persona.servizioCivile && typeof scRegistraTimbraturaNFC === 'function' && typeof _totemMostraSCU === 'function'){
+      if(typeof _totemScuTornaOggi === 'function') _totemScuTornaOggi();
+      var ris = scRegistraTimbraturaNFC(r.persona.id);
+      if(ris){
+        var sc = scGetDb(), oggi = scDataLocale(new Date());
+        var tOggi = ((sc.timbrature || {})[ris.op.id] || []).filter(function(t){ return t.ts.indexOf(oggi) === 0; }).sort(function(a, b){ return a.ts.localeCompare(b.ts); });
+        var nome = ((r.persona.nome || '') + ' ' + (r.persona.cognome || '')).trim();
+        _totemMostraSCU(ris.tipo, r.persona, nome, new Date(ris.ts).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }), scCalcolaOre(tOggi), (sc.orariCal || {})[oggi + '_' + ris.op.id] || '');
+        try{ _scRefreshSeVisibile(); }catch(e){} try{ _totemRenderFocus(); }catch(e){}
+        if(navigator.vibrate) navigator.vibrate(ris.tipo === 'entrata' ? [60, 30, 60] : 60);
+        return;
+      }
+    }
+    // tutti gli altri casi: la finestra QR di sempre, che poi si chiude da sola
+    var o = document.getElementById('pt-qr-overlay'); if(!o || typeof _ptQrGestisciLettura !== 'function') return;
+    var st = document.getElementById('pt-qr-status'); if(st) st.textContent = '';
+    o.style.display = 'flex'; o._tqAuto = true;
+    _ptQrGestisciLettura(raw);
+    if(chiudiT) clearTimeout(chiudiT);
+    chiudiT = setTimeout(function(){ if(o._tqAuto){ o._tqAuto = false; o.style.display = 'none'; } }, 4000);
+  }
+
+  // la finestra QR manuale usa la fotocamera: intanto il riquadro si spegne, poi si riaccende
+  var oA = window.ptQrScannerApri;
+  if(typeof oA === 'function' && !oA._tq){ var fA = function(){ var o = document.getElementById('pt-qr-overlay'); if(o) o._tqAuto = false; ferma(); togliUi(); return oA.apply(this, arguments); }; fA._tq = true; window.ptQrScannerApri = ptQrScannerApri = fA; }
+  var oC = window.ptQrScannerChiudi;
+  if(typeof oC === 'function' && !oC._tq){ var fC = function(){ var r = oC.apply(this, arguments); setTimeout(avvia, 400); return r; }; fC._tq = true; window.ptQrScannerChiudi = ptQrScannerChiudi = fC; }
+  var oT = window.totemAvvia;
+  if(typeof oT === 'function' && !oT._tq){ var fT = function(){ var r = oT.apply(this, arguments); setTimeout(avvia, 800); return r; }; fT._tq = true; window.totemAvvia = totemAvvia = fT; }
+  // controllo di sicurezza: riaccende se si è spenta, spegne se il totem è chiuso
+  setInterval(function(){ if(totemVisibile()){ if(!stream && !overlayAperto() && !document.getElementById('tq-box')) avvia(); } else if(stream || document.getElementById('tq-box') || document.getElementById('tq-off')){ ferma(); togliUi(); } }, 5000);
+
+  /* ── "Il mio QR" nel portale: per i volontari SCU prima la scheda vera (anche quella del Servizio Civile) ── */
+  var oQ = window.paQrInit;
+  if(typeof oQ === 'function' && !oQ._tq){
+    var fQ = function(){
+      var a = null; try{ a = (typeof paGetAnimatore === 'function') ? paGetAnimatore() : null; }catch(e){}
+      if(!a || !a.id) return oQ.apply(this, arguments);
+      var payload = qrGeneraPayload('animatore', a.id), nome = ((a.cognome || '') + ' ' + (a.nome || '')).trim();
+      var info = a.servizioCivile ? 'Servizio Civile' : (a.ruolo || 'Animatore');
+      qrCreaCanvas('pa-qr-canvas', payload, 180);
+      var n = document.getElementById('pa-qr-nome'), i = document.getElementById('pa-qr-info'); if(n) n.textContent = nome; if(i) i.textContent = info;
+      window._paQrData = { payload:payload, nome:nome, info:info };
+    };
+    fQ._tq = true; window.paQrInit = paQrInit = fQ;
+  }
 })();
 </script>
 
