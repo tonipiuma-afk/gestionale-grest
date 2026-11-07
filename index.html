@@ -206,15 +206,6 @@
   setInterval(function(){ if(!A.fine) salva(); }, 5000);
 })();
 </script>
-<script>
-(function(){
-  var b64='eyJkYXRhYmFzZXMiOiB7Ik1pbGVsZSBHcmVzdCAyMDI1IjogeyJpc2NyaXR0aSI6IFtdLCAic3F1YWRyZSI6IFtdLCAicHJlc2VuemUiOiB7fSwgImFuaW1hdG9yaSI6IFtdLCAic3Blc2UiOiBbXSwgInBhZ2FtZW50aSI6IHt9LCAibWVuc2EiOiB7fSwgInByYW56aUdpb3JuIjoge30sICJnaXRlIjogW10sICJtYXJlIjoge30sICJwdWxsbWFuIjoge30sICJtYWdsaWVTdG9jayI6IHt9LCAiY2FsZW5kYXJpb0V2ZW50aSI6IFtdLCAiZGlhcmlvU3F1YWRyZSI6IHt9LCAiY2hlY2tsaXN0IjogW10sICJncnVwcGkiOiBbXSwgImF1ZGl0TG9nIjogW10sICJpbXBvc3RhemlvbmkiOiB7Im5vbWVPcmF0b3JpbyI6ICJJc3RpdHV0byBTYW4gR2l1c2VwcGUiLCAibm9tZUdlc3QiOiAiR0VTVElPTkFMRSBHUkVTVCIsICJhbm5vIjogIjIwMjUiLCAibG9nbyI6ICIiLCAibG9nb0dlc3Rpb25hbGUiOiAiIiwgInRlbWFDb2xvcmUiOiAiZGVmYXVsdCIsICJzZXR0aW1hbmUiOiA3fSwgInV0ZW50aSI6IFt7ImlkIjogInUxIiwgIm5vbWUiOiAiQW1taW5pc3RyYXRvcmUiLCAidXNlcm5hbWUiOiAiYWRtaW4iLCAicGFzc3dvcmQiOiAiYWRtaW4xMjMiLCAicnVvbG8iOiAiQWRtaW4ifV19fSwgImN1cnJlbnREYiI6ICJNaWxlbGUgR3Jlc3QgMjAyNSJ9';
-  // Decodifica UTF-8-safe: atob() da solo corrompe accenti ed emoji
-  var _bin=atob(b64), _bytes=new Uint8Array(_bin.length);
-  for(var i=0;i<_bin.length;i++)_bytes[i]=_bin.charCodeAt(i);
-  window.__GREST_PRELOAD__=JSON.parse(new TextDecoder('utf-8').decode(_bytes));
-})();
-</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script>
@@ -305,7 +296,6 @@ function _appVarianteScu(){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   if(typeof pdfjsLib !== 'undefined'){
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -9390,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 07/11/2026 11:38</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57465,7 +57455,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 07/11/2026 11:38 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
