@@ -9390,7 +9390,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 07/11/2026 10:08</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57464,7 +57464,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 07/11/2026 10:08 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -68843,9 +68843,9 @@ var ARCHIVI_AREE = [
   { key:'_ist_mezzi',  nome:'Mezzi',   area:'Istituto', ripristina:true,
     conta:function(d){ return _arcN(d.mezzi) + ' mezzi · ' + _arcN(d.pratiche) + ' pratiche · ' + _arcN(d.interventi) + ' interventi'; } },
   // Timbrature SCU: hanno già le loro copie giornaliere (_scu_timbrature_bk_*) e il loro ripristino nel modulo SCU
-  { key:'_scu_timbrature', nome:'Timbrature SCU', area:'Servizio Civile', ripristina:false,
+  { key:'_scu_timbrature', nome:'Timbrature SCU', area:'Servizio Civile', ripristina:true,
     conta:function(d){ return _arcN(d.righe) + ' timbrature'; } },
-  { key:'_scu_scambi', nome:'Scambi turni SCU', area:'Servizio Civile', ripristina:false,
+  { key:'_scu_scambi', nome:'Scambi turni SCU', area:'Servizio Civile', ripristina:true,
     conta:function(d){ return _arcN(d.richieste) + ' richieste'; } },
   { key:'_scu_firme', nome:'Firme volontari SCU', area:'Servizio Civile', ripristina:false,
     conta:function(d){ return _arcN(d.firme) + ' firme'; } }
@@ -81138,13 +81138,13 @@ async function scdpSalva(){
       conta:function(d){ return n(d.eventi) + ' impegni'; } },
     { key:'_ist_credenziali', nome:'Credenziali portali scuola (ARGO, Classroom)', area:'Istituto', ripristina:true,
       conta:function(d){ return Object.keys(d.cred || {}).length + ' ragazzi'; } },
-    { key:'_ist_presenze_invii', nome:'Invii presenze ai comuni', area:'Istituto', ripristina:false,
+    { key:'_ist_presenze_invii', nome:'Invii presenze ai comuni', area:'Istituto', ripristina:true,
       conta:function(d){ return Object.keys(d.mesi || {}).length + ' invii segnati'; } },
     { key:'_scu_turni_tipo', nome:'Turni tipo SCU', area:'Servizio Civile', ripristina:true,
       conta:function(d){ return L(d.tipi) + ' turni tipo'; } },
     { key:'_scu_regole_turni', nome:'Regole di copertura turni SCU', area:'Servizio Civile', ripristina:true,
       conta:function(d){ return L(d.regole) + ' regole'; } },
-    { key:'_scu_storico_orari', nome:'Storico modifiche orari SCU', area:'Servizio Civile', ripristina:false,
+    { key:'_scu_storico_orari', nome:'Storico modifiche orari SCU', area:'Servizio Civile', ripristina:true,
       conta:function(d){ return L(d.voci) + ' modifiche'; } }
   ].forEach(function(a){ if(!ARCHIVI_AREE.some(function(x){ return x.key === a.key; })) ARCHIVI_AREE.push(a); });
   // l'archivio SCU non è più una "copia ombra": dalla Fase 2 è la memoria del Servizio Civile
@@ -92296,5 +92296,190 @@ table.orx td.sab .orx-s .o{font-size:12px}
   #portale-animatore .x-big.ore{ font-size:22px !important; white-space:nowrap }
 }
 </style>
+<script id="backup-educatori-deleghe-2026-11">
+/* (novembre 2026) Educatori e Deleghe entrano nei backup (copie giornaliere, "Scarica tutto", ripristino da file) */
+(function(){
+  if(typeof ARCHIVI_AREE === 'undefined') return;
+  var n = function(o){ return Object.keys(o || {}).filter(function(k){ return o[k] && !o[k]._del && !o[k]._eliminato; }).length; };
+  [{ key:'_ist_educatori', nome:'Educatori (anagrafica e documenti)', area:'Istituto', ripristina:true, conta:function(d){ return n(d.educatori) + ' educatori'; } },
+   { key:'_ist_deleghe', nome:'Deleghe (modelli e deleghe compilate)', area:'Istituto', ripristina:true, conta:function(d){ return n(d.modelli) + ' modelli · ' + n(d.deleghe) + ' deleghe'; } }
+  ].forEach(function(a){ if(!ARCHIVI_AREE.some(function(x){ return x.key === a.key; })) ARCHIVI_AREE.push(a); });
+})();
+</script>
+<script id="frasi-richiudibili-2026-11">
+/* (novembre 2026) Impostazioni › Frasi del giorno: la lista è chiusa finché non la apri */
+(function(){
+  var aperta = false;
+  function conta(box){ var t = (box.firstElementChild && box.firstElementChild.textContent) || ''; var m = t.match(/(\d+) frasi attive su (\d+)/); return m ? m[1] + ' attive su ' + m[2] : ''; }
+  function sistema(){
+    var box = document.getElementById('frasi-box'); if(!box || !box.parentNode) return;
+    var bar = document.getElementById('frasi-apri');
+    if(!bar){
+      bar = document.createElement('div'); bar.id = 'frasi-apri';
+      bar.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap';
+      bar.innerHTML = '<button type="button" class="btn btn-outline btn-sm" id="frasi-apri-b"></button><span id="frasi-apri-n" style="font-size:12px;color:var(--text-muted)"></span>';
+      box.parentNode.insertBefore(bar, box);
+      bar.querySelector('#frasi-apri-b').onclick = function(){
+        aperta = !aperta; sistema();
+        if(aperta && typeof window.frasiRender === 'function'){ window.frasiRender(); setTimeout(sistema, 400); }
+      };
+    }
+    box.style.display = aperta ? '' : 'none';
+    bar.style.marginBottom = aperta ? '10px' : '0';
+    var n = conta(box); if(n) bar.dataset.n = n;
+    bar.querySelector('#frasi-apri-b').textContent = aperta ? '▾ Nascondi le frasi' : '▸ Mostra le frasi';
+    bar.querySelector('#frasi-apri-n').textContent = aperta ? '' : (bar.dataset.n || '');
+  }
+  setInterval(sistema, 700);
+})();
+</script>
+<style id="scheda-sanita-2026-11-css">
+/* ═══ Scheda del ragazzo › Sanità: nuova impaginazione (novembre 2026) — solo grafica, stesse funzioni ═══ */
+.isx{ font-size:14px }
+.isx-stato{ display:flex; gap:6px; flex-wrap:wrap; margin:2px 0 14px }
+.isx-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:18px }
+.isx-c{ background:var(--bg,#f4f6fa); border-radius:12px; padding:10px 12px; min-width:0 }
+.isx-c.lungo{ grid-column:1 / -1 }
+.isx-l{ font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-muted,#64748b); margin-bottom:3px }
+.isx-v1{ font-size:15px; font-weight:750; color:var(--text,#0f172a); overflow-wrap:anywhere }
+.isx-v2{ font-size:12.5px; color:var(--text-muted,#64748b); margin-top:2px }
+.isx-v2.rosso{ color:#b91c1c; font-weight:700 } .isx-v2.giallo{ color:#b45309; font-weight:700 }
+.isx-vuoto{ font-size:14px; color:var(--text-muted,#94a3b8); font-weight:600 }
+.isx-con{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px }
+.isx-con a, .isx-con span{ display:inline-flex; align-items:center; gap:5px; background:var(--card,#fff); border:1px solid var(--border,#e2e8f0); border-radius:999px; padding:4px 10px; font-size:12.5px; font-weight:650; color:var(--text,#0f172a); text-decoration:none; max-width:100% }
+.isx-con a:hover{ border-color:var(--teal,#1f4580) }
+.isx-c details{ margin-top:8px; font-size:12.5px } .isx-c summary{ cursor:pointer; color:var(--teal,#1f4580); font-weight:700; list-style:none } .isx-c summary::-webkit-details-marker{ display:none }
+.isx-c details div{ white-space:pre-wrap; margin-top:4px; color:var(--text,#0f172a) }
+.isx-h{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 8px }
+.isx-h h4{ margin:0; font-size:12px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted,#64748b) }
+.isx-g{ font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-muted,#94a3b8); margin:12px 0 4px }
+.isx-g.giallo{ color:#b45309 }
+.isx-vis{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--border,#e2e8f0) }
+.isx-vis:first-of-type{ border-top:0 }
+.isx-d{ flex-shrink:0; width:52px; text-align:center; border-radius:12px; padding:5px 0 6px; background:#eaf0ff; color:#1f4580; line-height:1.1 }
+.isx-d small{ display:block; font-size:10px; font-weight:800; text-transform:uppercase; opacity:.75 }
+.isx-d b{ display:block; font-size:20px; font-weight:850 }
+.isx-d i{ display:block; font-style:normal; font-size:11px; font-weight:750; margin-top:2px }
+.isx-vis.passata .isx-d{ background:#fff4e5; color:#b45309 }
+.isx-vis.fatta .isx-d{ background:#e9f8ef; color:#15803d }
+.isx-vt{ flex:1; min-width:0 }
+.isx-vt .t{ font-weight:750; font-size:14.5px; color:var(--text,#0f172a); overflow-wrap:anywhere }
+.isx-vt .s{ font-size:12.5px; margin-top:2px; overflow-wrap:anywhere } .isx-vt .p{ font-size:12px; color:var(--text-muted,#64748b); margin-top:1px; overflow-wrap:anywhere }
+.isx-vt .w{ font-size:12px; color:#b45309; font-weight:700; margin-top:3px } .isx-vt .e{ font-size:12px; white-space:pre-wrap; margin-top:3px }
+.isx-va{ display:flex; gap:4px; flex-shrink:0; align-items:center }
+.isx-va .btn{ min-height:34px !important; padding:5px 10px !important }
+.isx-piu{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px }
+.isx-fatte summary{ cursor:pointer; font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-muted,#94a3b8); margin:12px 0 4px; list-style:none }
+.isx-fatte summary::-webkit-details-marker{ display:none }
+.isx-doc > .imz-sez:first-child{ display:none !important }
+.isx-doc > div{ padding:8px 0 !important }
+.isx-doc .btn{ min-height:32px !important; padding:4px 10px !important }
+.isx-nota{ background:var(--bg,#f4f6fa); border-radius:12px; padding:10px 12px; white-space:pre-wrap; font-size:13px }
+.isx-sez{ margin-top:20px }
+@media (max-width:330px){ .isx-grid{ grid-template-columns:1fr } }
+@media (max-width:560px){
+  .isx-c{ padding:9px 10px }
+  .isx-vis{ flex-wrap:wrap }
+  .isx-va{ width:100%; padding-left:64px }
+}
+</style>
+<script id="scheda-sanita-2026-11-js">
+/* ═══ Scheda del ragazzo › Sanità: nuova impaginazione (novembre 2026)
+   Riepilogo a riquadri (medico con contatti, libretto, esenzione, allergie, Legge 104), visite con la data in evidenza
+   e raggruppate (in programma / da confermare / fatte), documenti compatti. Usa le stesse funzioni di prima per ogni pulsante. */
+(function(){
+  if(typeof window.iosScheda !== 'function' || typeof _isaScheda !== 'function') return;
+  var E = function(t){ return (typeof _imzE === 'function') ? _imzE(t) : String(t == null ? '' : t); };
+  var MESI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'], GG = ['dom','lun','mar','mer','gio','ven','sab'];
+  function scad(iso, testo){
+    if(!iso) return '';
+    var g = (typeof _imzGG === 'function') ? _imzGG(iso) : null, cl = g != null && g < 0 ? ' rosso' : (g != null && g <= 30 ? ' giallo' : '');
+    return '<div class="isx-v2' + cl + '">' + (g != null && g < 0 ? '⚠️ ' + testo + ' scaduto il ' : (cl ? '⏳ ' + testo + ' scade il ' : testo + ' fino al ')) + _imzFmt(iso) + '</div>';
+  }
+  function card(lab, corpo, lungo){ return '<div class="isx-c' + (lungo ? ' lungo' : '') + '"><div class="isx-l">' + lab + '</div>' + corpo + '</div>'; }
+  function medico(s){
+    if(!s.medico) return card('Medico di base', '<div class="isx-vuoto">Da indicare</div>', true);
+    var i = ((((_IOS.sdoc && _IOS.sdoc.liste) || {}).mediciInfo) || {})[s.medico] || {};
+    var tel = function(v, ico){ return v ? '<a href="tel:' + E(String(v).replace(/[^\d+]/g, '')) + '">' + ico + ' ' + E(v) + '</a>' : ''; };
+    var con = [tel(i.tel, '📞'), tel(i.cell, '📱'), i.email ? '<a href="mailto:' + E(i.email) + '">✉️ ' + E(i.email) + '</a>' : '', i.studio ? '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(i.studio) + '" target="_blank" rel="noopener">📍 ' + E(i.studio) + '</a>' : ''].filter(Boolean).join('');
+    return card('Medico di base', '<div class="isx-v1">' + E(s.medico) + '</div>' + (con ? '<div class="isx-con">' + con + '</div>' : '')
+      + (i.orari ? '<details><summary>🕘 Orari dello studio</summary><div>' + E(i.orari) + '</div></details>' : '') + (i.note ? '<div class="isx-v2" style="white-space:pre-wrap;margin-top:6px">📝 ' + E(i.note) + '</div>' : ''), true);
+  }
+  function l104(s){
+    if(s.l104 === 'Sì') return '<div class="isx-v1">' + E(s.l104Tipo || 'Riconosciuta') + '</div>' + (s.l104Data ? '<div class="isx-v2">verbale del ' + _imzFmt(s.l104Data) + '</div>' : '')
+      + (s.l104Rev === 'Con revisione' ? (s.l104Scad ? scad(s.l104Scad, 'revisione').replace('fino al', 'il') : '<div class="isx-v2 giallo">revisione da indicare</div>') : (s.l104Rev ? '<div class="isx-v2">' + E(s.l104Rev) + '</div>' : ''))
+      + (s.l104Note ? '<div class="isx-v2" style="white-space:pre-wrap">' + E(s.l104Note) + '</div>' : '');
+    if(s.l104 === 'No') return '<div class="isx-v1">Non riconosciuta</div>';
+    return '<div class="isx-vuoto">Da indicare</div>';
+  }
+  function titoloPulito(t, o){
+    t = String(t || ''); var n = (typeof _iosNome === 'function') ? _iosNome(o) : '';
+    if(n){ var re = new RegExp('\\s*[·\\-–]\\s*' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$', 'i'); t = t.replace(re, ''); }
+    return t;
+  }
+  function visita(v, stato, o, edit){
+    var d = new Date(v.ds + 'T12:00:00'), id = o.id, ev = v.e.id;
+    var bott = !edit ? '' : (stato === 'fatta'
+      ? '<button type="button" class="btn btn-outline btn-sm" title="Segna come non fatta" onclick="_ISA_V=0;isaVisitaFatta(\'' + ev + '\',\'' + v.ds + '\',\'' + id + '\',true)">↺</button>'
+      : '<button type="button" class="btn btn-teal btn-sm" onclick="_ISA_V=0;isaVisitaFatta(\'' + ev + '\',\'' + v.ds + '\',\'' + id + '\')">✓ Fatta</button>')
+      + '<button type="button" class="btn btn-outline btn-sm" title="Modifica nel calendario" onclick="_ISA_V=0;isaVisitaModifica(\'' + ev + '\',\'' + id + '\')">✏️</button>';
+    if(typeof window.dlNuova === 'function' && _iosOk('ist_sanita') && stato !== 'fatta') bott += '<button type="button" class="btn btn-outline btn-sm" title="Crea la delega per questa visita" onclick="dlNuova({ev:\'' + ev + '\',oid:\'' + id + '\'})">📄</button>';
+    return '<div class="isx-vis ' + stato + '"><div class="isx-d"><small>' + GG[d.getDay()] + '</small><b>' + d.getDate() + '</b><small>' + MESI[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? ' ' + String(d.getFullYear()).slice(2) : '') + '</small>' + (v.ora ? '<i>' + E(v.ora) + '</i>' : '') + '</div>'
+      + '<div class="isx-vt"><div class="t">' + E(titoloPulito(v.titolo, o) || 'Visita') + '</div>'
+      + (v.e.specialistica ? '<div class="s">🩺 ' + E(v.e.specialistica) + '</div>' : '')
+      + (v.e.luogo || v.e.chi ? '<div class="p">' + (v.e.luogo ? '📍 ' + E(v.e.luogo) : '') + (v.e.luogo && v.e.chi ? ' · ' : '') + (v.e.chi ? '👤 accompagna ' + E(v.e.chi) : '') + '</div>' : '')
+      + (stato === 'passata' ? '<div class="w">È passata: è stata fatta?</div>' : '') + (v.esito ? '<div class="e">📝 ' + E(v.esito) + '</div>' : '') + '</div>'
+      + (bott ? '<div class="isx-va">' + bott + '</div>' : '') + '</div>';
+  }
+  function visite(o){
+    var edit = _iosOk('ist_sanita_edit'), id = o.id;
+    var h = '<div class="isx-h"><h4>Visite</h4>' + (edit ? '<button type="button" class="btn btn-teal btn-sm" onclick="_ISA_V=0;isaVisitaNuova(\'' + id + '\')">➕ Programma visita</button>' : '') + '</div>';
+    if(!(window._ICAL && _ICAL.doc)){
+      if(typeof istCalCarica === 'function') istCalCarica().then(function(){ if(document.getElementById('isx-' + id)) iosScheda(id, 'sanita'); }).catch(function(){});
+      return h + '<div class="isx-vuoto" style="font-size:13px">Carico le visite dal calendario…</div>';
+    }
+    var l = _isaVisiteDi(id), oggi = _icOggi();
+    var prog = l.filter(function(v){ return !v.fatta && v.ds >= oggi; }), sosp = l.filter(function(v){ return !v.fatta && v.ds < oggi; }), fatte = l.filter(function(v){ return v.fatta; }).reverse();
+    if(!l.length) h += '<div class="isx-vuoto" style="font-size:13px">Nessuna visita. Quelle che programmi compaiono anche nel calendario.</div>';
+    if(sosp.length) h += '<div class="isx-g giallo">Da confermare</div>' + sosp.map(function(v){ return visita(v, 'passata', o, edit); }).join('');
+    if(prog.length) h += (sosp.length ? '<div class="isx-g">In programma</div>' : '') + prog.map(function(v){ return visita(v, 'programmata', o, edit); }).join('');
+    if(fatte.length) h += '<details class="isx-fatte"' + (!prog.length && !sosp.length ? ' open' : '') + '><summary>▸ Fatte (' + fatte.length + ')</summary>' + fatte.slice(0, 10).map(function(v){ return visita(v, 'fatta', o, edit); }).join('') + '</details>';
+    var piu = (l.length && typeof window.isaStorico === 'function' ? '<button type="button" class="btn btn-outline btn-sm" onclick="isaStorico(\'' + id + '\',\'scheda\')">📚 Storico completo (' + l.length + ')</button>' : '')
+      + (typeof window.mdlPrepara === 'function' && _isaEdit() && !o.semi ? '<button type="button" class="btn btn-outline btn-sm" onclick="mdlPrepara(\'medico\',\'' + id + '\')">📄 Prepara un modulo</button>' : '');
+    return h + (piu ? '<div class="isx-piu">' + piu + '</div>' : '');
+  }
+  function corpo(o){
+    var s = _isaScheda(o.id) || {}, st = _isaStato(o);
+    var avv = st.scadute.map(function(x){ return '<span class="ios-b imz-rosso">⚠️ ' + E(x) + ' scaduto</span>'; }).join('')
+      + st.entro30.map(function(x){ return '<span class="ios-b imz-giallo">⏳ ' + E(x) + ' in scadenza</span>'; }).join('')
+      + (st.mancanti.length ? '<span class="ios-b ios-grigio">Da completare: ' + E(st.mancanti.join(', ')) + '</span>' : '');
+    var h = '<div class="isx" id="isx-' + E(o.id) + '"><div class="isx-stato">' + (avv || '<span class="ios-b imz-verde">✓ Tutto in regola</span>') + '</div><div class="isx-grid">'
+      + medico(s)
+      + card('Libretto sanitario', s.libretto ? '<div class="isx-v1">' + E(s.libretto) + '</div>' + (s.libretto === 'A scadenza' ? scad(s.scadLibretto, 'valido') : '') : '<div class="isx-vuoto">Da indicare</div>')
+      + card('Esenzione', s.esenzione ? '<div class="isx-v1">' + E(s.esenzione) + '</div>' + (s.validitaEsenz === 'A scadenza' ? scad(s.scadEsenz, 'valida') : (s.validitaEsenz ? '<div class="isx-v2">' + E(s.validitaEsenz) + '</div>' : '<div class="isx-v2 giallo">validità da indicare</div>')) : '<div class="isx-vuoto">Nessuna</div>')
+      + card('Allergie / intolleranze', s.allergie ? '<div class="isx-v1" style="color:#b91c1c">' + E(s.allergie) + '</div>' : '<div class="isx-vuoto">Nessuna indicata</div>')
+      + card('Legge 104', l104(s))
+      + '</div><div class="isx-sez" style="margin-top:4px">' + visite(o) + '</div>'
+      + (typeof _isaDocHtml === 'function' ? '<div class="isx-sez"><div class="isx-h"><h4>Documenti</h4></div><div class="isx-doc">' + _isaDocHtml(o) + '</div></div>' : '')
+      + (s.note ? '<div class="isx-sez"><div class="isx-h"><h4>Note sanitarie</h4></div><div class="isx-nota">' + E(s.note) + '</div></div>' : '')
+      + '</div>';
+    return h;
+  }
+  var oS = window.iosScheda;
+  var fS = function(id, sez){
+    var r = oS.apply(this, arguments);
+    if(sez !== 'sanita') return r;
+    try{
+      var o = _IOS.doc && _IOS.doc.ospiti[id], mb = document.querySelector('.imz-modal .imz-mb'), tb = mb && mb.querySelector('.imz-tabs');
+      if(o && mb && tb){
+        while(tb.nextSibling) tb.parentNode.removeChild(tb.nextSibling);
+        tb.insertAdjacentHTML('afterend', corpo(o));
+      }
+    }catch(e){ console.warn('[scheda sanità]', e); }
+    return r;
+  };
+  window.iosScheda = iosScheda = fS;
+})();
+</script>
 </body>
 </html>
