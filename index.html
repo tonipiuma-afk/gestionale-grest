@@ -9390,7 +9390,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 07/11/2026 09:50</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57464,7 +57464,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 07/11/2026 09:50 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92270,5 +92270,31 @@ table.orx td.sab .orx-s .o{font-size:12px}
   }, true);
 })();
 </script>
+<style id="ritocchi-mobile-2026-11">
+/* ═══ Ritocchi grafici per telefono (novembre 2026) — solo grafica ═══ */
+/* 2. iPhone: i campi con testo sotto i 16px fanno zoomare la pagina al tocco */
+@media (max-width:768px){
+  #portale-animatore:not(.z1):not(.z2):not(.z3) #pa-pres-data,
+  #portale-animatore:not(.z1):not(.z2):not(.z3) .pa-tab-panel input[type="date"],
+  #portale-genitore:not(.z1):not(.z2):not(.z3) input[type="date"]{ font-size:16px !important }
+}
+/* 3. Portale animatori › Mensa: giorni del calendario più facili da toccare */
+@media (max-width:768px){
+  #pa-cal-grid > div[onclick]{ min-height:38px !important; display:flex !important; align-items:center; justify-content:center }
+}
+/* schermi stretti (Fold chiuso, telefoni piccoli) */
+@media (max-width:380px){
+  /* 1. Portale famiglie: linguette in alto meno strette */
+  .pgx-seg{ gap:0 }
+  .pgx-seg button{ font-size:12.5px !important; padding:8px 2px !important; letter-spacing:-.1px; min-width:0; overflow:hidden; text-overflow:ellipsis }
+  /* 4. scheda QR del profilo famiglie: pulsanti in colonna ordinata */
+  .pgx-qr{ gap:10px }
+  .pgx-qr .cod{ width:64px; height:64px }
+  .pgx-qr .bt{ display:flex; flex-wrap:wrap; gap:6px }
+  .pgx-qr .bt button{ white-space:nowrap }
+  /* 4. portale Servizio Civile: l'orario del turno resta su una riga */
+  #portale-animatore .x-big.ore{ font-size:22px !important; white-space:nowrap }
+}
+</style>
 </body>
 </html>
