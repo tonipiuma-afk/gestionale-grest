@@ -9390,7 +9390,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 07/11/2026 11:12</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -14449,10 +14449,8 @@ table tbody tr:hover{
     </div>
     <div id="utenti-list"></div>
   </div>
-  <div class="card" style="background:var(--warning-light);border:2px solid var(--warning)">
-    <div style="font-size:13px;font-weight:700;color:#e65100;">
-      ⚠️ <strong>Nota sulla sicurezza:</strong> Questo sistema protegge da accessi accidentali. Le password sono salvate nel database locale. Non condividere le credenziali Admin.
-    </div>
+  <div style="font-size:12.5px;color:var(--text-muted);padding:4px 2px 0">
+    🔒 Le password le controlla il NAS e non vengono mai mostrate: ogni dispositivo entra con un pass personale. Non condividere le credenziali di amministratore.
   </div>
 </div>
 
@@ -18550,7 +18548,7 @@ function renderIstHome(){
   }
   h += '</div></div>';
   if(typeof AREA_RUOLI_TUTTO !== 'undefined' && AREA_RUOLI_TUTTO.indexOf((_areaUtente()||{}).ruolo) >= 0)
-    h += '<div style="margin-top:16px;text-align:right"><button type="button" class="btn btn-outline btn-sm" onclick="istBackup()">💾 Scarica backup dati Istituto</button></div>';
+    h += '<div style="margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--text-muted)"><button type="button" class="btn btn-outline btn-sm" onclick="istBackup()">💾 Scarica backup</button><span>copie e ripristino in Impostazioni › Archivi</span></div>';
   b.innerHTML = h;
 }
 /* Backup manuale: scarica sul PC una copia di ospiti, sanità e mezzi (file JSON) */
@@ -57464,7 +57462,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 07/11/2026 11:12 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -73630,6 +73628,7 @@ html[data-pi-tema="scuro"] .tt-distr{color:#fdba74}
     var pt = view ? view.querySelector('.page-title') : null;
     var tit = TITOLI[v] || (pt ? cap(pt.textContent) : '') || 'Gestionale';
     var sub = AREA_NOME[window._AREA] || 'Gestionale San Giuseppe';
+    if(/^(hub|impostazioni|impostazioni-utenti|diagnostica|audit-log|access-log)$/.test(v)) sub = 'Gestionale San Giuseppe';   // pagine generali: nessuna area
     if(v === 'servizio-civile'){
       var t = SCU_TAB[document.body.getAttribute('data-scutab') || window._scuTab || 'operatori']; if(t) tit = t;
       try{ sub = 'Servizio Civile ' + SCU_PROGRAMMI[scuProgCorrente()].nome; }catch(e){ sub = 'Servizio Civile'; }
@@ -92479,6 +92478,66 @@ table.orx td.sab .orx-s .o{font-size:12px}
     return r;
   };
   window.iosScheda = iosScheda = fS;
+})();
+</script>
+<style id="linguette-scorrevoli-2026-11-css">
+/* (novembre 2026) linguette delle schede su schermi stretti: sfumatura ai lati quando ce ne sono altre da scorrere */
+.imz-tabs.tb-dx{ -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent) }
+.imz-tabs.tb-sx{ -webkit-mask-image:linear-gradient(to left,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to left,#000 calc(100% - 36px),transparent) }
+.imz-tabs.tb-sx.tb-dx{ -webkit-mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent) }
+.imz-tabs > .imz-tab{ flex-shrink:0 }
+</style>
+<script id="linguette-scorrevoli-2026-11-js">
+/* (novembre 2026) quando si apre una scheda con le linguette: quella aperta viene portata in vista
+   e ai lati compare una sfumatura se ce ne sono altre da scorrere */
+(function(){
+  function bordi(t){ var dx = t.scrollWidth - t.clientWidth - t.scrollLeft > 4, sx = t.scrollLeft > 4; t.classList.toggle('tb-dx', dx); t.classList.toggle('tb-sx', sx); }
+  function sistema(t){
+    if(!t || t._tb) { if(t) bordi(t); return; }
+    t._tb = true;
+    t.addEventListener('scroll', function(){ bordi(t); }, { passive:true });
+    var on = t.querySelector('.imz-tab.on');
+    if(on && t.scrollWidth > t.clientWidth){
+      var x = on.offsetLeft - (t.clientWidth - on.offsetWidth) / 2;
+      t.scrollLeft = Math.max(0, Math.min(x, t.scrollWidth - t.clientWidth));
+    }
+    bordi(t);
+  }
+  function giro(){ document.querySelectorAll('.imz-tabs').forEach(sistema); }
+  new MutationObserver(function(){ requestAnimationFrame(giro); }).observe(document.body, { childList:true, subtree:true });
+  window.addEventListener('resize', function(){ document.querySelectorAll('.imz-tabs').forEach(bordi); });
+})();
+</script>
+<style id="ritocchi-grafici-2026-11b">
+@media (max-width:768px){
+  .tb-scorri{ flex-wrap:nowrap !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch; scrollbar-width:none }
+  .tb-scorri::-webkit-scrollbar{ display:none }
+  .tb-scorri > .imp-tab-btn{ flex:0 0 auto !important; min-width:0 !important; white-space:nowrap }
+  .tb-scorri.tb-dx{ -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent) }
+  .tb-scorri.tb-sx{ -webkit-mask-image:linear-gradient(to left,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to left,#000 calc(100% - 36px),transparent) }
+  .tb-scorri.tb-sx.tb-dx{ -webkit-mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent) }
+}
+</style>
+<script id="ritocchi-grafici-2026-11b-js">
+(function(){
+  /* Impostazioni: linguette che scorrono su telefono, con quella aperta in vista */
+  function bordi(t){ t.classList.toggle('tb-dx', t.scrollWidth - t.clientWidth - t.scrollLeft > 4); t.classList.toggle('tb-sx', t.scrollLeft > 4); }
+  function linguette(){
+    var a = document.getElementById('tab-aspetto'), t = a && a.parentElement; if(!t) return;
+    if(!t.classList.contains('tb-scorri')){ t.classList.add('tb-scorri'); t.addEventListener('scroll', function(){ bordi(t); }, { passive:true }); }
+    var on = t.querySelector('.imp-tab-btn.active');
+    if(on && on !== t._on && t.scrollWidth > t.clientWidth){ t._on = on; t.scrollLeft = Math.max(0, on.offsetLeft - (t.clientWidth - on.offsetWidth) / 2); }
+    bordi(t);
+  }
+  setInterval(linguette, 800);
+  /* Meteo: se non è mai stata scelta una città, parte da San Giovanni la Punta */
+  setTimeout(function(){
+    try{
+      if(localStorage.getItem('meteo_city')) return;
+      var inp = document.getElementById('meteo-city-input'); if(!inp || typeof cercaMeteo !== 'function') return;
+      inp.value = 'San Giovanni la Punta'; cercaMeteo();
+    }catch(e){}
+  }, 4000);
 })();
 </script>
 </body>
