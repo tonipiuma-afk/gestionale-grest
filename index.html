@@ -8490,7 +8490,8 @@ img:not([loading]) { loading: lazy; }
   button, .btn, a.btn, input[type="button"], input[type="submit"]{
     min-height:44px;
   }
-  *:hover{ transform:none !important; }
+  /* (nov 2026) esclusi i pannelli che si chiudono scorrendo fuori schermo: su telefono restavano "sotto il dito" e non si chiudevano */
+  *:hover:not(#orx-pan):not(#orp-bar):not(#bc-box):not(.pg-altro-sheet):not(#header):not(#mobile-nav):not(#hd-stato){ transform:none !important; }
   .card:hover{ transform:none !important; box-shadow:0 4px 16px rgba(0,0,0,0.08) !important; }
   *{ -webkit-tap-highlight-color:rgba(0,0,0,0); }
 }
@@ -9389,7 +9390,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 06/11/2026 11:34</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57463,7 +57464,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 06/11/2026 11:34 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92222,5 +92223,52 @@ table.orx td.sab .orx-s .o{font-size:12px}
 })();
 </script>
 
+<style id="fix-finestre-2026-11-css">
+/* finestra del giorno (Orari › Mese): le due caselle dell'orario stanno dentro lo schermo */
+#sc-cella-editor input[type="time"]{ min-width:0; width:0 }
+</style>
+<script id="fix-finestre-2026-11-js">
+/* ═══ CORREZIONI FINESTRE (novembre 2026) ═══
+   1. Orari › Mese, finestra del giorno: su Android il tocco prolungato apriva DUE finestre uguali
+      (tocco lungo + menu del tasto destro) e Salva leggeva quella sotto → non salvava e restava aperta.
+      Ora: una sola finestra; lo stesso tocco che la apre non la richiude.
+   2. Da computer: selezionando un testo dentro una finestra e rilasciando il mouse fuori, la finestra si chiudeva.
+      Ora un clic sullo sfondo chiude solo se è iniziato anche lui sullo sfondo. Vale per tutte le finestre. */
+(function(){
+  /* ── 1 ── */
+  var oE = window.scApriEditorCella;
+  if(typeof oE === 'function' && !oE._fx){
+    var ult = { k:'', t:0 };
+    var fE = function(opId, ds){
+      var k = opId + '|' + ds, t = Date.now(), aperte = document.querySelectorAll('#sc-cella-editor');
+      if(aperte.length && ult.k === k && t - ult.t < 1500) return;          // doppio comando dello stesso tocco
+      aperte.forEach(function(x){ x.remove(); });
+      ult = { k:k, t:t };
+      var r = oE.apply(this, arguments);
+      var ov = document.getElementById('sc-cella-editor');
+      if(ov){ var t0 = Date.now(); ov.onclick = function(e){ if(e.target === ov && Date.now() - t0 > 600) ov.remove(); }; }
+      return r;
+    };
+    fE._fx = true; window.scApriEditorCella = scApriEditorCella = fE;
+  }
+  ['scEdSalva', 'scEdCancella'].forEach(function(n){
+    var o = window[n]; if(typeof o !== 'function' || o._fx) return;
+    var f = function(){ var r = o.apply(this, arguments); document.querySelectorAll('#sc-cella-editor').forEach(function(x){ x.remove(); }); return r; };
+    f._fx = true; window[n] = f;
+    if(n === 'scEdSalva') scEdSalva = f; else scEdCancella = f;
+  });
+
+  /* ── 2 ── */
+  var giu = null;
+  document.addEventListener('mousedown', function(e){ giu = e.target; }, true);
+  document.addEventListener('click', function(e){
+    var t = e.target, d = giu; giu = null;
+    if(!d || d === t || !(t instanceof Element) || !(d instanceof Node) || !t.contains(d)) return;
+    var r = t.getBoundingClientRect();
+    // solo sugli sfondi grandi (le finestre): un pulsante con un'icona dentro non viene mai bloccato
+    if(r.width >= window.innerWidth * 0.6 && r.height >= window.innerHeight * 0.6){ e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
+})();
+</script>
 </body>
 </html>
