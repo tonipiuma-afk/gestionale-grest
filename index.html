@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 07/11/2026 12:51</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57455,7 +57455,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 07/11/2026 12:51 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92531,6 +92531,53 @@ table.orx td.sab .orx-s .o{font-size:12px}
       inp.value = 'San Giovanni la Punta'; cercaMeteo();
     }catch(e){}
   }, 4000);
+})();
+</script>
+<script id="scambi-approvati-settimana-2026-11">
+/* (novembre 2026) Servizio Civile › Orari: sotto i cambi da approvare, l'elenco dei cambi turno APPROVATI
+   che toccano la settimana che stai guardando (con chi li ha approvati e quando) */
+(function(){
+  if(typeof window.scScambiRiempi !== 'function') return;
+  var E = function(t){ return (typeof _ptxEsc === 'function') ? _ptxEsc(t) : String(t == null ? '' : t); };
+  function settimana(){
+    var off = 0; try{ off = (typeof _scSettOffset !== 'undefined') ? _scSettOffset : 0; }catch(e){}
+    var g = scGetSettimana(off), da = scDataLocale(g[0]), d7 = new Date(g[0]); d7.setDate(d7.getDate() + 6);
+    return { da:da, a:scDataLocale(d7) };
+  }
+  function riga(q){
+    var dentro = function(t){ return t ? _scTurnoTxt(t) : ''; };
+    var testo = q.tipo === 'sostituzione'
+      ? '<b>' + E(_scNomeOp(q.a)) + '</b> sostituisce <b>' + E(_scNomeOp(q.da)) + '</b>: ' + E(dentro(q.turnoDa))
+      : '<b>' + E(_scNomeOp(q.da)) + '</b> prende ' + E(dentro(q.turnoA)) + ' · <b>' + E(_scNomeOp(q.a)) + '</b> prende ' + E(dentro(q.turnoDa));
+    var st = (q.storico || []).filter(function(x){ return /approvat/i.test(x.azione || ''); }).pop();
+    var chi = st ? 'approvato da ' + E(st.chi || 'OLP') + ' il ' + new Date(st.ts).toLocaleDateString('it-IT', { day:'numeric', month:'short' }) + ' alle ' + new Date(st.ts).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }) : 'approvato';
+    return '<div style="background:#fff;border-radius:10px;padding:9px 12px;margin-top:6px;font-size:13px">' + testo
+      + (q.nota ? '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">“' + E(q.nota) + '”</div>' : '')
+      + '<div style="font-size:11.5px;color:#15803d;font-weight:700;margin-top:3px">✓ ' + chi + '</div></div>';
+  }
+  var oR = window.scScambiRiempi;
+  var fR = async function(){
+    var r = await oR.apply(this, arguments);
+    try{
+      var box = document.getElementById('sc-scambi-box'); if(!box) return r;
+      var vecchio = document.getElementById('sc-scambi-ok'); if(vecchio) vecchio.remove();
+      var d = (window._SCAMBI && _SCAMBI.doc) || null; if(!d || !d.richieste) return r;
+      var w = settimana(), inSett = function(t){ return t && t.ds >= w.da && t.ds <= w.a; };
+      var ok = Object.keys(d.richieste).map(function(k){ return d.richieste[k]; })
+        .filter(function(q){ return q && q.stato === 'approvato' && (inSett(q.turnoDa) || inSett(q.turnoA)); })
+        .sort(function(a, b){ return String((a.turnoDa || {}).ds).localeCompare(String((b.turnoDa || {}).ds)); });
+      var el = document.createElement('details'); el.id = 'sc-scambi-ok';
+      el.style.cssText = 'border:1.5px solid #bbf7d0;background:#f0fdf4;border-radius:14px;padding:10px 14px;margin-bottom:14px';
+      var aperto = false; try{ aperto = localStorage.getItem('sc_scambi_ok_aperto') === '1'; }catch(e){}
+      if(aperto) el.open = true;
+      el.innerHTML = '<summary style="cursor:pointer;font-weight:800;color:#166534;list-style:none">✅ Cambi turno approvati in questa settimana: ' + ok.length + '</summary>'
+        + (ok.length ? ok.map(riga).join('') : '<div style="font-size:12.5px;color:var(--text-muted);margin-top:6px">Nessun cambio turno approvato per questa settimana.</div>');
+      el.addEventListener('toggle', function(){ try{ localStorage.setItem('sc_scambi_ok_aperto', el.open ? '1' : '0'); }catch(e){} });
+      box.parentNode.insertBefore(el, box.nextSibling);
+    }catch(e){ console.warn('[scambi approvati]', e); }
+    return r;
+  };
+  window.scScambiRiempi = scScambiRiempi = fR;
 })();
 </script>
 </body>
