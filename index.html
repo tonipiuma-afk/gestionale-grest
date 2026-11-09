@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 08/11/2026 01:51</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57455,7 +57455,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 08/11/2026 01:51 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92578,6 +92578,73 @@ table.orx td.sab .orx-s .o{font-size:12px}
     return r;
   };
   window.scScambiRiempi = scScambiRiempi = fR;
+})();
+</script>
+<script id="mezzi-stampa-scadenze-2026-11">
+/* (novembre 2026) Istituto › Mezzi: pulsante "🖨️ Stampa scadenze" accanto a Excel.
+   Scegli il tipo (tutte, solo bolli, assicurazioni…) e il periodo; la sede è quella selezionata nel modulo. */
+(function(){
+  if(typeof _imzRender !== 'function' || typeof IMZ_SCAD === 'undefined') return;
+  var oR = window._imzRender;
+  var fR = function(){
+    var r = oR.apply(this, arguments);
+    try{
+      var ex = document.querySelector('button[onclick="imzEsporta()"]');
+      if(ex && !document.getElementById('imz-btn-stampa')){
+        var b = document.createElement('button'); b.type = 'button'; b.id = 'imz-btn-stampa'; b.className = 'btn btn-outline btn-sm';
+        b.textContent = '🖨️ Stampa scadenze'; b.onclick = function(){ imzStampaScadenze(); };
+        ex.parentNode.insertBefore(b, ex);
+      }
+    }catch(e){}
+    return r;
+  };
+  window._imzRender = _imzRender = fR;
+
+  window.imzStampaScadenze = function(){
+    var sel = function(id, op){ return '<select id="' + id + '" class="form-control">' + op.map(function(o){ return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select>'; };
+    var corpo = '<div class="imz-grid">'
+      + '<div class="imz-f"><label>Quali scadenze</label>' + sel('imzs-tipo', [['', 'Tutte']].concat(IMZ_SCAD.map(function(s){ return [s.k, s.ico + ' ' + s.nome]; }))) + '</div>'
+      + '<div class="imz-f"><label>Periodo</label>' + sel('imzs-per', [['tutte','Tutte le date'],['12','Prossimi 12 mesi (e scadute)'],['3','Prossimi 3 mesi (e scadute)'],['1','Prossimi 30 giorni (e scadute)'],['anno','Solo anno ' + new Date().getFullYear()],['scadute','Solo scadute']]) + '</div>'
+      + '<div class="imz-f pieno"><label class="ic-chk" data-no-sobrio style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="imzs-venduti"> Includi i mezzi venduti</label></div>'
+      + '<div class="imz-f pieno" style="font-size:12.5px;color:var(--text-muted)">Sede: ' + (_IMZ.sede && typeof _imzFiltroSede === 'function' && _imzFiltroSede() ? _imzE(IMZ_SEDI[_IMZ.sede] || _IMZ.sede) : 'tutte') + ' (quella scelta nel modulo)</div></div>';
+    _imzModal('🖨️ Stampa scadenze', corpo, '<button type="button" class="btn btn-gray" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal" onclick="_imzsStampa()">🖨️ Stampa</button>');
+    document.getElementById('imzs-tipo').value = 'bollo';
+  };
+  window._imzsStampa = function(){
+    var tipo = document.getElementById('imzs-tipo').value, per = document.getElementById('imzs-per').value, venduti = document.getElementById('imzs-venduti').checked;
+    var anno = String(new Date().getFullYear()), righe = [];
+    _imzMezzi().forEach(function(m){
+      if(!venduti && m.stato === 'Venduto') return;
+      _imzScadenzeMezzo(m).forEach(function(x){
+        if(tipo && x.k !== tipo) return;
+        if(per === 'scadute' && !(x.gg < 0)) return;
+        if(per === 'anno' && String(x.iso).slice(0, 4) !== anno) return;
+        if(/^\d+$/.test(per) && x.gg > ({ '12':366, '3':92, '1':30 })[per]) return;
+        var imp = x.k === 'bollo' ? (m.importoBollo ? '€ ' + m.importoBollo : '') : (x.k === 'assicurazione' ? [m.premio ? '€ ' + m.premio : '', m.compagnia || ''].filter(Boolean).join(' · ') : '');
+        righe.push({ x:x, m:m, imp:imp });
+      });
+    });
+    righe.sort(function(a, b){ return String(a.x.iso).localeCompare(String(b.x.iso)) || String(a.m.targa).localeCompare(String(b.m.targa)); });
+    var nomeTipo = tipo ? (IMZ_SCAD.filter(function(s){ return s.k === tipo; })[0] || {}).nome : 'Tutte le scadenze';
+    var perTxt = document.getElementById('imzs-per').selectedOptions[0].textContent;
+    var sede = (_IMZ.sede && typeof _imzFiltroSede === 'function' && _imzFiltroSede()) ? (IMZ_SEDI[_IMZ.sede] || _IMZ.sede) : 'Tutte le sedi';
+    var stato = function(gg){ return gg < 0 ? '<b style="color:#b91c1c">Scaduta da ' + (-gg) + ' gg</b>' : (gg === 0 ? '<b style="color:#b91c1c">Oggi</b>' : (gg <= 30 ? '<b style="color:#b45309">tra ' + gg + ' gg</b>' : 'tra ' + gg + ' gg')); };
+    var html = '<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Scadenze mezzi</title><style>'
+      + 'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:24px;font-size:12.5px}h1{font-size:19px;margin:0 0 4px}.sub{color:#555;margin-bottom:14px}'
+      + 'table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}th{background:#eef2f8;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}'
+      + 'tr:nth-child(even) td{background:#fafbfd}.vuoto{padding:20px;color:#666}.piede{margin-top:12px;color:#777;font-size:11px}@media print{body{margin:10mm}button{display:none}}'
+      + '</style></head><body><button onclick="window.print()" style="float:right;padding:8px 14px;font-size:13px">🖨️ Stampa</button>'
+      + '<h1>Scadenze mezzi — ' + _imzE(nomeTipo) + '</h1><div class="sub">Istituto San Giuseppe · ' + _imzE(sede) + ' · ' + _imzE(perTxt) + ' · stampato il ' + _imzFmt(_imzIso(new Date())) + '</div>'
+      + (righe.length ? '<table><thead><tr><th>Scadenza</th>' + (tipo ? '' : '<th>Tipo</th>') + '<th>Targa</th><th>Mezzo</th><th>Sede</th><th>Stato</th>' + (!tipo || tipo === 'bollo' || tipo === 'assicurazione' ? '<th>Importo / note</th>' : '') + '</tr></thead><tbody>'
+        + righe.map(function(r){ return '<tr><td><b>' + _imzFmt(r.x.iso) + '</b></td>' + (tipo ? '' : '<td>' + _imzE(r.x.nome) + '</td>') + '<td><b>' + _imzE(r.m.targa || '') + '</b></td><td>' + _imzE([r.m.modello, r.m.tipo].filter(Boolean).join(' · ')) + '</td><td>' + _imzE(IMZ_SEDI[r.m.sede || 'sgp'] || '') + '</td><td>' + stato(r.x.gg) + '</td>' + (!tipo || tipo === 'bollo' || tipo === 'assicurazione' ? '<td>' + _imzE(r.imp) + '</td>' : '') + '</tr>'; }).join('')
+        + '</tbody></table><div class="piede">' + righe.length + (righe.length === 1 ? ' scadenza' : ' scadenze') + '</div>'
+        : '<div class="vuoto">Nessuna scadenza con questi filtri.</div>')
+      + '<script>setTimeout(function(){ window.print(); }, 400);<\/script></body></html>';
+    var w = window.open('', '_blank');
+    if(!w){ showToast('Il browser ha bloccato la finestra di stampa: consenti i popup per il gestionale', 'warning'); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+    _imzChiudi();
+  };
 })();
 </script>
 </body>
