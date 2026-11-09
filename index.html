@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 09/11/2026 09:40</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -17194,7 +17194,7 @@ function imzTab(t){ _IMZ.tab = t; _imzRender(); }
 function _imzRender(){
   var root = document.getElementById('imz-root'); if(!root) return;
   var edit = _imzPuoModificare();
-  var tabs = [['cruscotto','📊 Cruscotto'],['mezzi','🚐 Mezzi'],['pratiche','📋 Pratiche'],['interventi','🔧 Interventi']];
+  var tabs = [['cruscotto','📊 Cruscotto'],['mezzi','🚐 Mezzi'],['pratiche','📋 Pratiche'],['interventi','🔧 Interventi'],['documenti','📁 Documenti']];
   _imzSedeUI();
   var h = '<div class="ist-seg">' + Object.keys(IMZ_SEDI).map(function(k){ return '<button type="button" class="'+(_IMZ.sede === k ? 'on' : '')+'" onclick="istMezziSede(\''+k+'\')">'+IMZ_SEDI[k]+'</button>'; }).join('') + '</div>'
     + '<div class="imz-top"><div class="imz-tabs">' + tabs.map(function(t){
@@ -17214,6 +17214,7 @@ function _imzRender(){
   } else if(_IMZ.tab === 'mezzi') h += _imzHtmlMezzi(edit);
   else if(_IMZ.tab === 'pratiche') h += _imzHtmlPratiche(edit);
   else if(_IMZ.tab === 'interventi') h += _imzHtmlInterventi(edit);
+  else if(_IMZ.tab === 'documenti' && typeof _imzHtmlDocumenti === 'function') h += _imzHtmlDocumenti(edit);
   else h += _imzHtmlCruscotto(edit);
   root.innerHTML = h;
   _imzStatoSync(_IMZ.coda.length ? 'attesa' : 'ok');
@@ -57455,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 09/11/2026 09:40 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92646,6 +92647,59 @@ table.orx td.sab .orx-s .o{font-size:12px}
     _imzChiudi();
   };
 })();
+</script>
+<style id="mezzi-documenti-tab-css">
+.imzx-fil{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:4px 0 14px }
+.imzx-fil button{ padding:6px 12px; border-radius:999px; background:var(--card,#fff); border:1.5px solid var(--border,#e2e8f0); font:inherit; font-size:13px; font-weight:650; cursor:pointer; color:var(--text,#334155) }
+.imzx-fil button.on{ background:#1f4580; border-color:#1f4580; color:#fff }
+.imzx-fil input{ margin-left:auto; max-width:220px }
+.imzx-m{ margin-bottom:12px; padding:12px 14px }
+.imzx-mh{ display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap }
+.imzx-mh b{ font-size:15px } .imzx-mh small{ color:var(--text-muted); font-size:12.5px }
+.imzx-d{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border,#eef2f7) }
+.imzx-d .ic{ font-size:20px; width:28px; text-align:center }
+.imzx-d .tx{ flex:1; min-width:0 } .imzx-d .tx b{ display:block; font-size:14px; overflow-wrap:anywhere } .imzx-d .tx small{ color:var(--text-muted); font-size:12px }
+.imzx-senza{ font-size:12.5px; color:var(--text-muted); margin-top:4px }
+@media (max-width:560px){ .imzx-fil input{ margin-left:0; max-width:none; width:100% } }
+</style>
+<script id="mezzi-documenti-tab-js">
+/* (novembre 2026) Istituto › Mezzi › 📁 Documenti: tutti i documenti caricati (libretti, bolli, assicurazioni, revisioni),
+   divisi per mezzo, con filtro per tipo e ricerca. Apri ed elimina usano le stesse funzioni della scheda del mezzo. */
+window._IMZDF = window._IMZDF || { tipo:'', cerca:'' };
+function imzDocFiltro(k, v){ _IMZDF[k] = v; _imzRender(); if(k === 'cerca'){ var i = document.getElementById('imzx-cerca'); if(i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } } }
+function _imzHtmlDocumenti(edit){
+  var TIPI = [['', 'Tutti'], ['libretto', 'Libretti'], ['bollo', 'Bolli'], ['assicurazione', 'Assicurazioni'], ['revisione', 'Revisioni'], ['altro', 'Altro']];
+  var ICO = { libretto:'📘', bollo:'💶', assicurazione:'🛡️', revisione:'🔧' };
+  var f = _IMZDF, q = String(f.cerca || '').toLowerCase().trim();
+  var noti = ['libretto', 'bollo', 'assicurazione', 'revisione'];
+  var mezzi = _imzMezzi(), conDoc = [], senza = [], tot = 0;
+  mezzi.forEach(function(m){
+    var docs = (m.documenti || []).filter(function(x){
+      if(f.tipo === 'altro' ? noti.indexOf(x.tipo) >= 0 : (f.tipo && x.tipo !== f.tipo)) return false;
+      if(q && (String(x.nome || '') + ' ' + (m.targa || '') + ' ' + (m.modello || '')).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort(function(a, b){ return String(b.data || '').localeCompare(String(a.data || '')); });
+    if(docs.length){ conDoc.push({ m:m, docs:docs }); tot += docs.length; }
+    else if(!(m.documenti || []).length && !q && !f.tipo) senza.push(m);
+  });
+  var h = '<div class="imzx-fil">' + TIPI.map(function(t){ return '<button type="button" class="' + (f.tipo === t[0] ? 'on' : '') + '" onclick="imzDocFiltro(\'tipo\',\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('')
+    + '<input id="imzx-cerca" class="form-control" placeholder="🔍 Cerca targa o nome file" value="' + _imzE(f.cerca || '') + '" oninput="clearTimeout(window._imzxT);var v=this.value;window._imzxT=setTimeout(function(){imzDocFiltro(\'cerca\',v)},350)"></div>';
+  if(!conDoc.length) h += '<div class="card" style="padding:22px;text-align:center;color:var(--text-muted);font-weight:650">' + (q || f.tipo ? 'Nessun documento con questi filtri.' : 'Nessun documento caricato.') + (edit && !q && !f.tipo ? '<div style="margin-top:10px"><button type="button" class="btn btn-teal btn-sm" onclick="imzDocCarica()">📄 Carica documento</button></div>' : '') + '</div>';
+  else h += '<div style="font-size:12.5px;color:var(--text-muted);margin-bottom:8px">' + tot + (tot === 1 ? ' documento' : ' documenti') + ' · ' + conDoc.length + (conDoc.length === 1 ? ' mezzo' : ' mezzi') + '</div>'
+    + conDoc.map(function(g){
+      var m = g.m;
+      return '<div class="card imzx-m"><div class="imzx-mh"><b>' + _imzE(m.targa || '') + '</b><small>' + _imzE([m.modello, m.tipo].filter(Boolean).join(' · ')) + (m.stato && m.stato !== 'Attivo' ? ' · ' + _imzE(m.stato) : '') + '</small>'
+        + (edit ? '<button type="button" class="btn btn-outline btn-sm" style="margin-left:auto" onclick="imzDocCarica(\'' + m.id + '\')">➕ Aggiungi</button>' : '') + '</div>'
+        + g.docs.map(function(x){
+          return '<div class="imzx-d"><span class="ic">' + (ICO[x.tipo] || (x.pdf || (x.file && !/^image\//.test(x.file.tipo || '')) ? '📄' : '🖼️')) + '</span>'
+            + '<div class="tx"><b>' + _imzE(x.nome || 'Documento') + '</b><small>' + _imzE((typeof IMZD_TIPI !== 'undefined' && IMZD_TIPI[x.tipo]) || 'Documento') + (x.data ? ' · caricato il ' + _imzFmt(String(x.data).slice(0, 10)) : '') + '</small></div>'
+            + '<button type="button" class="btn btn-outline btn-sm" onclick="imzDocApri(\'' + m.id + '\',\'' + x.id + '\')">Apri</button>'
+            + (edit ? '<button type="button" class="btn btn-outline btn-sm" title="Elimina" onclick="imzDocElimina(\'' + m.id + '\',\'' + x.id + '\')">🗑️</button>' : '') + '</div>';
+        }).join('') + '</div>';
+    }).join('');
+  if(senza.length) h += '<div class="imzx-senza">Senza documenti: ' + senza.map(function(m){ return edit ? '<a href="#" onclick="event.preventDefault();imzDocCarica(\'' + m.id + '\')">' + _imzE(m.targa) + '</a>' : _imzE(m.targa); }).join(', ') + '</div>';
+  return h;
+}
 </script>
 </body>
 </html>
