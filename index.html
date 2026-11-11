@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 09/11/2026 13:15</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -17892,7 +17892,7 @@ function iosScheda(id, sez){
       + (o.semi ? _isemAssenzeHtml(o.id) : '')
       + (o.note ? '<div class="imz-sez" style="display:block">Note</div><div style="white-space:pre-wrap;font-size:13px">'+_imzE(o.note)+'</div>' : '')
       + (o.link ? '<div style="margin-top:10px"><a href="'+_imzE(o.link)+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm">📁 Cartella documenti</a></div>' : '');
-    piede = (_iosOk('ist_ospiti_edit') ? '<button type="button" class="btn btn-teal btn-sm" onclick="iosForm(\''+id+'\')">✏️ Modifica anagrafica</button>' : '');
+    piede = (_iosOk('ist_ospiti_edit') ? '<button type="button" class="btn btn-teal btn-sm" onclick="iosForm(\''+id+'\')">✏️ Modifica<span class="tel-no"> anagrafica</span></button>' : '');
   } else {
     var s = _isaScheda(id) || {}, st = _isaStato(o);
     var avv = st.scadute.map(function(x){ return '<span class="ios-b imz-rosso">⚠️ '+_imzE(x)+' scaduto</span>'; }).join(' ')
@@ -38549,7 +38549,7 @@ function _alScu(){ const ids = {}, nomi = {};
   return { ids, nomi }; }
 function _alArricchisci(log){
   /* (nov 2026) account con lo stesso nome utente (es. uno vecchio eliminato): vince quello attivo, e tra gli attivi quello con la foto */
-  const utenti = {}; ((window.APP && APP.utenti) || []).forEach(u => { if(!u || !u.username) return; const k = String(u.username).toUpperCase(), p = utenti[k];
+  const utenti = {}; ((typeof APP !== 'undefined' && APP.utenti) || []).forEach(u => { if(!u || !u.username) return; const k = String(u.username).toUpperCase(), p = utenti[k];
     const voto = x => (x._eliminato ? 0 : 2) + (x.foto ? 1 : 0); if(!p || voto(u) > voto(p)) utenti[k] = u; });
   try{ const cu = AUTH.currentUser; if(cu && cu.username && cu.foto){ const k = String(cu.username).toUpperCase(); if(!utenti[k] || !utenti[k].foto) utenti[k] = Object.assign({}, utenti[k] || {}, { foto:cu.foto, nome:(utenti[k] && utenti[k].nome) || cu.nome, ruolo:(utenti[k] && utenti[k].ruolo) || cu.ruolo }); } }catch(_e){}
   const S = _alScu(), oggi = new Date(), ieri = new Date(Date.now() - 864e5);
@@ -42197,11 +42197,11 @@ function scApriDettaglioOp(opId){
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div style="background:#f1f4f8;border-radius:14px;padding:14px 10px;text-align:center">
-            <div style="font-size:clamp(20px,6.5vw,30px);font-weight:900;color:#1a3a6b;line-height:1.05;word-break:break-word">${scFmtOre(st.oreTot)}</div>
+            <div style="font-size:clamp(17px,5.3vw,30px);white-space:nowrap;font-weight:900;color:#1a3a6b;line-height:1.05;word-break:break-word">${scFmtOre(st.oreTot)}</div>
             <div style="font-size:10px;font-weight:900;color:#7a8f8d;text-transform:uppercase;letter-spacing:.8px;margin-top:6px">Ore svolte</div>
           </div>
           <div style="background:${st.pct>=100?'#e8f5e9':'#fff4f3'};border-radius:14px;padding:14px 10px;text-align:center">
-            <div style="font-size:clamp(20px,6.5vw,30px);font-weight:900;color:${st.pct>=100?'#2e7d32':'#e53935'};line-height:1.05;word-break:break-word">${st.pct>=100?'✅':scFmtOre(st.oreMancanti)}</div>
+            <div style="font-size:clamp(17px,5.3vw,30px);white-space:nowrap;font-weight:900;color:${st.pct>=100?'#2e7d32':'#e53935'};line-height:1.05;word-break:break-word">${st.pct>=100?'✅':scFmtOre(st.oreMancanti)}</div>
             <div style="font-size:10px;font-weight:900;color:#b09090;text-transform:uppercase;letter-spacing:.8px;margin-top:6px">${st.pct>=100?'Completato':'Ore mancanti'}</div>
           </div>
         </div>
@@ -42212,16 +42212,16 @@ function scApriDettaglioOp(opId){
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
         <div style="background:${alertMal?'#ffebee':warnMal?'#fff8f0':'var(--card,#fff)'};border:1.5px solid ${alertMal?'#ef9a9a':warnMal?'#ffcc80':'var(--border,#eee)'};border-radius:12px;padding:12px;text-align:center">
           <div style="font-size:22px;font-weight:900;color:${alertMal?'#c62828':warnMal?'#fb8c00':'#c62828'}">${st.nMalRetrTot}<span style="font-size:11px">/${st.maxMal}</span></div>
-          <div style="font-size:9px;font-weight:800;color:#aaa;text-transform:uppercase;margin-top:3px">🤒 Mal. retrib.</div>
+          <div style="font-size:10.5px;font-weight:800;color:#8a94a3;margin-top:3px;line-height:1.25">🤒 Mal. retrib.</div>
           ${st.nMalNonRetrTot>0?`<div style="font-size:10px;font-weight:900;color:#6a1b9a;margin-top:4px;background:#f3e5f5;border-radius:6px;padding:2px 4px">+${st.nMalNonRetrTot}/${st.maxMalNonRetr} non retrib.</div>`:''}
         </div>
         <div style="background:${alertPOrd?'#ffebee':warnPOrd?'#fff8f0':'var(--card,#fff)'};border:1.5px solid ${alertPOrd?'#ef9a9a':warnPOrd?'#ffcc80':'var(--border,#eee)'};border-radius:12px;padding:12px;text-align:center">
           <div style="font-size:22px;font-weight:900;color:${alertPOrd?'#e53935':warnPOrd?'#fb8c00':'#e65100'}">${st.nPOrdTot}<span style="font-size:11px">/${scGetMaxPermOrd()}</span></div>
-          <div style="font-size:9px;font-weight:800;color:#aaa;text-transform:uppercase;margin-top:3px">📋 Perm.Ord.</div>
+          <div style="font-size:10.5px;font-weight:800;color:#8a94a3;margin-top:3px;line-height:1.25">📋 Perm.Ord.</div>
         </div>
         <div style="background:${alertPStr?'#e8eaf6':warnPStr?'#f3f4ff':'var(--card,#fff)'};border:1.5px solid ${alertPStr?'#9fa8da':warnPStr?'#c5cae9':'var(--border,#eee)'};border-radius:12px;padding:12px;text-align:center">
           <div style="font-size:22px;font-weight:900;color:${alertPStr?'#283593':'#3949ab'}">${st.nPStrTot}<span style="font-size:11px">/${st.maxPStr}</span></div>
-          <div style="font-size:9px;font-weight:800;color:#aaa;text-transform:uppercase;margin-top:3px">📝 Perm.Str.</div>
+          <div style="font-size:10.5px;font-weight:800;color:#8a94a3;margin-top:3px;line-height:1.25">📝 Perm.Str.</div>
           <div style="font-size:10px;font-weight:800;color:#7986cb;margin-top:2px">${st.orePStrTot.toFixed(0)}h</div>
         </div>
       </div>
@@ -54393,7 +54393,7 @@ function pgRenderGitaImminente(isc,db){
       +'el.innerHTML=cols.map(function(c){'
       +'return "<div style=\'text-align:center;background:#fff;border-radius:10px;padding:8px 12px;min-width:52px;box-shadow:0 2px 8px rgba(0,0,0,0.08)\'>"'
       +'+"<div style=\'font-size:24px;font-weight:900;color:#6a1b9a;line-height:1\'>"+fmt(c[0])+"</div>"'
-      +'+"<div style=\'font-size:9px;font-weight:800;color:#aaa;text-transform:uppercase;margin-top:3px\'>"+c[1]+"</div>"'
+      +'+"<div style=\'font-size:10.5px;font-weight:800;color:#8a94a3;margin-top:3px;line-height:1.25\'>"+c[1]+"</div>"'
       +'+"</div>";'
       +'}).join("");'
       +'}'
@@ -57456,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 09/11/2026 13:15 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76049,7 +76049,7 @@ window.iosScheda = function(id, sez){
       + (o.semi ? _isemAssenzeHtml(o.id) : '')
       + (o.note ? '<div class="imz-sez" style="display:block">Note</div><div style="white-space:pre-wrap;font-size:13px">'+_imzE(o.note)+'</div>' : '')
       + (o.link ? '<div style="margin-top:10px"><a href="'+_imzE(o.link)+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm">📁 Cartella documenti</a></div>' : '');
-    piede = edit ? '<button type="button" class="btn btn-teal btn-sm" onclick="iosForm(\''+id+'\')">✏️ Modifica anagrafica</button>' : '';
+    piede = edit ? '<button type="button" class="btn btn-teal btn-sm" onclick="iosForm(\''+id+'\')">✏️ Modifica<span class="tel-no"> anagrafica</span></button>' : '';
   }
   piede = '<button type="button" class="btn btn-outline btn-sm" style="margin-right:auto" onclick="iosStampaEmergenza(\''+id+'\')">🖨️ Scheda emergenza</button>' + piede
     + '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Chiudi</button>';
@@ -76815,7 +76815,7 @@ function icForm(id, ds, opz){
   if(!id && opz && opz.pre) e = Object.assign({}, e, opz.pre);
   var osp = (window._IOS && _IOS.doc && typeof _iosOspiti === 'function') ? _iosOspiti('Presente', true) : [];
   var mezzi = (window._IMZ && _IMZ.doc && typeof _imzLista === 'function') ? _imzLista('mezzi').sort(function(a, b){ return String(a.targa).localeCompare(String(b.targa)); }) : [];
-  var utenti = ((window.APP && APP.utenti) || []).filter(function(u){ return u && !u._eliminato && u.attivo !== false && ['Genitore','Totem','Animatore','Caposquadra','Animatore Laboratorio'].indexOf(u.ruolo) < 0; }).map(function(u){ return (typeof _npCap === 'function') ? _npCap(u.nome || u.username) : (u.nome || u.username); });
+  var utenti = ((typeof APP !== 'undefined' && APP.utenti) || []).filter(function(u){ return u && !u._eliminato && u.attivo !== false && ['Genitore','Totem','Animatore','Caposquadra','Animatore Laboratorio'].indexOf(u.ruolo) < 0; }).map(function(u){ return (typeof _npCap === 'function') ? _npCap(u.nome || u.username) : (u.nome || u.username); });
   var c = '<div class="imz-grid">'
     + _imzCampo('ic-tit', 'Cosa', e.titolo, 'text', null, true)
     + '<div class="imz-f pieno"><label>Tipo</label><div class="ic-tipi">' + ICAL_TIPI.map(function(t){ return '<label data-no-sobrio style="--c:' + t.c + '"><input type="radio" name="ic-tipo" value="' + t.k + '"' + (e.tipo === t.k ? ' checked' : '') + '><i></i>' + _icE(t.l) + '</label>'; }).join('') + '</div></div>'
@@ -78978,7 +78978,7 @@ function ifrAggiungi(id){ var o = _ifrO(id); if(!o) return; _IFR.da = id; iosFor
       }
       if(edit){
         var mf = document.querySelector('.imz-modal .imz-mf');
-        if(mf){ var b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-outline btn-sm'; b.textContent = '➕ Aggiungi fratello/sorella'; b.onclick = function(){ ifrAggiungi(id); }; mf.insertBefore(b, mf.firstChild); }
+        if(mf){ var b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-outline btn-sm'; b.innerHTML = '➕ <span class="tel-no">Aggiungi </span>fratello/sorella'; b.onclick = function(){ ifrAggiungi(id); }; mf.insertBefore(b, mf.firstChild); }
       }
     }catch(e){ console.warn('[fratelli] scheda', e); }
     return r;
@@ -88850,10 +88850,13 @@ body.hd-num-spenti .hd-num{ display:none !important }
     if(vec) vec.remove(); _quiFirma = firma;
     var s = document.createElement('div'); s.id = 'hd-qui';
     s.style.cssText = 'background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#0f172a';
-    s.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>📌 Da vedere qui</b><button type="button" class="hd-qui-x" title="Nascondi (torna se arriva qualcosa di nuovo)" style="border:0;background:none;font-size:16px;cursor:pointer;color:#64748b">✕</button></div>'
-      + L.map(function(v, i){ return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(253,230,138,.7)"><i style="width:9px;height:9px;border-radius:50%;flex-shrink:0;background:' + (col[v.l] || '#94a3b8') + '"></i><div style="flex:1;min-width:0"><b>' + E(v.t) + '</b>' + (v.s ? '<div style="font-size:12px;color:#64748b">' + E(v.s) + '</div>' : '') + '</div>'
+    s.innerHTML = '<div class="hd-qui-h" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>📌 Da vedere qui<span class="hd-qui-n"> · ' + L.length + '</span></b><span class="hd-qui-fr">Mostra</span><button type="button" class="hd-qui-x" title="Nascondi (torna se arriva qualcosa di nuovo)" style="border:0;background:none;font-size:16px;cursor:pointer;color:#64748b">✕</button></div>'
+      + L.map(function(v, i){ return '<div class="hd-qui-r" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(253,230,138,.7)"><i style="width:9px;height:9px;border-radius:50%;flex-shrink:0;background:' + (col[v.l] || '#94a3b8') + '"></i><div style="flex:1;min-width:0"><b>' + E(v.t) + '</b>' + (v.s ? '<div style="font-size:12px;color:#64748b">' + E(v.s) + '</div>' : '') + '</div>'
         + (v.c ? '<button type="button" class="btn btn-outline btn-sm hd-qui-a" data-i="' + i + '" style="flex-shrink:0">Apri ›</button>' : '') + '</div>'; }).join('');
     if(w.prima) w.el.parentNode.insertBefore(s, w.el); else w.el.insertBefore(s, w.el.firstChild);
+    if(window._quiAperto) s.classList.add('aperto');
+    s.querySelector('.hd-qui-h').onclick = function(ev){ if(ev.target.closest('.hd-qui-x')) return; window._quiAperto = !s.classList.contains('aperto'); s.classList.toggle('aperto', window._quiAperto); s.querySelector('.hd-qui-fr').textContent = window._quiAperto ? 'Nascondi' : 'Mostra'; };
+    if(window._quiAperto) s.querySelector('.hd-qui-fr').textContent = 'Nascondi';
     s.querySelector('.hd-qui-x').onclick = function(){ var C2 = chiusi(); L.forEach(function(v){ C2[w.d + '|' + chiave(v)] = numero(v); }); LS(kq(), JSON.stringify(C2)); s.remove(); _quiFirma = ''; };
     s.querySelectorAll('.hd-qui-a').forEach(function(b){ b.onclick = function(){ var v = L[+b.getAttribute('data-i')]; segna([v]); campanella();
       try{ if(typeof v.c === 'function') v.c(); else if(v.c) (new Function(v.c))(); }catch(e){ console.warn('[da vedere]', e); } }; });
@@ -91691,7 +91694,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
   var io = function(){ try{ return (typeof AUTH !== 'undefined' && AUTH.currentUser) || null; }catch(e){ return null; } };
   var simulo = function(){ try{ return typeof _SIMULA !== 'undefined' && !!_SIMULA.attiva; }catch(e){ return false; } };
   function utenti(){
-    try{ return ((window.APP && APP.utenti) || []).filter(function(u){ return u && u.username && !u._eliminato && u.attivo !== false && u.ruolo !== 'Genitore' && u.ruolo !== 'Totem'; }); }catch(e){ return []; }
+    try{ return ((typeof APP !== 'undefined' && APP.utenti) || []).filter(function(u){ return u && u.username && !u._eliminato && u.attivo !== false && u.ruolo !== 'Genitore' && u.ruolo !== 'Totem'; }); }catch(e){ return []; }
   }
 
   /* ── modulo ── */
@@ -91930,7 +91933,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
       var lista = ((typeof _scuTuttiConGrest === 'function') ? _scuTuttiConGrest(db) : (db.animatori || [])).filter(function(a){ return a && !a._eliminato; });
       var a = lista.find(function(x){ return x.id === p.id; }) || lista.find(function(x){ return x.userId && x.userId === p.id; });
       if(!a){ var id = String(p.id || '').toLowerCase(); a = lista.find(function(x){ return x.username && String(x.username).toLowerCase() === id; }); }
-      if(!a){ try{ var u = ((window.APP && APP.utenti) || []).find(function(x){ return x && (x.id === p.id || String(x.username || '').toLowerCase() === String(p.id).toLowerCase()); });
+      if(!a){ try{ var u = ((typeof APP !== 'undefined' && APP.utenti) || []).find(function(x){ return x && (x.id === p.id || String(x.username || '').toLowerCase() === String(p.id).toLowerCase()); });
         if(u) a = lista.find(function(x){ return (x.userId && x.userId === u.id) || (x.username && String(x.username).toLowerCase() === String(u.username).toLowerCase()) || (u.animatoreId && u.animatoreId === x.id); }); }catch(e){} }
       return a ? { persona:a, iscritto:false } : null;
     }
@@ -92497,9 +92500,9 @@ table.orx td.sab .orx-s .o{font-size:12px}
     }
     bordi(t);
   }
-  function giro(){ document.querySelectorAll('.imz-tabs').forEach(sistema); }
+  function giro(){ document.querySelectorAll('.imz-tabs, .pb-pills').forEach(sistema); }
   new MutationObserver(function(){ requestAnimationFrame(giro); }).observe(document.body, { childList:true, subtree:true });
-  window.addEventListener('resize', function(){ document.querySelectorAll('.imz-tabs').forEach(bordi); });
+  window.addEventListener('resize', function(){ document.querySelectorAll('.imz-tabs, .pb-pills').forEach(bordi); });
 })();
 </script>
 <style id="ritocchi-grafici-2026-11b">
@@ -92701,5 +92704,110 @@ function _imzHtmlDocumenti(edit){
   return h;
 }
 </script>
+<style id="ritocchi-mobile-2026-11c">
+/* (novembre 2026) controllo grafico della parte telefono */
+.hd-qui-fr{ display:none }
+.hd-qui-n{ display:none; font-weight:600; color:#92400e }
+.hd-qui-x{ min-width:36px; min-height:36px; margin:-6px -8px -6px 0 }
+.pb-pills.tb-dx{ -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent) }
+.pb-pills.tb-sx{ -webkit-mask-image:linear-gradient(to left,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to left,#000 calc(100% - 36px),transparent) }
+.pb-pills.tb-sx.tb-dx{ -webkit-mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent) }
+/* spunte dentro le finestre: testo normale, non in maiuscolo */
+:root:root body .imz-f label.ic-chk, :root:root body.sobrio .imz-f label.ic-chk, :root:root body .imz-modal label.ic-chk, :root:root body #ft-win label.ic-chk{ text-transform:none !important; letter-spacing:0 !important; font-size:14px !important; font-weight:500 !important; line-height:1.3 !important }
+@media (max-width:640px){
+  /* «Da vedere qui»: una riga sola, si apre al tocco */
+  #hd-qui{ padding:8px 12px !important; margin-bottom:10px !important }
+  #hd-qui .hd-qui-h{ cursor:pointer; margin-bottom:0 !important; gap:8px }
+  #hd-qui .hd-qui-h > b{ flex:1; min-width:0 }
+  #hd-qui .hd-qui-n{ display:inline }
+  #hd-qui .hd-qui-fr{ display:inline; font-size:12.5px; font-weight:700; color:#b45309; white-space:nowrap }
+  #hd-qui:not(.aperto) .hd-qui-r{ display:none !important }
+  #hd-qui.aperto .hd-qui-h{ margin-bottom:4px !important }
+  /* pulsante flottante: solo l'icona, non copre più le schede */
+  #pi-fab:has(svg){ width:52px; padding:0 !important; justify-content:center; font-size:0 !important; gap:0 }
+  #pi-fab:has(svg) .pi-ico{ width:24px; height:24px; margin:0 }
+  /* foto timbrature: frecce ai lati della data */
+  #ft-win{ padding:14px }
+  #ft-win .ft-barra > input[type="date"]{ flex:1 1 150px; min-width:150px; width:auto !important }
+  #ft-win .ft-barra > button:last-child{ margin-left:auto }
+  /* piede delle schede con tanti pulsanti: più compatto */
+  .imz-modal .imz-mf:has(> :nth-child(3)){ padding:8px 10px; gap:6px }
+  .imz-modal .imz-mf:has(> :nth-child(3)) .btn{ padding:7px 9px !important; font-size:12.5px !important; min-height:36px }
+  /* presenze Servizio Civile: menu del tipo di giornata leggibile e senza zoom su iPhone */
+  select.scp-sel{ font-size:16px !important; padding:5px 4px !important; text-overflow:ellipsis }
+}
+@media (max-width:480px){
+  /* controllo turni: titolo sopra, pulsanti sotto */
+  .tck-h{ flex-wrap:wrap }
+  .tck-main{ flex:1 1 100% }
+  .tck-h .tck-ok-btn, .tck-h .tck-reg{ flex:1 1 0; padding:10px 8px !important; font-size:13px !important; border-left:0 !important; border-top:1px solid rgba(15,23,42,.1) }
+  .tck-h .tck-ok-btn + .tck-reg{ border-left:1px solid rgba(15,23,42,.1) !important }
+  /* barra degli orari su una riga */
+  .orx-bar{ flex-wrap:nowrap; gap:5px }
+  .orx-bar .orx-seg button{ padding:6px 8px }
+  .orx-bar .orx-b{ padding:7px 8px; flex-shrink:0 }
+  .orx-bar .orx-sp{ min-width:0 }
+}
+@media (min-width:340px) and (max-width:768px){
+  #mobile-nav .mob-nav-btn span.mob-label{ font-size:10px !important }
+}
+@media (max-width:420px){
+  /* editor del giorno: etichetta sopra, orari larghi */
+  #sc-cella-editor div:has(> input[type="time"]){ flex-wrap:wrap }
+  #sc-cella-editor div:has(> input[type="time"]) > span:first-child{ width:100% !important }
+  #sc-cella-editor input[type="time"]{ padding:9px 4px !important }
+  /* documenti dei mezzi: nome a tutta larghezza, pulsanti sotto */
+  .imzx-d{ flex-wrap:wrap; row-gap:4px }
+  .imzx-d .tx{ flex:1 1 calc(100% - 40px) }
+  .imzx-d .tx + .btn{ margin-left:auto }
+  /* Home: card piccole */
+  .ho-kpi{ padding:12px 10px; gap:8px }
+  .ho-kpi .area-logo{ width:26px; height:26px }
+  .ho-kpi-l{ font-size:12px; line-height:1.25 }
+}
+@media (max-width:380px){
+  /* titolo in alto: più spazio */
+  body #header #header-actions{ gap:4px !important }
+  body #header #header-actions .btn, body #header #header-actions button{ min-width:36px !important }
+  #pi-ab-tit{ font-size:15.5px }
+}
+</style>
+<style id="ritocchi-mobile-2026-11d">
+/* (novembre 2026) parole che sul telefono si tolgono per stare in meno righe */
+@media (max-width:480px){ .tel-no{ display:none } }
+/* mappa delle presenze sul telefono: quadratini più grandi da toccare (aprono quel giorno) */
+@media (max-width:640px){
+  .gv-hm{ gap:14px 20px; padding:14px }
+  .gv-hm-griglia{ gap:6px }
+  .gv-hm-lett{ grid-template-rows:repeat(7,32px); line-height:32px; font-size:12px }
+  .gv-hm-celle{ grid-template-rows:repeat(7,32px); grid-auto-columns:32px; gap:5px }
+  .gv-hm-celle .gv-hm-c{ width:32px; height:32px; line-height:32px; font-size:12px; border-radius:8px }
+}
+</style>
+<style id="tema-scuro-ritocchi-2026-11">
+/* (novembre 2026) tema scuro: le schede del nuovo stile restavano bianche con il testo chiaro */
+html[data-pi-tema="scuro"]{
+  --g-bg:#0b1220; --g-card:#131c2e; --g-card2:#18233a; --g-line:#243049; --g-txt:#e2e8f0; --g-sub:#94a3b8; --g-ten:#64748b; --g-acc2:#1b2a4a;
+  --g-shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+}
+html[data-pi-tema="scuro"] #hd-qui{ background:#2a2210 !important; border-color:#5c4a1a !important; color:#e2e8f0 !important }
+html[data-pi-tema="scuro"] #hd-qui .hd-qui-r{ border-top-color:rgba(92,74,26,.8) !important }
+html[data-pi-tema="scuro"] #hd-qui .hd-qui-r div div, html[data-pi-tema="scuro"] #hd-qui .hd-qui-x{ color:#94a3b8 !important }
+html[data-pi-tema="scuro"] #hd-qui .hd-qui-fr, html[data-pi-tema="scuro"] #hd-qui .hd-qui-n{ color:#fbbf24 !important }
+html[data-pi-tema="scuro"] .btn-gray{ background:#1e293b !important; border-color:#334155 !important; color:#e2e8f0 !important }
+html[data-pi-tema="scuro"] #sc-cella-editor, html[data-pi-tema="scuro"] #ft-ov{ --card:#131c2e; --text:#e2e8f0; --text-muted:#94a3b8; --border:#243049; --bg:#0b1220; color:#e2e8f0 }
+html[data-pi-tema="scuro"]:root body #main .imz-kpi.rosso, html[data-pi-tema="scuro"]:root body #main .imz-kpi[class*="rosso"], html[data-pi-tema="scuro"]:root body.sobrio #main .imz-kpis > .imz-kpi.rosso{ background:#3a1719 !important }
+html[data-pi-tema="scuro"]:root body #main .imz-kpi.giallo, html[data-pi-tema="scuro"]:root body #main .imz-kpi[class*="giallo"], html[data-pi-tema="scuro"]:root body.sobrio #main .imz-kpis > .imz-kpi.giallo{ background:#35290f !important }
+html[data-pi-tema="scuro"]:root body #main .imz-kpi.rosso .imz-kpi-v{ color:#fca5a5 !important }
+html[data-pi-tema="scuro"]:root body #main .imz-kpi.giallo .imz-kpi-v{ color:#fcd34d !important }
+html[data-pi-tema="scuro"]:root body #main .imz-kpi .imz-kpi-l{ color:#cbd5e1 !important }
+html[data-pi-tema="scuro"] #ft-ov .form-control{ background:#0b1220 !important; color:#e2e8f0 !important; border-color:#243049 !important; color-scheme:dark }
+#portale-animatore.pa-dark .pa-ind-day:not(.assente):not(.passato):not(:empty){ background:var(--pa-surface2, #1e293b) !important; color:#e2e8f0 !important }
+#portale-animatore.pa-dark .pa-ind-day.passato{ color:#475569 !important }
+#portale-animatore.pa-dark .pa-ind-day:empty{ background:transparent !important }
+#portale-animatore.pa-dark .pa-pres-bar-wrap{ background:#1e293b !important; box-shadow:none !important }
+html[data-pi-tema="scuro"] #sc-cella-editor input[type="time"]{ background:#0b1220; color:#e2e8f0; color-scheme:dark }
+html[data-pi-tema="scuro"] #sc-cella-editor button[onclick*="remove()"]{ background:#1e293b !important; color:#e2e8f0 }
+</style>
 </body>
 </html>
