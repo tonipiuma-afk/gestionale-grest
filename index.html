@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 11/11/2026 22:04</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57456,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 11/11/2026 22:04 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -88338,7 +88338,8 @@ body{ background:var(--g-bg) !important }
   var KEY = '_ist_modulistica';
   var TIPI = {
     medico:{ nome:'Scelta del medico', ico:'🩺', descr:'Dichiarazione sostitutiva e richiesta di scelta del medico di medicina generale.', file:'Scelta medico' },
-    f02:{ nome:'Esenzione ticket F02', ico:'📑', descr:'Dichiarazione sostitutiva e richiesta di esenzione F02 per i minori in comunità.', file:'Esenzione F02' }
+    f02:{ nome:'Esenzione ticket F02', ico:'📑', descr:'Dichiarazione sostitutiva e richiesta di esenzione F02 per i minori in comunità.', file:'Esenzione F02' },
+    vaccino:{ nome:'Consenso vaccinazione', ico:'💉', descr:'Consenso informato alla vaccinazione: dati del ragazzo e del direttore come rappresentante legale. Un foglio per ogni ragazzo.', file:'Consenso vaccinazione', perRagazzo:true }
   };
   var E = function(s){ return (typeof _imzE === 'function') ? _imzE(s) : String(s == null ? '' : s); };
   var X = function(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
@@ -88389,7 +88390,7 @@ body{ background:var(--g-bg) !important }
         if(g && primo && !gia && !g.querySelector('[data-mdl]')){
           var c = primo.cloneNode(true); c.setAttribute('data-mdl', '1'); c.setAttribute('onclick', "isaVai('moduli')");
           var tit = c.querySelector('.im-tit, .ist-mod-t, h3, b'), sub = c.querySelector('.im-sub, .ist-mod-s, small, p'); var bd = c.querySelector('.im-badge'); if(bd) bd.remove();
-          if(tit) tit.textContent = 'Modulistica'; if(sub) sub.textContent = 'Scelta del medico ed esenzione F02 già compilate';
+          if(tit) tit.textContent = 'Modulistica'; if(sub) sub.textContent = 'Scelta del medico, esenzione F02, consenso vaccinazione';
           var ic = c.querySelector('.ist-mod-i, .ist-mod-ico, svg'); if(ic && ic.tagName !== 'svg') ic.textContent = '📄';
           g.appendChild(c);
         }
@@ -88407,7 +88408,7 @@ body{ background:var(--g-bg) !important }
       try{
         var JSZip = await _iprZip(), z = await JSZip.loadAsync(await f.arrayBuffer()), x = z.file('word/document.xml');
         var t = x ? await x.async('string') : '';
-        if(t.indexOf('{NOME}') < 0 || t.indexOf('{DATA}') < 0){ showToast('⚠️ Questo Word non è un modello: mancano gli spazi {NOME} e {DATA}', 'warning'); return; }
+        if(t.indexOf('{NOME}') < 0 || (k !== 'vaccino' && t.indexOf('{DATA}') < 0)){ showToast('⚠️ Questo Word non è un modello: mancano gli spazi {NOME}' + (k !== 'vaccino' ? ' e {DATA}' : ''), 'warning'); return; }
         if(k === 'medico' && t.indexOf('{MEDICO}') < 0){ showToast('⚠️ Nel modello della scelta del medico manca lo spazio {MEDICO}', 'warning'); return; }
         showToast('⏳ Carico il modello sul NAS…', 'info');
         var meta = await _nasFileCarica(f, 'sanita');
@@ -88447,7 +88448,7 @@ body{ background:var(--g-bg) !important }
     var k = P.k, t = TIPI[k], osp = _iosOspiti('Presente').filter(function(o){ return !o.semi; }).sort(function(a, b){ return _iosNome(a).localeCompare(_iosNome(b)); });
     var tipi = '<div class="imz-tabs" style="margin-bottom:12px">' + Object.keys(TIPI).filter(function(x){ return M.doc.modelli[x]; }).map(function(x){ return '<button type="button" class="imz-tab' + (x === k ? ' on' : '') + '" onclick="mdlTipo(\'' + x + '\')">' + TIPI[x].ico + ' ' + E(TIPI[x].nome) + '</button>'; }).join('') + '</div>';
     var lista = '<div class="mdl-osp">' + osp.map(function(o){ var d = dati(o), s = _isaScheda(o.id) || {};
-      return '<label><input type="checkbox"' + (P.sel[o.id] ? ' checked' : '') + ' onchange="mdlSel(\'' + o.id + '\',this.checked)"><span>' + E(d.nome) + '</span><small>' + E([k === 'medico' ? (s.medico || 'nessun medico') : (s.esenzione || ''), d.cf ? '' : 'c.f. mancante'].filter(Boolean).join(' · ')) + '</small></label>'; }).join('') + '</div>';
+      return '<label><input type="checkbox"' + (P.sel[o.id] ? ' checked' : '') + ' onchange="mdlSel(\'' + o.id + '\',this.checked)"><span>' + E(d.nome) + '</span><small>' + E([k === 'medico' ? (s.medico || 'nessun medico') : (k === 'f02' ? (s.esenzione || '') : ''), d.cf ? '' : 'c.f. mancante'].filter(Boolean).join(' · ')) + '</small></label>'; }).join('') + '</div>';
     var med = '';
     if(k === 'medico'){
       var L = ((_IOS.sdoc && _IOS.sdoc.liste) || {}).medici || [], S = scelti(), prop = '';
@@ -88456,6 +88457,13 @@ body{ background:var(--g-bg) !important }
       if(P.altri == null) P.altri = true;
       med = '<div class="imz-grid" style="margin-top:12px"><div class="imz-f"><label>Medico scelto</label><input id="mdl-med" class="form-control" list="mdl-medl" value="' + E(P.medico) + '" oninput="mdlVal(\'medico\',this.value)" placeholder="es. Dott. Tabita"><datalist id="mdl-medl">' + L.map(function(x){ return '<option value="' + E(x) + '">'; }).join('') + '</datalist></div>'
         + '<div class="imz-f" style="display:flex;align-items:flex-end"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13.5px;cursor:pointer"><input type="checkbox"' + (P.altri ? ' checked' : '') + ' onchange="mdlVal(\'altri\',this.checked)" style="width:18px;height:18px"> «medico di altri ospiti della struttura»</label></div></div>';
+    }
+    if(k === 'vaccino'){
+      var VL = ['Antinfluenzale', 'Anti-COVID-19', 'Esavalente', 'MPRV (morbillo, parotite, rosolia, varicella)', 'Anti-papilloma virus (HPV)', 'Anti-meningococco ACWY', 'Anti-meningococco B', 'dTpa-IPV (richiamo difterite, tetano, pertosse, polio)', 'Anti-epatite B'];
+      med = '<datalist id="mdl-vacl">' + VL.map(function(x){ return '<option value="' + E(x) + '">'; }).join('') + '</datalist><div class="imz-grid" style="margin-top:12px">'
+        + '<div class="imz-f"><label>Vaccino 1</label><input class="form-control" list="mdl-vacl" value="' + E(P.vac1 || '') + '" oninput="mdlVal(\'vac1\',this.value)" placeholder="es. Antinfluenzale"></div>'
+        + '<div class="imz-f"><label>Vaccino 2 (se c\'è)</label><input class="form-control" list="mdl-vacl" value="' + E(P.vac2 || '') + '" oninput="mdlVal(\'vac2\',this.value)" placeholder="lascia vuoto se non serve"></div></div>'
+        + '<div style="font-size:12.5px;color:var(--text-muted);margin-top:6px">Se lasci vuoto, nel foglio resta la riga da scrivere a mano. Esce un foglio per ogni ragazzo scelto.</div>';
     }
     if(!P.data) P.data = _imzIso(new Date());
     var quando = '<div class="imz-grid" style="margin-top:12px"><div class="imz-f"><label>Data del modulo</label><input type="date" class="form-control" value="' + E(P.data) + '" onchange="mdlVal(\'data\',this.value)"></div></div>';
@@ -88483,8 +88491,11 @@ body{ background:var(--g-bg) !important }
       MEDICO:k === 'medico' ? String(P.medico || '').trim() : '',
       NOTA_MEDICO:k === 'medico' && P.altri ? ' (medico di altri ospiti della struttura)' : '',
       PER_MINORI:uno ? (f ? 'per la seguente minore:' : 'per il seguente minore:') : 'per i seguenti minori:',
-      CHE_MINORI:uno ? (f ? 'Che la seguente Minore è inserita' : 'Che il seguente Minore è inserito') : 'Che i seguenti Minori sono inseriti'
+      CHE_MINORI:uno ? (f ? 'Che la seguente Minore è inserita' : 'Che il seguente Minore è inserito') : 'Che i seguenti Minori sono inseriti',
+      VACCINO1:String(P.vac1 || '').trim() || '________________',
+      VACCINO2:String(P.vac2 || '').trim() || '________________'
     };
+    if(uno){ V.NOME = R[0].nome; V.NATO = R[0].nato; V.LUOGO = R[0].luogo || '______________________'; V.NASCITA = R[0].nascita || '___/___/______'; V.CF = R[0].cf || '______________________'; }
     // la riga del ragazzo si ripete
     var i = xml.indexOf('{NOME}');
     if(i >= 0){
@@ -88504,20 +88515,28 @@ body{ background:var(--g-bg) !important }
     if(buchi.length && !await xConferma('Mancano dei dati per: ' + buchi.map(function(d){ return d.nome; }).join(', ') + '.\n\nNel modulo resteranno degli spazi vuoti.\n\nOK = Scarica lo stesso · Annulla = Torno a completarli')) return;
     var btn = document.getElementById('mdl-vai'); if(btn){ btn.disabled = true; btn.textContent = '⏳ Preparo…'; }
     try{
-      var JSZip = await _iprZip(), z = await JSZip.loadAsync(await bloccoModello(k));
-      var xml = await z.file('word/document.xml').async('string');
-      z.file('word/document.xml', riempi(xml, k, R));
-      var blob = await z.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-      var nome = TIPI[k].file + ' - ' + (R.length === 1 ? R[0].nome : R.length + ' ragazzi') + ' - ' + P.data + '.docx';
-      _iprScarica(blob, nome);
-      var salva = document.getElementById('mdl-salva'); salva = salva ? salva.checked : true, metaSalvato = null;
-      if(salva){
-        try{
-          var f = new File([blob], nome, { type:blob.type }), meta = await _nasFileCarica(f, 'sanita'); metaSalvato = meta;
-          for(var j = 0; j < S.length; j++) await _isaAttacca(S[j].id, 'altro', meta, { descr:TIPI[k].nome + (k === 'medico' ? ' · ' + P.medico : ''), data:P.data });
-        }catch(e){ showToast('⚠️ Word scaricato, ma la copia nei documenti non è stata salvata: ' + e.message, 'warning'); }
+      var JSZip = await _iprZip(), modello = await bloccoModello(k);
+      var salva = document.getElementById('mdl-salva'); salva = salva ? salva.checked : true;
+      var gruppi = TIPI[k].perRagazzo ? R.map(function(r, gi){ return { R:[r], S:[S[gi]] }; }) : [{ R:R, S:S }];
+      var salvati = [];
+      for(var gi = 0; gi < gruppi.length; gi++){
+        var G = gruppi[gi], z = await JSZip.loadAsync(modello);
+        var xml = await z.file('word/document.xml').async('string');
+        z.file('word/document.xml', riempi(xml, k, G.R));
+        var blob = await z.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        var nome = TIPI[k].file + ' - ' + (G.R.length === 1 ? G.R[0].nome : G.R.length + ' ragazzi') + ' - ' + P.data + '.docx';
+        _iprScarica(blob, nome);
+        if(gruppi.length > 1) await new Promise(function(ok){ setTimeout(ok, 700); });
+        if(salva){
+          try{
+            var f = new File([blob], nome, { type:blob.type }), meta = await _nasFileCarica(f, 'sanita'); salvati.push(meta);
+            var descr = TIPI[k].nome + (k === 'medico' ? ' · ' + P.medico : '') + (k === 'vaccino' ? ' · ' + [P.vac1, P.vac2].map(function(v){ return String(v || '').trim(); }).filter(Boolean).join(', ') : '');
+            for(var j = 0; j < G.S.length; j++) await _isaAttacca(G.S[j].id, 'altro', meta, { descr:descr.replace(/ · $/, ''), data:P.data });
+          }catch(e){ showToast('⚠️ Word scaricato, ma la copia nei documenti non è stata salvata: ' + e.message, 'warning'); }
+        }
       }
-      try{ await scrivi(function(d){ d.storico.push({ tipo:k, data:P.data, ids:S.map(function(o){ return o.id; }), nomi:R.map(function(r){ return r.nome; }), medico:k === 'medico' ? P.medico : '', il:new Date().toISOString(), da:chi(), file:metaSalvato }); if(d.storico.length > 300) d.storico = d.storico.slice(-300); }); }catch(e){}
+      var metaSalvato = salvati[0] || null;
+      try{ await scrivi(function(d){ d.storico.push({ tipo:k, data:P.data, ids:S.map(function(o){ return o.id; }), nomi:R.map(function(r){ return r.nome; }), medico:k === 'medico' ? P.medico : (k === 'vaccino' ? [P.vac1, P.vac2].map(function(v){ return String(v || '').trim(); }).filter(Boolean).join(', ') : ''), il:new Date().toISOString(), da:chi(), file:metaSalvato, files:salvati.length > 1 ? salvati : undefined }); if(d.storico.length > 300) d.storico = d.storico.slice(-300); }); }catch(e){}
       try{ if(typeof _iosLog === 'function') _iosLog('Modulo ' + TIPI[k].nome + ' · ' + R.map(function(r){ return r.nome; }).join(', ')); }catch(e){}
       _imzChiudi(); showToast('✓ ' + TIPI[k].nome + ' pronto: stampalo e firmalo', 'success');
       if((_IOS.sVista || '') === 'moduli') _isaRender();
@@ -88534,7 +88553,7 @@ body{ background:var(--g-bg) !important }
     (x.ids || []).forEach(function(oid){
       var s = _isaScheda(oid) || {};
       (s.allegati || []).forEach(function(a){
-        var stesso = x.file && a.file && a.file.id === x.file.id;
+        var stesso = a.file && (x.files || (x.file ? [x.file] : [])).some(function(ff){ return ff && ff.id === a.file.id; });
         var simile = !x.file && a.tipo === 'altro' && a.data === x.data && String(a.nome || '').indexOf(nome) === 0;
         if(stesso || simile) copie.push({ oid:oid, aid:a.id, file:a.file });
       });
@@ -89346,7 +89365,7 @@ html[data-pi-tema="scuro"] #pk-ov .pk-ic, html[data-pi-tema="scuro"] #pk-ov kbd{
     ['ist','🚐','Nuovo ragazzo in semiconvitto','Semiconvitto', function(){ vai('ist-semi'); premi(/Nuovo ragazzo/); }, 'nuovo ragazzo semiconvitto'],
     ['ist','🩺','Programma una visita','Sanità', function(){ vai('ist-sanita'); setTimeout(function(){ try{ isaVai('home'); }catch(e){} premi(/Programma visita/); }, 200); }, 'visita medica programma nuova'],
     ['ist','📤','Carica un documento sanitario','Sanità', function(){ vai('ist-sanita'); setTimeout(function(){ try{ isaVai('home'); }catch(e){} premi(/Carica un documento/); }, 200); }, 'carica documento sanitario referto certificato'],
-    ['ist','📄','Prepara un modulo','Scelta medico, esenzione F02', function(){ vai('ist-sanita'); setTimeout(function(){ try{ isaVai('moduli'); }catch(e){} }, 400); }, 'modulo modulistica scelta medico esenzione f02'],
+    ['ist','📄','Prepara un modulo','Scelta medico, esenzione F02', function(){ vai('ist-sanita'); setTimeout(function(){ try{ isaVai('moduli'); }catch(e){} }, 400); }, 'modulo modulistica scelta medico esenzione f02 consenso vaccino vaccinazione'],
     ['ist','🧑‍🏫','Nuovo educatore','Educatori', function(){ vai('ist-educatori'); premi(/Nuovo educatore/); }, 'nuovo educatore'],
     ['ist','✍️','Crea una delega','Deleghe', function(){ vai('ist-deleghe'); premi(/Crea una delega/); }, 'delega nuova crea'],
     ['ist','📋','Compiti dei turni educatori','', function(){ try{ icCompitiApri(); }catch(e){} }, 'compiti turni educatori google'],
