@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 13/11/2026 11:37</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57456,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 13/11/2026 11:37 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -83699,7 +83699,13 @@ html[data-pi-tema="scuro"]:root:root:root body #pi-fab{color:#121a2c !important}
     // fasce e compiti in numero diverso: l'orario complessivo sulla prima riga, poi i compiti
     // l'orario del turno va sul primo compito solo se quel compito non ha un orario suo
     // (es. "Scuola Allegra alle 16:00" dentro il turno 15:30–19:30: prima la riga del turno, poi 16:00 Scuola Allegra)
-    var tot = F.length ? { da:F[0].da, a:F[F.length - 1].a } : null;
+    var tot = F.length ? { da:F[0].da, a:F[F.length - 1].a, min:F.reduce(function(t, f){ return t + Math.max(0, hm(f.a) - hm(f.da)); }, 0) } : null;
+    // turno spezzato e compiti tutti con l'orario: una riga per ogni fascia, al suo posto tra i compiti
+    if(F.length > 1 && V.length && V.every(function(v){ return v.ora; })){
+      var RR = F.map(function(f){ return { f:f, v:null, _m:hm(f.da), _o:0 }; }).concat(V.map(function(v){ return { f:null, v:v, ora:v.ora, _m:hm(v.ora), _o:1 }; }));
+      return RR.sort(function(x, y){ return (x._m - y._m) || (x._o - y._o); });
+    }
+    if(!V.length && F.length > 1) return F.map(function(f){ return { f:f, v:null }; });
     if(!V.length) return [{ f:tot, v:null }];
     var out = V.map(function(v, i){ return { f:(i === 0 && !v.ora) ? tot : null, v:v, ora:v.ora }; });
     if(tot && V[0].ora) out.unshift({ f:tot, v:null });
@@ -83709,7 +83715,9 @@ html[data-pi-tema="scuro"]:root:root:root body #pi-fab{color:#121a2c !important}
     var ora = r.f ? r.f.da + '–' + r.f.a : (r.ora || ''), inCorso = false;
     if(r.f && ds === oggi){ var n = new Date(), adesso = n.getHours() * 60 + n.getMinutes(); inCorso = adesso >= hm(r.f.da) && adesso < hm(r.f.a); }
     var tit = r.v ? (r.v.testo || (r.v.parte ? r.v.parte.charAt(0).toUpperCase() + r.v.parte.slice(1) : 'Turno')) : 'Turno';
-    return '<div class="psx-t"><span class="psx-o' + (ora ? '' : ' vuoto') + '">' + (ora ? E(ora) : '00:00') + '</span><div class="psx-a"><b>' + E(tit) + (inCorso ? '<i class="psx-corso" style="font-style:normal">in corso</i>' : '') + '</b>'
+    var oreF = '';
+    if(r.f){ var mm = r.f.min != null ? r.f.min : hm(r.f.a) - hm(r.f.da); if(mm > 0){ var hh = Math.floor(mm / 60), m2 = mm % 60; oreF = hh + (m2 ? 'h ' + (m2 < 10 ? '0' : '') + m2 : (hh === 1 ? ' ora' : ' ore')); } }
+    return '<div class="psx-t' + (r.f ? ' psx-t-f' : ' psx-t-c') + '"><span class="psx-o' + (ora ? '' : ' vuoto') + '">' + (ora ? E(ora) : '00:00') + '</span><div class="psx-a"><b>' + E(tit) + (r.f && !(r.v && r.v.testo) && oreF ? ' <small class="psx-ore">' + oreF + '</small>' : '') + (inCorso ? '<i class="psx-corso" style="font-style:normal">in corso</i>' : '') + '</b>'
       + (r.v && r.v.dett ? '<span>' + E(r.v.dett) + '</span>' : '') + '</div></div>';
   }
   window._psxRighe = righe;
@@ -92936,5 +92944,15 @@ html[data-pi-tema="scuro"] #sc-cella-editor button[onclick*="remove()"]{ backgro
   };
 })();
 </script>
+<style id="psx-turno-distinto-2026-11">
+/* (novembre 2026) portale Servizio Civile: la riga del TURNO si distingue dai compiti */
+.psx-t.psx-t-f .psx-o{ background:var(--x-acc, #1f4580) !important; color:#fff !important; padding:4px 9px }
+.psx-t.psx-t-f .psx-a b{ font-weight:800 }
+.psx-t.psx-t-f .psx-ore{ font-size:12px; font-weight:600; color:var(--x-sub, #5d6b82); margin-left:4px }
+.psx-t.psx-t-c{ margin-left:9px; padding-left:12px; border-left:2px solid var(--x-line, #e2e8f0) }
+.psx-t.psx-t-c .psx-a b{ font-weight:600 }
+.psx-t.psx-t-c .psx-o{ font-weight:700 }
+#portale-animatore.pa-dark .psx-t.psx-t-c{ border-left-color:#2a3a57 }
+</style>
 </body>
 </html>
