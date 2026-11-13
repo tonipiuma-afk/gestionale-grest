@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 13/11/2026 10:06</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57456,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 13/11/2026 10:06 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -85073,7 +85073,16 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
         var nomi = nomiOperatore(op); if(!nomi.length || Date.now() - (SALTA[op] || 0) < 5 * 60000) return;
         Object.keys(settNuove).forEach(function(l){ invia({ a:nomi, titolo:'I tuoi turni sono pronti', corpo:'Settimana dal ' + giorno(l) + ': aprili per vederli.', tag:'turni-' + l, vai:'sc:settimana', app:'scu' }); });
         if(altri.length){
-          var t = altri.length === 1 ? (function(ds){ var v = (B[ds] || '').split('|'); return v[1] && v[1] !== 'normale' ? giorno(ds) + ': ' + (PERM[v[1]] || v[1]) : v[0] ? giorno(ds) + ': ora ' + orario(v[0]) : giorno(ds) + ': turno tolto'; })(altri[0])
+          var t = altri.length === 1 ? (function(ds){
+              var v = (B[ds] || '').split('|'), w = (A[ds] || '').split('|');
+              var cmp = String(v.slice(2).join('|') || '').replace(/\s+/g, ' ').trim(); if(cmp.length > 60) cmp = cmp.slice(0, 57) + '…';
+              var cmpCambiato = (v.slice(2).join('|') || '').trim() !== (w.slice(2).join('|') || '').trim();
+              var orCambiato = (v[0] || '') !== (w[0] || '') || (v[1] || '') !== (w[1] || '');
+              if(v[1] && v[1] !== 'normale') return giorno(ds) + ': ' + (PERM[v[1]] || v[1]);
+              if(!v[0]) return giorno(ds) + ': turno tolto';
+              if(cmpCambiato && !orCambiato) return giorno(ds) + ': compito cambiato → ' + (cmp || 'nessun compito');
+              return giorno(ds) + ': ora ' + orario(v[0]) + (cmpCambiato && cmp ? ' · ' + cmp : '');
+            })(altri[0])
             : altri.length + ' turni cambiati: ' + altri.slice(0, 4).map(function(ds){ return giorno(ds).split(' ').slice(0, 2).join(' '); }).join(', ') + (altri.length > 4 ? '…' : '');
           invia({ a:nomi, titolo:altri.length === 1 ? 'Il tuo turno è cambiato' : 'I tuoi turni sono cambiati', corpo:t, tag:'turni-cambio-' + op, vai:'sc:settimana', app:'scu' });
         }
@@ -92863,5 +92872,69 @@ html[data-pi-tema="scuro"] #ft-ov .form-control{ background:#0b1220 !important; 
 html[data-pi-tema="scuro"] #sc-cella-editor input[type="time"]{ background:#0b1220; color:#e2e8f0; color-scheme:dark }
 html[data-pi-tema="scuro"] #sc-cella-editor button[onclick*="remove()"]{ background:#1e293b !important; color:#e2e8f0 }
 </style>
+
+<script id="benvenuto-compiti-2026-11-js">
+/* ═══ Servizio Civile: all'entrata al totem → notifica «Ben arrivato, oggi farai…» + compiti sullo schermo (novembre 2026) ═══
+   • Solo alla PRIMA entrata del giorno (se esce e rientra non riparte).
+   • Settimana in bozza: niente orario né compiti, solo «Ben arrivato».
+   • Solo volontari del Servizio Civile (mai i ragazzi del GREST). */
+(function(){
+  if(typeof scRegistraTimbraturaNFC !== 'function') return;
+  var ult = null;
+  var oR = window.scRegistraTimbraturaNFC;
+  window.scRegistraTimbraturaNFC = scRegistraTimbraturaNFC = function(){
+    var r = oR.apply(this, arguments);
+    try{ ult = r ? { r:r, t:Date.now() } : null; }catch(e){}
+    return r;
+  };
+  function voci(testo){
+    try{ if(typeof _sccVoci === 'function') return _sccVoci(testo).map(function(v){ return { ora:v.ora || '', t:(v.parte ? v.parte.charAt(0).toUpperCase() + v.parte.slice(1) + (v.testo ? ': ' : '') : '') + (v.testo || ''), d:v.dett || '' }; }).filter(function(v){ return v.t || v.ora; }); }catch(e){}
+    return String(testo || '').split(/\s*[·•;\n]\s*/).filter(Boolean).map(function(x){ return { ora:'', t:x, d:'' }; });
+  }
+  function oggiDi(opId){
+    var sc = scGetDb() || {}, ds = scDataLocale(new Date()), k = ds + '_' + opId;
+    if(window._scuBozza && window._scuBozza(ds)) return { bozza:true };
+    var g = (sc.giornate || {})[k] || 'normale';
+    return { orario:(sc.orariCal || {})[k] || '', compito:g === 'normale' ? ((sc.compiti || {})[k] || '') : '', giornata:g };
+  }
+  function primaEntrata(opId){
+    try{ var sc = scGetDb() || {}, ds = scDataLocale(new Date()); return ((sc.timbrature || {})[opId] || []).filter(function(t){ return t.ts && t.ts.indexOf(ds) === 0 && t.tipo === 'entrata'; }).length <= 1; }catch(e){ return false; }
+  }
+  var fmtOr = function(o){ return String(o || '').replace(/\s*-\s*/, '–').replace(/:/g, '.'); };
+  var E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+
+  var oM = window._totemMostraSCU;
+  if(typeof oM !== 'function') return;
+  window._totemMostraSCU = _totemMostraSCU = function(tipo, persona, nome){
+    var res = oM.apply(this, arguments);
+    try{
+      if(tipo !== 'entrata' || !ult || Date.now() - ult.t > 5000 || !ult.r.op) return res;
+      var op = ult.r.op, ripetuta = ult.r.ripetuta; ult = null;
+      if(ripetuta) return res;
+      var O = oggiDi(op.id), V = O.bozza ? [] : voci(O.compito);
+      // sullo schermo del totem il «Compito di oggi» c'è già: lascio solo un po' più di tempo per leggerlo
+      if(V.length){
+        try{ if(typeof _totemTimeout !== 'undefined' && _totemTimeout) clearTimeout(_totemTimeout); _totemTimeout = setTimeout(_totemTornaIdle, 14000);
+          var bar = document.getElementById('pt-progress'); if(bar){ bar.style.transition = 'none'; bar.style.width = '100%'; void bar.offsetWidth; bar.style.transition = 'width 14000ms linear'; bar.style.width = '0%'; } }catch(e){}
+      }
+      // notifica al telefono (solo la prima entrata del giorno)
+      if(!primaEntrata(op.id) || typeof nfInvia !== 'function') return res;
+      var nomi = (typeof window._nfNomiOperatore === 'function') ? window._nfNomiOperatore(op.id) : [];
+      if(!nomi.length) return res;
+      var pn = String(op.nome || (persona && persona.nome) || '').trim().split(/\s+/)[0] || '';
+      pn = pn ? pn.charAt(0).toUpperCase() + pn.slice(1).toLowerCase() : '';
+      var corpo;
+      if(O.bozza) corpo = 'Buon servizio!';
+      else {
+        var cmp = V.map(function(v){ return (v.ora ? v.ora.replace(':', '.') + ' ' : '') + v.t; }).join(' · ');
+        if(cmp.length > 150) cmp = cmp.slice(0, 147) + '…';
+        corpo = (O.orario ? 'Oggi ' + fmtOr(O.orario) : 'Oggi') + (cmp ? ' · ' + cmp : ', buon servizio!');
+      }
+      nfInvia({ a:nomi, titolo:'Ben arrivat' + (op.sesso === 'F' || /a$/i.test(pn) && !/^(andrea|luca|nicola|mattia|elia|gianluca)$/i.test(pn) ? 'a' : 'o') + (pn ? ' ' + pn : '') + '!', corpo:corpo, tag:'benvenuto-' + op.id, vai:'sc:oggi', app:'scu' });
+    }catch(e){ console.warn('[benvenuto]', e); }
+    return res;
+  };
+})();
+</script>
 </body>
 </html>
