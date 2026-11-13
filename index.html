@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 13/11/2026 11:53</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57456,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 13/11/2026 11:53 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -92945,14 +92945,18 @@ html[data-pi-tema="scuro"] #sc-cella-editor button[onclick*="remove()"]{ backgro
 })();
 </script>
 <style id="psx-turno-distinto-2026-11">
-/* (novembre 2026) portale Servizio Civile: la riga del TURNO si distingue dai compiti */
-.psx-t.psx-t-f .psx-o{ background:var(--x-acc, #1f4580) !important; color:#fff !important; padding:4px 9px }
-.psx-t.psx-t-f .psx-a b{ font-weight:800 }
-.psx-t.psx-t-f .psx-ore{ font-size:12px; font-weight:600; color:var(--x-sub, #5d6b82); margin-left:4px }
-.psx-t.psx-t-c{ margin-left:9px; padding-left:12px; border-left:2px solid var(--x-line, #e2e8f0) }
-.psx-t.psx-t-c .psx-a b{ font-weight:600 }
-.psx-t.psx-t-c .psx-o{ font-weight:700 }
-#portale-animatore.pa-dark .psx-t.psx-t-c{ border-left-color:#2a3a57 }
+/* (novembre 2026) portale Servizio Civile: la riga del TURNO in arancio, i compiti sotto in grigio */
+#portale-animatore .psx-t.psx-t-f .psx-o{ background:#fff7ed !important; color:#c2410c !important; border:1.5px solid #fdba74; padding:2px 8px }
+#portale-animatore .psx-t.psx-t-f .psx-a b{ font-weight:800; color:#9a3412 !important }
+#portale-animatore .psx-t.psx-t-f .psx-ore{ font-size:12px; font-weight:600; color:var(--x-sub, #5d6b82); margin-left:4px }
+#portale-animatore .psx-t.psx-t-c{ margin-left:9px; padding-left:12px; border-left:2px solid #fed7aa }
+#portale-animatore .psx-t.psx-t-c .psx-o{ background:#f1f5f9 !important; color:#475569 !important; font-weight:700 }
+#portale-animatore .psx-t.psx-t-c .psx-a b{ font-weight:600 }
+#portale-animatore.pa-dark .psx-t.psx-t-f .psx-o{ background:rgba(234,88,12,.16) !important; color:#fdba74 !important; border-color:#9a3412 }
+#portale-animatore.pa-dark .psx-t.psx-t-f .psx-a b{ color:#fdba74 !important }
+#portale-animatore.pa-dark .psx-t.psx-t-c{ border-left-color:rgba(253,186,116,.3) }
+#portale-animatore.pa-dark .psx-t.psx-t-c .psx-o{ background:#1e293b !important; color:#cbd5e1 !important }
 </style>
+
 </body>
 </html>
