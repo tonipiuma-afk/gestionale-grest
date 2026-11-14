@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 09:19</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 09:19 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93248,7 +93248,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var nuovi = 0, agg = 0;
     var ok = await scriviTutto(function(base){
       righe.forEach(function(r){ var c = candDaRiga(r), old = base.cands[c.cod];
-        if(old){ c.pdf = old.pdf; agg++; } else nuovi++;
+        if(old){ c.pdf = old.pdf; if(old.foto) c.foto = old.foto; agg++; } else nuovi++;
         base.cands[c.cod] = c;
         if(!base.val[c.cod]){ var v = proposta(c); v._ts = new Date().toISOString(); v._by = _imzUtente(); base.val[c.cod] = v; }
       });
@@ -93281,6 +93281,87 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     render();
   };
   window.selApriPdf = function(cod){ var c = S.doc.cands[cod]; if(c && c.pdf) iosFileApri(null, null, false, c.pdf); };
+  /* ── foto del candidato (dal PDF del CV o da file): sul NAS dentro i dati del candidato, rimpicciolita ── */
+  function fotoOv(html){ var o = document.getElementById('sx-foto-ov'); if(!o){ o = document.createElement('div'); o.id = 'sx-foto-ov'; o.onclick = function(e){ if(e.target === o) selFotoChiudi(); }; document.body.appendChild(o); } o.innerHTML = html; o.classList.add('on'); return o; }
+  window.selFotoChiudi = function(){ var o = document.getElementById('sx-foto-ov'); if(o){ o.classList.remove('on'); o.innerHTML = ''; } };
+  window.selFotoVedi = function(){ var c = S.doc.cands[S.cur]; if(!c || !c.foto) return;
+    fotoOv('<div class="sx-fv"><img src="' + c.foto + '" alt=""><div class="sx-fv-n">' + E(c.nome) + '</div><div class="sx-fv-b">' + (puoMod() ? '<button class="btn btn-outline btn-sm" onclick="selFotoScegli()">🔁 Cambia foto</button><button class="btn btn-outline btn-sm" onclick="selFotoTogli()">🗑 Togli</button>' : '') + '<button class="btn btn-sm" onclick="selFotoChiudi()">Chiudi</button></div></div>'); };
+  window.selFotoTogli = async function(){ if(!await xConferma('Togliere la foto di questo candidato?')) return; var cod = S.cur;
+    if(await scriviTutto(function(b){ if(b.cands[cod]) delete b.cands[cod].foto; }, 'Tolta la foto')){ selFotoChiudi(); renderDr(); render(); } };
+  async function fotoSalva(url){ var cod = S.cur, c = S.doc.cands[cod];
+    var ok = await scriviTutto(function(b){ if(b.cands[cod]){ b.cands[cod].foto = url; } }, 'Foto aggiunta');
+    if(ok){ selFotoChiudi(); renderDr(); render(); showToast('✅ Foto salvata', 'success'); } }
+  function rimpicciola(src, sx, sy, sw, sh){ var M = 300, k = Math.min(1, M / Math.max(sw, sh)), cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(sw * k)); cv.height = Math.max(1, Math.round(sh * k));
+    var g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(src, sx, sy, sw, sh, 0, 0, cv.width, cv.height); return cv.toDataURL('image/jpeg', .8); }
+  var _FT = { pdf:null, imgs:[], pag:0 };
+  window.selFotoScegli = async function(){ var c = S.doc.cands[S.cur]; if(!c) return;
+    fotoOv('<div class="sx-fs"><div class="sx-fs-h"><b>Foto di ' + E(c.nome) + '</b><button class="sel-x" onclick="selFotoChiudi()">✕</button></div><div id="sx-fs-b">' + (c.pdf ? '<div class="sx-fs-w">⏳ Cerco le foto nel PDF della domanda…</div>' : '<div class="sx-fs-w">Il PDF di questa domanda non è sul NAS: puoi caricare una foto dal dispositivo.</div>') + '</div>'
+      + '<div class="sx-fs-f"><label class="btn btn-outline btn-sm">📁 Carica una foto dal dispositivo<input type="file" accept="image/*" style="display:none" onchange="selFotoFile(this)"></label></div></div>');
+    if(!c.pdf) return;
+    try{
+      if(typeof pdfjsLib === 'undefined') throw new Error('lettore PDF non disponibile');
+      var r = await fetch(NAS_URL + '/api/file/' + encodeURIComponent(c.pdf.cartella) + '/' + encodeURIComponent(c.pdf.id)); if(!r.ok) throw new Error('PDF non trovato sul NAS (' + r.status + ')');
+      var pdf = await pdfjsLib.getDocument({ data:new Uint8Array(await r.arrayBuffer()) }).promise; _FT.pdf = pdf; _FT.imgs = [];
+      var OPS = pdfjsLib.OPS;
+      for(var p = (pdf.numPages > 1 ? 2 : 1); p <= pdf.numPages; p++){ // la pagina 1 è l'intestazione della domanda (logo del Servizio Civile)
+        var pg = await pdf.getPage(p), ol = await pg.getOperatorList();
+        for(var i = 0; i < ol.fnArray.length; i++){
+          if(ol.fnArray[i] !== OPS.paintImageXObject && ol.fnArray[i] !== OPS.paintJpegXObject) continue;
+          var id = ol.argsArray[i][0];
+          var im = await new Promise(function(ok){ var st = String(id).indexOf('g_') === 0 ? pg.commonObjs : pg.objs; try{ st.get(id, ok); }catch(e){ ok(null); } setTimeout(function(){ ok(null); }, 4000); });
+          if(!im) continue;
+          var w = im.width, h = im.height; if(!w || !h || w < 70 || h < 70) continue;
+          var ar = w / h; if(ar < .5 || ar > 1.5) continue;
+          var cv = document.createElement('canvas'); cv.width = w; cv.height = h; var g = cv.getContext('2d');
+          if(im.bitmap){ g.drawImage(im.bitmap, 0, 0); }
+          else if(im.data){ var d = g.createImageData(w, h), src = im.data, n = w * h;
+            if(src.length === n * 4) d.data.set(src);
+            else if(src.length === n * 3){ for(var q = 0, t = 0; q < n; q++){ d.data[t++] = src[q * 3]; d.data[t++] = src[q * 3 + 1]; d.data[t++] = src[q * 3 + 2]; d.data[t++] = 255; } }
+            else continue;
+            g.putImageData(d, 0, 0); }
+          else continue;
+          // immagine quasi tutta bianca o di un solo colore: non è una foto
+          var pr = document.createElement('canvas'); pr.width = pr.height = 24; var pg2 = pr.getContext('2d'); pg2.drawImage(cv, 0, 0, 24, 24); var px = pg2.getImageData(0, 0, 24, 24).data, mm = 0, vv = 0;
+          for(var z = 0; z < px.length; z += 4){ var lu = (px[z] + px[z + 1] + px[z + 2]) / 3; mm += lu; vv += lu * lu; } mm /= 576; vv = vv / 576 - mm * mm;
+          if(mm > 245 || vv < 60) continue;
+          var big = w > 900 && h > 900; // immagine grande (pagina scansionata o foto intera): si apre per ritagliarla
+          _FT.imgs.push({ cv:cv, p:p, big:big });
+          if(_FT.imgs.length >= 12) break;
+        }
+      }
+      var B = document.getElementById('sx-fs-b'); if(!B) return;
+      var foto = _FT.imgs.map(function(x, k){ return '<button class="sx-fs-t" onclick="selFotoUsa(' + k + ')" title="' + (x.big ? 'Immagine grande: si apre per ritagliare la foto' : 'Usa questa') + '"><img src="' + rimpicciola(x.cv, 0, 0, x.cv.width, x.cv.height) + '">' + (x.big ? '<i>✂️</i>' : '') + '</button>'; }).join('');
+      var pagine = ''; for(var pp = 1; pp <= pdf.numPages; pp++) pagine += '<button class="sx-fs-pg" onclick="selFotoPagina(' + pp + ')">pag. ' + pp + '</button>';
+      B.innerHTML = (foto ? '<div class="sx-fs-l">Immagini trovate nel PDF: tocca la foto del candidato</div><div class="sx-fs-g">' + foto + '</div>' : '<div class="sx-fs-w">Nel PDF non ho trovato foto separate.</div>')
+        + '<div class="sx-fs-l">Oppure ritaglia la foto da una pagina</div><div class="sx-fs-pgs">' + pagine + '</div><div id="sx-fs-crop"></div>';
+    }catch(e){ var B2 = document.getElementById('sx-fs-b'); if(B2) B2.innerHTML = '<div class="sx-fs-w">⚠️ ' + E(e.message) + '. Puoi caricare una foto dal dispositivo.</div>'; }
+  };
+  window.selFotoUsa = function(k){ var x = _FT.imgs[k]; if(!x) return; if(x.big){ document.querySelectorAll('.sx-fs-pg').forEach(function(b){ b.classList.remove('on'); }); cropSu(x.cv); return; } fotoSalva(rimpicciola(x.cv, 0, 0, x.cv.width, x.cv.height)); };
+  window.selFotoFile = function(inp){ var f = inp.files && inp.files[0]; if(!f) return; var u = URL.createObjectURL(f), im = new Image();
+    im.onload = function(){ var w = im.naturalWidth, h = im.naturalHeight, lato = Math.min(w, h * .8); fotoSalva(rimpicciola(im, (w - lato) / 2, 0, lato, Math.min(h, lato / .8))); URL.revokeObjectURL(u); };
+    im.onerror = function(){ showToast('⚠️ Immagine non leggibile', 'warning'); }; im.src = u; };
+  window.selFotoPagina = async function(p){ var box = document.getElementById('sx-fs-crop'); if(!box || !_FT.pdf) return;
+    document.querySelectorAll('.sx-fs-pg').forEach(function(b, i){ b.classList.toggle('on', i + 1 === p); });
+    box.innerHTML = '<div class="sx-fs-w">⏳ Preparo la pagina…</div>';
+    var pg = await _FT.pdf.getPage(p), vp1 = pg.getViewport({ scale:1 }), sc = Math.min(3, 1400 / vp1.width), vp = pg.getViewport({ scale:sc });
+    var cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await pg.render({ canvasContext:cv.getContext('2d'), viewport:vp }).promise;
+    cropSu(cv);
+  };
+  function cropSu(cv){ var box = document.getElementById('sx-fs-crop'); if(!box) return;
+    _FT.pag = cv; _FT.sel = null;
+    box.innerHTML = '<div class="sx-fs-l">Trascina sopra la foto per selezionarla, poi tocca «Usa il riquadro»</div><div class="sx-crop" id="sx-crop"><img src="' + cv.toDataURL('image/jpeg', .9) + '" draggable="false"><div class="sx-crop-r" id="sx-crop-r"></div></div><div class="sx-fs-f"><button class="btn btn-sm" id="sx-crop-ok" disabled onclick="selFotoRitaglia()">✂️ Usa il riquadro</button></div>';
+    var el = document.getElementById('sx-crop'), rr = document.getElementById('sx-crop-r'), st = null;
+    var pos = function(e){ var b = el.getBoundingClientRect(), t = e.touches ? e.touches[0] : e; return { x:Math.max(0, Math.min(b.width, t.clientX - b.left)), y:Math.max(0, Math.min(b.height, t.clientY - b.top)), w:b.width, h:b.height }; };
+    var giu = function(e){ e.preventDefault(); st = pos(e); _FT.sel = null; rr.style.display = 'block'; rr.style.left = st.x + 'px'; rr.style.top = st.y + 'px'; rr.style.width = rr.style.height = '0'; };
+    var muovi = function(e){ if(!st) return; e.preventDefault(); var q = pos(e), x = Math.min(st.x, q.x), y = Math.min(st.y, q.y), w = Math.abs(q.x - st.x), h = Math.abs(q.y - st.y);
+      rr.style.left = x + 'px'; rr.style.top = y + 'px'; rr.style.width = w + 'px'; rr.style.height = h + 'px'; _FT.sel = { x:x / q.w, y:y / q.h, w:w / q.w, h:h / q.h }; };
+    var su = function(){ if(!st) return; st = null; var ok = document.getElementById('sx-crop-ok'); if(ok) ok.disabled = !(_FT.sel && _FT.sel.w > .02 && _FT.sel.h > .02); };
+    el.addEventListener('mousedown', giu); el.addEventListener('touchstart', giu, { passive:false });
+    el.addEventListener('mousemove', muovi); el.addEventListener('touchmove', muovi, { passive:false });
+    window.addEventListener('mouseup', su); el.addEventListener('touchend', su);
+    box.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  window.selFotoRitaglia = function(){ var s0 = _FT.sel, cv = _FT.pag; if(!s0 || !cv) return; fotoSalva(rimpicciola(cv, s0.x * cv.width, s0.y * cv.height, s0.w * cv.width, s0.h * cv.height)); };
   /* ── criteri del programma da file ── */
   window.selCaricaCriteri = async function(inp){
     var f = inp.files && inp.files[0]; inp.value = ''; if(!f) return;
@@ -93317,7 +93398,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var nv = Object.keys(p.val).length, nc = p.cands ? Object.keys(p.cands).length : 0;
     if(!await xConferma('Importare ' + nv + ' valutazioni' + (nc ? ' e ' + nc + ' candidati' : '') + ' da «' + f.name + '»?\n\nLe valutazioni dei candidati presenti nel file sostituiscono quelle attuali.')) return;
     var ok = await scriviTutto(function(base){
-      if(p.cands) Object.keys(p.cands).forEach(function(k){ var c = p.cands[k]; if(base.cands[k] && base.cands[k].pdf) c.pdf = base.cands[k].pdf; base.cands[k] = c; });
+      if(p.cands) Object.keys(p.cands).forEach(function(k){ var c = p.cands[k]; if(base.cands[k] && base.cands[k].pdf) c.pdf = base.cands[k].pdf; if(base.cands[k] && base.cands[k].foto && !c.foto) c.foto = base.cands[k].foto; base.cands[k] = c; });
       Object.keys(p.val).forEach(function(k){ var v = norm(p.val[k]); v._ts = new Date().toISOString(); v._by = _imzUtente(); base.val[k] = v; });
       if(p.istituto && !base.istituto) base.istituto = p.istituto;
       (p.log || []).slice().reverse().forEach(function(l){ base.log.unshift({ ts:l.ts, by:l.by || 'file', cod:l.cod || '', nome:l.nome || '', desc:l.desc }); });
@@ -93491,7 +93572,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var ini = c.nome.split(' ').slice(0, 2).map(function(x){ return x[0] || ''; }).join(''), L = filtrati(), pos = L.map(function(x){ return x.cod; }).indexOf(c.cod) + 1;
     var com = (c.raw && c.raw.ComuneResidenza) ? String(c.raw.ComuneResidenza).trim() : String(c.res || '').replace(/^.*\d{5}\s*/, '').replace(/\s*\(.*$/, '');
     var bdg = [c.gmo === 'SÌ' ? '<span class="sx-bdg g">GMO</span>' : '', c.altro === 'SÌ' ? '<span class="sx-bdg">disponibile altro progetto</span>' : '', c.stesso === 'SÌ' ? '<span class="sx-bdg">subentro stesso progetto</span>' : ''].join('');
-    document.getElementById('sel-dr').innerHTML = '<div class="sel-dh sx-dh"><div class="sel-av">' + E(ini) + '</div><div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
+    document.getElementById('sel-dr').innerHTML = '<div class="sel-dh sx-dh">' + (c.foto ? '<button class="sel-av sx-av foto" onclick="selFotoVedi()" title="Ingrandisci la foto"><img src="' + c.foto + '" alt=""></button>' : (puoMod() ? '<button class="sel-av sx-av" onclick="selFotoScegli()" title="Aggiungi la foto dal curriculum">' + E(ini) + '<i class="sx-av-cam">📷</i></button>' : '<div class="sel-av">' + E(ini) + '</div>')) + '<div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
       + '<div class="sel-dact sx-act"><span class="sel-muted">' + (pos || '–') + ' / ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')" title="Apri la domanda con il CV">📄 PDF</button>' : '') + '<button class="btn btn-outline btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])" title="Stampa la scheda di questo candidato">🖨</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
       + '<div class="sel-segw"><div class="sel-seg">' + [['val','📊 Valutazione'],['dom','📝 Domanda'],['pdf','📄 PDF domanda e CV'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.dtab === t[0] ? 'on' : '') + '" onclick="selDtab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div></div>'
       + '<div class="sel-db">' + (S.dtab === 'val' ? drVal(c, v) : S.dtab === 'dom' ? drDom(c) : S.dtab === 'pdf' ? drPdf(c) : drLog(c)) + '</div>';
@@ -93851,6 +93932,35 @@ html[data-pi-tema="scuro"] .sx-num{background:#0f172a}
 #sel-dr .sx-dub-add .sx-in{border-color:rgba(146,64,14,.25) !important;background:rgba(255,255,255,.6) !important}
 #sel-dr .sx-sel{height:auto !important;min-height:36px;padding-top:5px !important;padding-bottom:5px !important;line-height:1.3}
 #sel-dr .sx-mesi input,#sel-dr .sx-num input{height:auto !important;min-height:34px;padding-top:4px !important;padding-bottom:4px !important}
+</style>
+<style id="sel-foto-2026-11">
+/* (novembre 2026) Selezioni: foto del candidato */
+.sx-av{border:0;padding:0;cursor:pointer;position:relative;overflow:visible}
+.sx-av.foto{background:#e2e8f0;overflow:hidden}
+.sx-av.foto img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.sx-av-cam{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);font-size:11px;font-style:normal;display:flex;align-items:center;justify-content:center}
+#sx-foto-ov{position:fixed;inset:0;z-index:100050;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;padding:16px}
+#sx-foto-ov.on{display:flex}
+.sx-fv{background:var(--card);border-radius:20px;padding:16px;max-width:min(520px,100%);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.sx-fv img{max-width:100%;max-height:65vh;border-radius:14px;display:block;margin:0 auto}
+.sx-fv-n{font-weight:800;margin:10px 0}
+.sx-fv-b{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.sx-fs{background:var(--card);border-radius:20px;width:min(760px,100%);max-height:92vh;overflow:auto;padding:14px 16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.sx-fs-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:16px}
+.sx-fs-w{font-size:13.5px;color:var(--text-muted);padding:8px 0}
+.sx-fs-l{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin:12px 0 6px}
+.sx-fs-g{display:flex;gap:10px;flex-wrap:wrap}
+.sx-fs-t{border:2px solid var(--border);background:#fff;border-radius:12px;padding:4px;cursor:pointer;width:110px;height:130px;display:flex;align-items:center;justify-content:center}
+.sx-fs-t:hover{border-color:var(--teal)}
+.sx-fs-t img{max-width:100%;max-height:100%;border-radius:8px}
+.sx-fs-t{position:relative}.sx-fs-t i{position:absolute;right:4px;bottom:4px;font-style:normal;background:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25);font-size:12px}
+.sx-fs-pgs{display:flex;gap:6px;flex-wrap:wrap}
+.sx-fs-pg{border:1.5px solid var(--border);background:var(--card);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--text)}
+.sx-fs-pg.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.sx-crop{position:relative;user-select:none;touch-action:none;cursor:crosshair;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;line-height:0}
+.sx-crop img{width:100%;display:block;pointer-events:none}
+.sx-crop-r{position:absolute;display:none;border:2.5px solid #ea580c;background:rgba(234,88,12,.12);box-shadow:0 0 0 9999px rgba(15,23,42,.35)}
+.sx-fs-f{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 </style>
 </body>
 </html>
