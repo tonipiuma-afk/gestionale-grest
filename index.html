@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 09:37</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 09:37 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93394,11 +93394,21 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   window.selImportaJson = async function(inp){
     var f = inp.files && inp.files[0]; inp.value = ''; if(!f) return;
     var p; try{ p = JSON.parse(await leggiTesto(f)); }catch(e){ showToast('⚠️ File non valido', 'warning'); return; }
+    if(p && p.foto && !p.val){
+      if(p.programma && p.programma !== S.prog){ await xConferma('Queste foto sono del programma «' + p.programma + '»: apri le selezioni giuste e caricale lì.'); return; }
+      var ks = Object.keys(p.foto).filter(function(k){ return S.doc.cands[k]; }), manca = Object.keys(p.foto).length - ks.length;
+      if(!ks.length){ showToast('⚠️ Nessuna foto corrisponde ai candidati: importa prima le domande (CSV)', 'warning'); return; }
+      if(!await xConferma('Caricare ' + ks.length + ' foto dei candidati da «' + f.name + '»?' + (manca ? '\n\n' + manca + ' foto non corrispondono a nessun candidato e verranno saltate.' : '') + '\n\nLe valutazioni non vengono toccate.')) return;
+      var okF = await scriviTutto(function(base){ ks.forEach(function(k){ if(base.cands[k]) base.cands[k].foto = p.foto[k]; }); }, 'Caricate ' + ks.length + ' foto dei candidati da ' + f.name);
+      if(okF) showToast('✅ ' + ks.length + ' foto caricate', 'success');
+      render(); return;
+    }
     if(!p || !p.val){ showToast('⚠️ Il file non contiene valutazioni', 'warning'); return; }
     var nv = Object.keys(p.val).length, nc = p.cands ? Object.keys(p.cands).length : 0;
     if(!await xConferma('Importare ' + nv + ' valutazioni' + (nc ? ' e ' + nc + ' candidati' : '') + ' da «' + f.name + '»?\n\nLe valutazioni dei candidati presenti nel file sostituiscono quelle attuali.')) return;
     var ok = await scriviTutto(function(base){
       if(p.cands) Object.keys(p.cands).forEach(function(k){ var c = p.cands[k]; if(base.cands[k] && base.cands[k].pdf) c.pdf = base.cands[k].pdf; if(base.cands[k] && base.cands[k].foto && !c.foto) c.foto = base.cands[k].foto; base.cands[k] = c; });
+      if(p.foto) Object.keys(p.foto).forEach(function(k){ if(base.cands[k]) base.cands[k].foto = p.foto[k]; });
       Object.keys(p.val).forEach(function(k){ var v = norm(p.val[k]); v._ts = new Date().toISOString(); v._by = _imzUtente(); base.val[k] = v; });
       if(p.istituto && !base.istituto) base.istituto = p.istituto;
       (p.log || []).slice().reverse().forEach(function(l){ base.log.unshift({ ts:l.ts, by:l.by || 'file', cod:l.cod || '', nome:l.nome || '', desc:l.desc }); });
@@ -93454,7 +93464,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var fileIn = '<input type="file" id="sel-in-csv" accept=".csv,.CSV" style="display:none" onchange="selImportaCsv(this)"><input type="file" id="sel-in-pdf" accept="application/pdf" multiple style="display:none" onchange="selCaricaPdf(this)"><input type="file" id="sel-in-json" accept=".json" style="display:none" onchange="selImportaJson(this)"><input type="file" id="sel-in-crit" accept=".json,application/json" style="display:none" onchange="selCaricaCriteri(this)">';
     var h = '<div class="sel-head"><div class="sel-head-t"><div class="sel-h1">' + cfg.ico + ' Selezioni · ' + E(cfg.nome) + '</div><div class="sel-muted">' + E(crit().progetto) + ' · scadenza bando ' + SCADENZA + '</div></div>'
       + '<details class="sel-menu"><summary class="sel-mbtn" title="Altre azioni">⋯</summary><div class="sel-mpop">'
-      + (mod ? '<button onclick="selMenuChiudi();document.getElementById(\'sel-in-json\').click()">⬆ Importa valutazioni da file</button>' : '')
+      + (mod ? '<button onclick="selMenuChiudi();document.getElementById(\'sel-in-json\').click()">⬆ Importa valutazioni o foto da file</button>' : '')
       + '<button onclick="selMenuChiudi();selEsporta()">⬇ Salva una copia (backup)</button><button onclick="selMenuChiudi();selRicarica()">↻ Ricarica dal NAS</button>'
       + (mod && crit().pronto ? '<button onclick="selMenuChiudi();document.getElementById(\'sel-in-crit\').click()">🔁 Sostituisci i criteri</button>' : '')
       + '</div></details>' + fileIn + '</div>';
