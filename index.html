@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 10:00</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 10:00 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93484,6 +93484,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     // linguette + stampa
     h += '<div class="sel-sub">' + [['tab','📋 Tabella'],['dub','⚠️ Da verificare' + (apC ? ' <i class="sel-bd">' + apC + '</i>' : '')],['cri','📖 Criteri'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.vista === t[0] ? 'on' : '') + '" onclick="selVista(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('')
       + '<span style="flex:1"></span>'
+      + (dOk ? '<button class="btn btn-outline btn-sm sel-ckbtn" onclick="selControlla()" title="Ricontrolla le valutazioni di tutti i candidati e segnala le incongruenze">🔎 Controlla</button>' : '')
       + (dOk ? '<details class="sel-menu sel-menu-dx"><summary class="btn btn-teal btn-sm sel-stbtn">🖨 Stampa ▾</summary><div class="sel-mpop">'
         + '<button onclick="selMenuChiudi();selStampaTabella()"><b>Tabella punteggi (A3)</b><small>griglia di tutti i candidati, orizzontale</small></button>'
         + '<button onclick="selMenuChiudi();selStampaSchede()"><b>Schede dei candidati</b><small>una scheda individuale per candidato</small></button>'
@@ -93578,6 +93579,61 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   window.selSposta = function(d){ var l = filtrati(), i = l.map(function(c){ return c.cod; }).indexOf(S.cur); if(!l.length) return; i = (i + d + l.length) % l.length; S.cur = l[i].cod; renderDr(); };
   window.selDtab = function(t){ S.dtab = t; renderDr(); };
   try{ S.split = localStorage.getItem('sel_affianca') === '1'; }catch(e){}
+  /* ── controllo automatico delle valutazioni (segnala soltanto, non cambia nulla) ── */
+  function anni(t){ return (String(t || '').match(/\b(19[5-9]\d|20[0-4]\d)\b/g) || []).map(Number); }
+  function mesiPeriodo(t){
+    t = String(t || '');
+    var m = t.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})\s*[-–—]\s*(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/);
+    if(m){ var a = new Date(+m[3], +m[2] - 1, +m[1]), b = new Date(+m[6], +m[5] - 1, +m[4]); var d = (b - a) / 86400000; return d >= 0 ? Math.floor(d / 30.44) + ((d % 30.44) > 15 ? 1 : 0) : null; }
+    m = t.match(/(\d{1,2})[\/.](\d{4})\s*[-–—]\s*(\d{1,2})[\/.](\d{4})/);
+    if(m){ var n = (+m[4] - +m[2]) * 12 + (+m[3] - +m[1]) + 1; return n > 0 ? n : null; }
+    return undefined; // periodo non trovato nel testo
+  }
+  function etaAl(nato, gg){ if(!nato) return null; var p = nato.split('/').map(Number), q = gg.split('/').map(Number); if(p.length < 3) return null; var a = q[2] - p[2]; if(q[1] < p[1] || (q[1] === p[1] && q[0] < p[0])) a--; return a; }
+  function controlli(c, v){
+    var r = c.raw || {}, L = [], cr = crit(), nomeLiv = function(k){ var l = LIV.filter(function(x){ return x[0] === k; })[0]; return l ? l[1].replace(/ \(liv.*/, '') : 'nessun titolo'; };
+    var add = function(cat, t, grave){ L.push({ c:cat, t:t, g:!!grave }); };
+    if(!v.liv && !v.tit){ add('Titolo', 'Nessuna valutazione del titolo di studio', true); return L; }
+    var exp = r.TitoloStudio ? proposta(c).liv : '';
+    if(exp && v.liv && exp !== v.liv) add('Titolo', 'Nel CSV il titolo è «' + nomeLiv(exp) + '», ma è valutato come «' + nomeLiv(v.liv) + '»', true);
+    if(!v.liv) add('Titolo', 'Livello del titolo non scelto (0 punti)', true);
+    if(cr.pronto && v.liv){ var disc = [r.FormazioneDisciplina, r.FormazioneIstituto, v.tit].join(' '), att = cr.att(v.liv, disc);
+      if(att !== !!v.att) add('Titolo', 'Attinenza: secondo i criteri caricati sarebbe ' + (att ? 'ATTINENTE' : 'NON attinente') + ', ma è segnata ' + (v.att ? 'attinente' : 'non attinente'), true); }
+    var annoDip = null;
+    if(/secondaria di 2/i.test(r.TitoloStudio || '') && +r.FormazioneAnno) annoDip = +r.FormazioneAnno;
+    else if(/secondaria di 2/i.test(r.TitoloStudioUlteriore || '') && +r.FormazioneAnnoUlteriore) annoDip = +r.FormazioneAnnoUlteriore;
+    var dataOk = function(sez, x){ var A = anni(x.t + ' ' + (x.n || '')); if(!A.length){ add(sez, '«' + String(x.t).slice(0, 70) + '» conta ma non ha una data', false); return; }
+      if(annoDip){ var mx = Math.max.apply(null, A); if(mx < annoDip) add(sez, '«' + String(x.t).slice(0, 70) + '» conta ma è del ' + mx + ', prima del diploma (' + annoDip + ')', true); else if(mx === annoDip) add(sez, '«' + String(x.t).slice(0, 70) + '» conta ma è dello stesso anno del diploma (' + annoDip + '): verificare il mese', false); } };
+    v.ult.filter(function(x){ return x.v; }).forEach(function(x){ dataOk('Ulteriori titoli', x); });
+    v.comp.filter(function(x){ return x.v; }).forEach(function(x){ dataOk('Competenze', x); });
+    var nu = v.ult.filter(function(x){ return x.v; }).length, nc = v.comp.filter(function(x){ return x.v; }).length + (v.pat.valida ? 1 : 0);
+    if(nu > 5) add('Ulteriori titoli', nu + ' voci contate: il massimo è 5', false);
+    if(nc > 3) add('Competenze', nc + ' voci contate (patente compresa): il massimo è 3', false);
+    if(v.pat.valida){ var e = etaAl(c.nato, SCADENZA); if(e !== null && e < 21) add('Competenze', 'Patente contata come posseduta da 3 anni, ma il candidato ha ' + e + ' anni alla scadenza del bando', true);
+      var ap = anni(v.pat.data); if(ap.length && ap[0] > +SCADENZA.slice(-4) - 3) add('Competenze', 'Patente rilasciata nel ' + ap[0] + ': meno di 3 anni alla scadenza del bando', true); }
+    v.esp.forEach(function(x){ var tt = String(x.t || ''); if(tt.length > 110) tt = tt.slice(0, 107) + '…';
+      if(!x.ind){ return; }
+      if(!(+x.mesi)) add('Esperienze', '«' + tt + '» conta ma ha 0 mesi', true);
+      var mp = mesiPeriodo(x.t);
+      if(mp === undefined && +x.mesi) add('Esperienze', '«' + tt + '» conta ' + x.mesi + ' mesi ma nel testo non c’è il periodo (dal… al…)', false);
+      else if(mp !== null && mp !== undefined && +x.mesi > mp) add('Esperienze', '«' + tt + '»: ' + x.mesi + ' mesi indicati, ma il periodo scritto ne contiene ' + mp, true);
+      if(/tirocin|pcto|\bstage\b|alternanza scuola/i.test(x.t)) add('Esperienze', '«' + tt + '» conta, ma sembra un tirocinio, PCTO o stage (di norma non valutabili)', false);
+    });
+    return L;
+  }
+  window.selControlla = function(){
+    var all = lista(), tot = 0, gr = 0, righe = all.map(function(c){ var L = controlli(c, V(c.cod)); tot += L.length; gr += L.filter(function(x){ return x.g; }).length; return [c, L]; }).filter(function(x){ return x[1].length; });
+    righe.sort(function(a, b){ return b[1].filter(function(x){ return x.g; }).length - a[1].filter(function(x){ return x.g; }).length; });
+    var ov = document.getElementById('sx-ck-ov'); if(!ov){ ov = document.createElement('div'); ov.id = 'sx-ck-ov'; ov.onclick = function(e){ if(e.target === ov) ov.classList.remove('on'); }; document.body.appendChild(ov); }
+    var av = function(c){ return c.foto ? '<img src="' + c.foto + '" alt="">' : E(c.nome.split(' ').slice(0, 2).map(function(x){ return x[0] || ''; }).join('')); };
+    ov.innerHTML = '<div class="sx-ck"><div class="sx-ck-h"><div><b>🔎 Controllo delle valutazioni</b><div class="sel-muted">' + all.length + ' candidati controllati · ' + (tot ? '<b style="color:#b42318">' + gr + ' da correggere</b> · ' + (tot - gr) + ' da verificare' : '<b style="color:#15803d">nessuna incongruenza</b>') + '</div></div><button class="sel-x" onclick="document.getElementById(\'sx-ck-ov\').classList.remove(\'on\')">✕</button></div>'
+      + '<div class="sx-ck-b">' + (righe.length ? righe.map(function(x){ var c = x[0];
+          return '<div class="sx-ck-c"><button class="sx-ck-n" onclick="document.getElementById(\'sx-ck-ov\').classList.remove(\'on\');selApri(\'' + c.cod + '\')" title="Apri la scheda"><span class="sx-ck-av">' + av(c) + '</span><b>' + E(c.nome) + '</b><span class="sel-muted">apri la scheda ›</span></button>'
+            + x[1].map(function(i){ return '<div class="sx-ck-i ' + (i.g ? 'g' : '') + '"><span class="sx-ck-cat">' + i.c + '</span><span>' + E(i.t) + '</span></div>'; }).join('') + '</div>'; }).join('')
+        : '<div class="sx-ck-ok">✓ Tutte le valutazioni sono coerenti: titoli, date, patenti ed esperienze tornano.</div>')
+      + '<div class="sx-ck-leg"><span class="sx-ck-i g"><span class="sx-ck-cat">rosso</span><span>probabile errore da correggere</span></span><span class="sx-ck-i"><span class="sx-ck-cat">giallo</span><span>da verificare: può essere giusto</span></span></div></div></div>';
+    ov.classList.add('on');
+  };
   window.selCtrl = async function(on){ var cod = S.cur, v = V(cod);
     if(on && aperti(v) && !await xConferma('Questo candidato ha ancora ' + aperti(v) + ' casi da verificare aperti.\n\nSegnare comunque la valutazione come controllata?')) return;
     modifica(cod, function(r){ if(on) r.ctrl = { by:_imzUtente(), ts:new Date().toISOString() }; else delete r.ctrl; }, on ? 'Valutazione segnata come controllata' : 'Tolto «controllata»'); };
@@ -94047,6 +94103,31 @@ html[data-pi-tema="scuro"] .sx-num{background:#0f172a}
 html[data-pi-tema="scuro"] .sx-chr{background:#0f172a}
 html[data-pi-tema="scuro"] .sx-ctrl.on, html[data-pi-tema="scuro"] .sx-ctrl:hover{background:rgba(22,163,74,.12)}
 @media (max-width:640px){ .sx-ch{min-width:34px;height:38px} }
+</style>
+<style id="sel-controlla-2026-11">
+/* (novembre 2026) Selezioni: controllo automatico delle valutazioni */
+#sx-ck-ov{position:fixed;inset:0;z-index:100040;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px}
+#sx-ck-ov.on{display:flex}
+.sx-ck{background:var(--card);border-radius:20px;width:min(820px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden}
+.sx-ck-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1.5px solid var(--border)}
+.sx-ck-h b{font-size:17px}
+.sx-ck-b{overflow:auto;padding:12px 18px 16px;display:flex;flex-direction:column;gap:10px}
+.sx-ck-c{border:1.5px solid var(--border);border-radius:14px;padding:8px 10px}
+.sx-ck-n{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;font:inherit;color:var(--text);cursor:pointer;padding:2px 0 6px;text-align:left}
+.sx-ck-n b{flex:1;font-size:14px}
+.sx-ck-av{width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.sx-ck-av img{width:100%;height:100%;object-fit:cover}
+.sx-ck-i{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.4;padding:6px 8px;border-radius:10px;background:#fffbeb;margin-top:4px}
+.sx-ck-i.g{background:#fef2f2}
+.sx-ck-cat{flex:0 0 118px;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#92400e;padding-top:1px}
+.sx-ck-i.g .sx-ck-cat{color:#b42318}
+.sx-ck-ok{font-size:15px;font-weight:700;color:#15803d;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:16px;text-align:center}
+.sx-ck-leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.sx-ck-leg .sx-ck-i{margin:0;font-size:12px}
+.sx-ck-leg .sx-ck-cat{flex:0 0 auto}
+html[data-pi-tema="scuro"] .sx-ck-i{background:rgba(245,158,11,.12)}
+html[data-pi-tema="scuro"] .sx-ck-i.g{background:rgba(239,68,68,.14)}
+@media (max-width:560px){ .sx-ck-i{flex-direction:column;gap:2px} .sx-ck-cat{flex:none} }
 </style>
 </body>
 </html>
