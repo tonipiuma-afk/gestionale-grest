@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 10:12</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -10965,52 +10965,26 @@ table tbody tr:hover{
         <option value="eta-desc">Età (decrescente)</option>
       </select>
     </div>
-    <div style="margin-bottom:14px" class="admin-only">
-      <div class="form-label" style="margin-bottom:8px">AGGIUNGI BAMBINO ALLA SQUADRA SELEZIONATA</div>
-      <div class="form-row">
-        <div class="form-group" style="flex:1">
-          <label class="form-label" style="font-size:12px">Bambino</label>
-          <input type="text" class="form-control" id="sq-add-bambino-input" list="sq-add-bambino-list" placeholder="Scrivi o scegli..." autocomplete="off" onchange="autoFillPreferenze()">
-          <datalist id="sq-add-bambino-list"></datalist>
-        </div>
-        <div class="form-group" style="flex:1">
-          <label class="form-label" style="font-size:12px">Insieme a (1)</label>
-          <input type="text" class="form-control" id="sq-insieme-1-input" list="sq-insieme-1-list" placeholder="Scrivi o scegli..." autocomplete="off">
-          <datalist id="sq-insieme-1-list"></datalist>
-        </div>
+    <div style="margin-bottom:10px" class="admin-only" id="sq2-toolbar">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button type="button" class="btn btn-teal" onclick="sq2Anteprima('tutte')" title="Crea tutte le squadre (i bambini fissati 🔒 restano dove sono)">✨ CREA SQUADRE</button>
+        <button type="button" class="btn" style="background:#43a047;color:#fff" onclick="sq2Anteprima('completa')" title="Sistema solo i bambini ancora senza squadra">➕ COMPLETA LE ALTRE</button>
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('sq2-opz').classList.toggle('on')">⚙️ OPZIONI</button>
       </div>
-      <div class="form-row mt-2">
-        <div class="form-group" style="flex:1">
-          <label class="form-label" style="font-size:12px">Insieme a (2)</label>
-          <input type="text" class="form-control" id="sq-insieme-2-input" list="sq-insieme-2-list" placeholder="Scrivi o scegli..." autocomplete="off">
-          <datalist id="sq-insieme-2-list"></datalist>
-        </div>
-        <div class="form-group" style="flex:1">
-          <label class="form-label" style="font-size:12px">Insieme a (3)</label>
-          <input type="text" class="form-control" id="sq-insieme-3-input" list="sq-insieme-3-list" placeholder="Scrivi o scegli..." autocomplete="off">
-          <datalist id="sq-insieme-3-list"></datalist>
-        </div>
-      </div>
-      <div class="flex gap-2 mt-2">
-        <select class="form-control" id="sq-add-num" style="max-width:200px"><option value="">Seleziona squadra</option></select>
-        <button type="button" class="btn btn-blue" onclick="addBambinoToSquadra()">➕ AGGIUNGI</button>
-      </div>
-      <p class="text-muted mt-2" style="font-size:12px">💡 Scrivi per cercare o clicca sulla freccia per vedere tutti. Il sistema aggiungerà automaticamente anche i bambini nelle preferenze.</p>
+      <div class="sq2-opz" id="sq2-opz"></div>
+      <p class="text-muted mt-2" style="font-size:12px">💡 Puoi inserire i bambini a mano dal riquadro «Da sistemare» (entrano insieme a fratelli e amici reciproci e restano fissati 🔒), poi premere «Completa le altre» per sistemare il resto. Prima di cambiare qualcosa vedi sempre un'anteprima.</p>
     </div>
     <!-- Banner sola lettura per animatori -->
     <div id="sq-readonly-banner" style="display:none;background:#FFF3E0;border:2px solid #FFA726;border-radius:12px;padding:12px 16px;font-weight:700;font-size:13px;color:#E65100;margin-bottom:8px">
       👁️ Visualizzazione sola lettura — solo Admin e Responsabile possono modificare le squadre.
     </div>
   </div>
+  <div id="sq2-top"></div>
   <div id="squadre-columns" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding-bottom:12px;"></div>
   <div class="card mt-3 admin-only">
     <div class="flex gap-2" style="flex-wrap:wrap;">
-      <button type="button" class="btn btn-gray" onclick="resetSquadre('MiniGrest')">RESET MINI</button>
-      <button type="button" class="btn btn-teal" onclick="generaSquadre('MiniGrest')">GENERA MINI</button>
-      <button type="button" class="btn" style="background:#43a047;color:#fff" onclick="aggiungiNuoviSquadre('MiniGrest')">➕ AGGIUNGI NUOVI MINI</button>
-      <button type="button" class="btn btn-gray" onclick="resetSquadre('Grest')">RESET GREST</button>
-      <button type="button" class="btn btn-teal" onclick="generaSquadre('Grest')">GENERA GREST</button>
-      <button type="button" class="btn" style="background:#43a047;color:#fff" onclick="aggiungiNuoviSquadre('Grest')">➕ AGGIUNGI NUOVI GREST</button>
+      <button type="button" class="btn btn-gray" onclick="resetSquadre('MiniGrest')">SVUOTA SQUADRE MINI</button>
+      <button type="button" class="btn btn-gray" onclick="resetSquadre('Grest')">SVUOTA SQUADRE GREST</button>
     </div>
   </div>
 </div>
@@ -12815,6 +12789,7 @@ table tbody tr:hover{
         <div id="com-dest-singolo-results" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto"></div>
       </div>
       <div style="font-size:12px;color:#888;font-weight:700">Destinatari: <span id="com-dest-count" style="color:var(--teal);font-weight:900">0</span></div>
+      <div id="com2-riepilogo"></div>
     </div>
 
     <div class="card">
@@ -12833,6 +12808,10 @@ table tbody tr:hover{
           <option value="pagamento">💰 Sollecito Pagamento</option>
           <option value="crema">☀️ Portare Crema Solare</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Titolo <span style="font-weight:600;color:#aaa">(facoltativo — è il titolo della notifica sul telefono)</span></label>
+        <input type="text" class="form-control" id="com-titolo" maxlength="60" placeholder="Es. Gita di domani">
       </div>
       <div class="form-group">
         <label class="form-label">Testo messaggio</label>
@@ -31543,6 +31522,8 @@ function comInviaMessaggio(){
     id:'comm_'+Date.now(),
     tipo: comDestCorrente==='animatori' ? 'animatori' : 'broadcast',
     testo:testo,
+    titolo:((document.getElementById('com-titolo')||{}).value||'').trim()||undefined,
+    letture:1,
     dest:comDestCorrente,
     destIds:comDestinatariIds.slice(),
     destSqId:comDestCorrente==='squadra'?(document.getElementById('com-dest-squadra').value||null):null,
@@ -31558,9 +31539,11 @@ function comInviaMessaggio(){
   if(typeof _uploadSingoloDb==='function' && APP.currentDb) _uploadSingoloDb(APP.currentDb, db).catch(function(){});
   document.getElementById('com-testo').value='';
   document.getElementById('com-template').value='';
+  var _cTit=document.getElementById('com-titolo'); if(_cTit) _cTit.value='';
   comRenderInviati();
   var nDest = comDestinatariIds.length;
-  showToast('✅ Messaggio inviato a '+(comDestCorrente==='animatori' ? nDest+' animatori' : nDest+' famiglie')+'!','success');
+  if(comDestCorrente!=='animatori' && typeof window.comNumFamiglie==='function'){ try{ nDest=window.comNumFamiglie(comDestinatariIds); }catch(e){} }
+  showToast('✅ Messaggio inviato a '+(comDestCorrente==='animatori' ? nDest+' animatori' : nDest+(nDest===1?' famiglia':' famiglie'))+'!','success');
 }
 
 function comRenderInviati(){
@@ -53781,16 +53764,8 @@ function pgSwitchTab(tab, btn){
       var user=AUTH&&AUTH.currentUser;
       var isc=user&&user.iscrittoId?(db.iscritti||[]).find(function(i){return i.id===user.iscrittoId;}):null;
       var modificato=false;
-      (db.comunicazioni||[]).forEach(function(c){
-        if(c._eliminato||c.tipo==='famiglia'||c._letto) return;
-        if(!c.tipo||c.tipo==='broadcast'){
-          if(!c.dest||c.dest==='tutti') { c._letto=true; modificato=true; return; }
-          if(c.dest==='grest'&&isc&&(isc.tipo==='Grest'||!isc.tipo)) { c._letto=true; modificato=true; return; }
-          if(c.dest==='mini'&&isc&&isc.tipo==='MiniGrest') { c._letto=true; modificato=true; return; }
-          if(c.dest==='squadra'&&isc&&c.destSqId===isc.squadraId) { c._letto=true; modificato=true; return; }
-          if(c.dest==='singolo'&&isc&&c.destSingoloId===isc.id) { c._letto=true; modificato=true; return; }
-        }
-      });
+      var _daLeggere=(db.comunicazioni||[]).filter(function(c){ return (!c.tipo||c.tipo==='broadcast') && comPerMe(c,db,isc) && !comLettoDaMe(c,db); });
+      if(_daLeggere.length){ comSegnaLetti(_daLeggere); modificato=true; }
       if(modificato){
         saveStorage();
         pgAggiornaBadgeComm(db);
@@ -54700,16 +54675,7 @@ function pgAggiornaBadgeComm(db){
   var user=AUTH&&AUTH.currentUser;
   var isc=user&&user.iscrittoId?(db.iscritti||[]).find(function(i){return i.id===user.iscrittoId;}):null;
   var nuovi=(db.comunicazioni||[]).filter(function(c){
-    if(c._eliminato||c.tipo==='famiglia') return false;
-    if(!c.tipo) return !c._letto;
-    if(c.tipo!=='broadcast') return false;
-    if(c._letto) return false;
-    if(!c.dest||c.dest==='tutti') return true;
-    if(c.dest==='grest'&&isc&&(isc.tipo==='Grest'||!isc.tipo)) return true;
-    if(c.dest==='mini'&&isc&&isc.tipo==='MiniGrest') return true;
-    if(c.dest==='squadra'&&isc&&c.destSqId===isc.squadraId) return true;
-    if(c.dest==='singolo'&&isc&&c.destSingoloId===isc.id) return true;
-    return false;
+    return comPerMe(c,db,isc) && !comLettoDaMe(c,db);
   }).length;
   var badge=document.getElementById('pg-comm-badge');
   if(badge){badge.style.display=nuovi?'':'none';badge.textContent=nuovi||'';}
@@ -55599,15 +55565,7 @@ function pgRenderComunicazioni(db){
 
   // ── Messaggi dalla segreteria (broadcast) ──
   var broadcasts=(db.comunicazioni||[]).filter(function(c){
-    if(c._eliminato||c.tipo==='famiglia')return false;
-    if(!c.tipo)return true;
-    if(c.tipo!=='broadcast')return false;
-    if(!c.dest||c.dest==='tutti')return true;
-    if(c.dest==='grest'&&isc&&(isc.tipo==='Grest'||!isc.tipo))return true;
-    if(c.dest==='mini'&&isc&&isc.tipo==='MiniGrest')return true;
-    if(c.dest==='squadra'&&isc&&c.destSqId===isc.squadraId)return true;
-    if(c.dest==='singolo'&&isc&&c.destSingoloId===isc.id)return true;
-    return false;
+    return comPerMe(c,db,isc);
   }).slice().reverse().slice(0,20);
 
   // ── Messaggi inviati dalla famiglia (con eventuali risposte) ──
@@ -55621,7 +55579,7 @@ function pgRenderComunicazioni(db){
   html+='<div style="font-size:10px;font-weight:900;color:#999;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">📣 Dalla segreteria</div>';
   if(broadcasts.length){
     html+=broadcasts.map(function(c){
-      var isNew=!c._letto;
+      var isNew=comNuovoPerMe(c,db);
       return '<div style="background:#fffde7;border-radius:12px;padding:12px 14px;border-left:4px solid #ffb300;position:relative">'
         +(isNew?'<span style="position:absolute;top:10px;right:10px;background:#e53935;color:#fff;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px">NUOVO</span>':'')
         +(c.data?'<div style="font-size:10px;color:#bbb;font-weight:700;margin-bottom:4px;text-transform:uppercase">'+pgFmtData(c.data)+'</div>':'')
@@ -56775,6 +56733,12 @@ body[data-theme="scuro"] #portale-animatore .pa-bottomnav,
       </div>
 
       <!-- ══ TAB: SONDAGGI ══ -->
+      <div id="pa-tab-messaggi" class="pa-tab-panel">
+        <div class="pa-card">
+          <div class="pa-card-header"><div class="pa-card-icon" style="background:#fff8e1">📣</div><div class="pa-card-title">Messaggi dalla segreteria</div></div>
+          <div class="pa-card-body" id="pa-messaggi-lista"></div>
+        </div>
+      </div>
       <div id="pa-tab-sondaggi" class="pa-tab-panel">
         <div class="pa-card" style="margin-top:14px">
           <div class="pa-card-header">
@@ -57124,6 +57088,10 @@ body[data-theme="scuro"] #portale-animatore .pa-bottomnav,
           <button class="pa-altro-item" data-tab="diario" onclick="paNavAltro('diario')">
             <span class="pa-altro-ico">📓</span><span>Diario</span>
           </button>
+          <button class="pa-altro-item" data-tab="messaggi" onclick="paNavAltro('messaggi')">
+            <span class="pa-altro-ico">📣</span><span>Messaggi</span>
+            <span class="pa-altro-badge" id="pa-altro-badge-messaggi" style="display:none"></span>
+          </button>
           <button class="pa-altro-item" data-tab="sondaggi" onclick="paNavAltro('sondaggi')">
             <span class="pa-altro-ico">🗳️</span><span>Sondaggi</span>
             <span class="pa-altro-badge" id="pa-altro-badge-sondaggi"></span>
@@ -57467,7 +57435,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 10:12 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -85011,7 +84979,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   }
   function nomiOperatore(id){ try{ return nomiDi(scGetOperatori().find(function(o){ return o.id === id; })); }catch(e){ return []; } }
   function nomiAnimatori(ids){ var db = getDb() || {}, out = []; (db.animatori || []).forEach(function(a){ if(ids.indexOf(a.id) >= 0) out = out.concat(nomiDi(a)); }); return out; }
-  function nomiGenitori(ids){ return utenti().filter(function(u){ return u.ruolo === 'Genitore' && (ids.indexOf(u.iscrittoId) >= 0 || (u.iscrittiIds || []).some(function(x){ return ids.indexOf(x) >= 0; })); }).map(function(u){ return u.username.toUpperCase(); }); }
+  function nomiGenitori(ids){ if(typeof window.comAccountGenitori === 'function'){ try{ return window.comAccountGenitori(ids); }catch(e){} } return utenti().filter(function(u){ return u.ruolo === 'Genitore' && (ids.indexOf(u.iscrittoId) >= 0 || (u.iscrittiIds || []).some(function(x){ return ids.indexOf(x) >= 0; })); }).map(function(u){ return u.username.toUpperCase(); }); }
   var nomeOp = function(id){ try{ var o = scGetOperatori().find(function(x){ return x.id === id; }); return o ? capN(String(o.nome || '').split(' ')[0]) : 'Un collega'; }catch(e){ return 'Un collega'; } };
   var nomeCompleto = function(id){ try{ return capN(_scNomeOp(id)); }catch(e){ return ''; } };
   var giorno = function(ds){ try{ var p = ds.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'short' }); }catch(e){ return ds; } };
@@ -85136,8 +85104,8 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
       try{
         db = getDb(); var L = (db && db.comunicazioni) || []; if(L.length <= n0) return r;
         var m = L[L.length - 1], ids = m.destIds || [];
-        if(m.tipo === 'animatori') invia({ a:nomiAnimatori(ids), titolo:'Messaggio dalla segreteria', corpo:String(m.testo || '').slice(0, 200), tag:'com-' + m.id, vai:'pa:presenze', app:'grest' });
-        else invia({ a:nomiGenitori(ids), titolo:'Nuovo messaggio · ' + nomeGrest(), corpo:String(m.testo || '').slice(0, 200), tag:'com-' + m.id, vai:'pg:comunicazioni', app:'grest' });
+        if(m.tipo === 'animatori') invia({ a:nomiAnimatori(ids), titolo:m.titolo || 'Messaggio dalla segreteria', corpo:String(m.testo || '').slice(0, 200), tag:'com-' + m.id, vai:'pa:messaggi', app:'grest' });
+        else invia({ a:nomiGenitori(ids), titolo:m.titolo ? m.titolo + ' · ' + nomeGrest() : 'Nuovo messaggio · ' + nomeGrest(), corpo:String(m.testo || '').slice(0, 200), tag:'com-' + m.id, vai:'pg:comunicazioni', app:'grest' });
       }catch(e){}
       return r;
     }; f._nf = true; window.comInviaMessaggio = f; })();
@@ -86722,8 +86690,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   }
   function ultimoAvviso(x){
     var isc = x.isc;
-    var b = (x.db.comunicazioni || []).filter(function(c){ if(c._eliminato || c.tipo === 'famiglia' || c._letto) return false; if(!c.tipo) return true; if(c.tipo !== 'broadcast') return false;
-      return !c.dest || c.dest === 'tutti' || (c.dest === 'grest' && (isc.tipo === 'Grest' || !isc.tipo)) || (c.dest === 'mini' && isc.tipo === 'MiniGrest') || (c.dest === 'squadra' && c.destSqId === isc.squadraId) || (c.dest === 'singolo' && c.destSingoloId === isc.id); });
+    var b = (x.db.comunicazioni || []).filter(function(c){ return comPerMe(c, x.db, isc) && !comLettoDaMe(c, x.db); });
     var u = b[b.length - 1]; return u ? String(u.testo || '').slice(0, 90) : '';
   }
   function prossimaGita(x){
@@ -86782,15 +86749,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   /* ── MESSAGGI (stessi messaggi e stesso invio di prima) ── */
   function filtroAvvisi(x){
     var isc = x.isc;
-    return (x.db.comunicazioni || []).filter(function(c){
-      if(c._eliminato || c.tipo === 'famiglia') return false; if(!c.tipo) return true; if(c.tipo !== 'broadcast') return false;
-      if(!c.dest || c.dest === 'tutti') return true;
-      if(c.dest === 'grest' && isc && (isc.tipo === 'Grest' || !isc.tipo)) return true;
-      if(c.dest === 'mini' && isc && isc.tipo === 'MiniGrest') return true;
-      if(c.dest === 'squadra' && isc && c.destSqId === isc.squadraId) return true;
-      if(c.dest === 'singolo' && isc && c.destSingoloId === isc.id) return true;
-      return false;
-    }).slice().reverse().slice(0, 20);
+    return (x.db.comunicazioni || []).filter(function(c){ return comPerMe(c, x.db, isc); }).slice().reverse().slice(0, 20);
   }
   function dataTxt(d){ try{ if(!/^\d{4}-\d{2}-\d{2}/.test(String(d))) return String(d); var t = (typeof pgFmtData === 'function') ? pgFmtData(d) : d; return /invalid/i.test(t) ? String(d) : t; }catch(e){ return String(d); } }
   function messaggi(db){
@@ -86801,7 +86760,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     var bozza = (document.getElementById('pg-msg-testo') || {}).value || '';
     var h = '<div class="pgx-sez" style="margin-top:0">Dal GREST</div><div class="pgx-card">'
       + (avvisi.length ? avvisi.map(function(c){ var sq = c.dest === 'squadra';
-          return '<div class="pgx-msg' + (c._letto ? '' : ' nuovo') + '"><span class="q">' + I(sq ? 'user' : 'megafono', 18) + '</span><div><small>' + (c.data ? E(dataTxt(c.data)) : '') + (sq ? ' · alla squadra' : '') + '</small><p>' + E(c.testo || '') + '</p></div></div>'; }).join('')
+          return '<div class="pgx-msg' + (comNuovoPerMe(c, x.db) ? ' nuovo' : '') + '"><span class="q">' + I(sq ? 'user' : 'megafono', 18) + '</span><div><small>' + (c.data ? E(dataTxt(c.data)) : '') + (sq ? ' · alla squadra' : '') + '</small>' + (c.titolo ? '<b style="display:block">' + E(c.titolo) + '</b>' : '') + '<p>' + E(c.testo || '') + '</p></div></div>'; }).join('')
         : '<div class="pgx-vuoto">Nessun messaggio</div>')
       + '</div><div class="pgx-sez">Scrivi alla segreteria</div><div class="pgx-card">'
       + (miei.length ? '<div class="pgx-bolle">' + miei.map(function(m){
@@ -94129,5 +94088,734 @@ html[data-pi-tema="scuro"] .sx-ck-i{background:rgba(245,158,11,.12)}
 html[data-pi-tema="scuro"] .sx-ck-i.g{background:rgba(239,68,68,.14)}
 @media (max-width:560px){ .sx-ck-i{flex-direction:column;gap:2px} .sx-ck-cat{flex:none} }
 </style>
+<style id="squadre-v2-2026-11-css">
+#sq2-top{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.sq2-card{background:var(--card,#fff);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.sq2-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:800;font-size:14px}
+.sq2-h small{font-weight:600;color:var(--text-muted);font-size:12px}
+.sq2-btn{border:1px solid var(--border);background:var(--card,#fff);color:inherit;border-radius:8px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap}
+.sq2-btn:hover{border-color:var(--teal)}
+.sq2-btn.p{background:var(--teal);border-color:var(--teal);color:#fff}
+.sq2-btn.ok{background:#2e7d32;border-color:#2e7d32;color:#fff}
+.sq2-btn.sug{border:2px solid #2e7d32;color:#2e7d32}
+.sq2-req{display:grid;grid-template-columns:minmax(140px,1fr) minmax(150px,1.1fr) minmax(220px,1.8fr);gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}
+.sq2-req:first-child{border-top:0}
+.sq2-req q{color:var(--text-muted);font-style:italic}
+.sq2-req input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:7px;background:var(--card,#fff);color:inherit;font-size:12px}
+.sq2-tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.sq2-t-no{background:#fdecea;color:#c62828}.sq2-t-amb,.sq2-t-sim{background:#fff4dc;color:#a15c00}
+.sq2-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.sq2-kpi{background:var(--bg,#f5f7fa);border-radius:10px;padding:8px 10px}
+.sq2-kpi b{display:block;font-size:20px;line-height:1.2}.sq2-kpi span{font-size:11px;color:var(--text-muted)}
+.sq2-kpi.g b{color:#2e7d32}.sq2-kpi.r b{color:#c62828}
+.sq2-kpi i{font-style:normal;font-size:11px;color:var(--text-muted);margin-left:4px}
+.sq2-units{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:8px;max-height:460px;overflow:auto;padding:2px}
+.sq2-unit{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--card,#fff)}
+.sq2-unit.grp{border-left:4px solid #e91e63}
+.sq2-kid{display:flex;justify-content:space-between;gap:6px;font-size:13px;font-weight:700;padding:2px 0;cursor:grab}
+.sq2-kid small{font-weight:600;color:var(--text-muted)}
+.sq2-dest{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.sq2-dest button{font-size:11px;padding:3px 8px}
+.sq2-chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.sq2-chip{font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;background:#eceff1;color:#546e7a}
+.sq2-chip.ok{background:#e8f5e9;color:#2e7d32}.sq2-chip.ko{background:#ffebee;color:#c62828}
+.sq2-mem{border-left:4px solid transparent}
+.sq2-mem.mv{border-left-color:var(--teal);background:var(--teal-light)}
+.sq2-mem .sq2-act{display:flex;gap:4px;margin-top:4px}
+.sq2-mem .sq2-act button{padding:2px 8px;font-size:12px}
+.sq2-list{margin-top:8px;font-size:12px;max-height:260px;overflow:auto}
+.sq2-list div{padding:4px 0;border-top:1px dashed var(--border)}
+.sq2-opz{display:none;flex-wrap:wrap;gap:16px;margin-top:10px;padding:10px;border:1px dashed var(--border);border-radius:10px;font-size:13px}
+.sq2-opz.on{display:flex}
+.sq2-opz label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.sq2-opz b{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase}
+#sq2-menu{position:fixed;z-index:9999;background:var(--card,#fff);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.2);padding:6px;min-width:180px}
+#sq2-menu button{display:block;width:100%;text-align:left;border:0;background:none;color:inherit;padding:8px 10px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer}
+#sq2-menu button:hover{background:var(--teal-light)}
+#sq2-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10000;background:#263238;color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:calc(100vw - 32px);width:max-content;flex-wrap:wrap;justify-content:flex-end}
+#sq2-toast button{background:#fff;color:#263238;border:0;border-radius:7px;padding:5px 10px;font-weight:800;cursor:pointer;white-space:nowrap}
+@media(max-width:640px){.sq2-req{grid-template-columns:1fr}}
+[data-theme="scuro"] .sq2-chip{background:#2a3340;color:#b0bec5}
+[data-theme="scuro"] .sq2-chip.ok{background:#173a22;color:#81c784}
+[data-theme="scuro"] .sq2-chip.ko{background:#3d1d1d;color:#ef9a9a}
+[data-theme="scuro"] .sq2-t-no{background:#3d1d1d;color:#ef9a9a}
+[data-theme="scuro"] .sq2-t-amb,[data-theme="scuro"] .sq2-t-sim{background:#3a3018;color:#ffcc80}
+[data-theme="scuro"] .sq2-kpi{background:#1b2230}
+</style>
+<script id="squadre-v2-2026-11-js">
+/* ═══ SQUADRE v2 (11/2026): richieste da controllare, gruppetti, inserimento manuale, creazione automatica con anteprima ═══
+   Dati: iscritto.squadraId (come prima), iscritto.lucchetto==='chiuso' = fissato nella squadra.
+   db.sqRichieste = { iscId: { chiaveFrammento: idBambino | '_' (ignora) } }   db.sqOpzioni = {eta,sesso,viv,maglie:'prima'|'dopo'}
+   I «gruppi di amici» non usano più db.gruppi (resta solo per i gruppi di lavoro). */
+(function(){
+'use strict';
+var S = window._SQ2 = { prev:null, openReq:false, openKo:false, cache:null, filtro:'' };
+function D(){ return getDb(); }
+function E(s){ return escapeHtml(String(s==null?'':s)); }
+function tipoCorr(){ var el=document.getElementById('sq-tipo-filter'); return el?el.value:'Grest'; }
+function puo(){ return typeof haPermesso!=='function' || haPermesso('squadre_edit'); }
+function eta(k){ return parseInt(k.eta)||0; }
+function norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim(); }
+var STOP={};('con insieme a al alla ai il la lo le gli i di del della dei mio mia suo sua fratello sorella fratellino sorellina fratelli cugino cugina cugini cugine amico amica amici amiche squadra stessa stesso possibilmente vuole vorrebbe stare essere se possibile anche e ed in nella nello che sta o oppure grazie compagno compagna compagni classe scuola gemello gemella gemelli figlio figlia nipote vicino vicina casa per favore tutti tutte sempre preferibilmente desidera ama no non').split(' ').forEach(function(w){STOP[w]=1;});
+function frammenti(s){
+  var out=[]; if(!s) return out;
+  String(s).split(/[,;\/\n+&()]|\s-\s/).forEach(function(p){
+    p.split(/\s+(?:e|ed)\s+/i).forEach(function(q){
+      var n=norm(q), w=n.split(' ').filter(function(t){ return t.length>1 && !STOP[t]; });
+      if(w.length) out.push({ raw:q.trim(), key:w.join(' '), w:w });
+    });
+  });
+  return out;
+}
+function lev(a,b){ if(a===b) return 0; var m=a.length,n=b.length; if(!m) return n; if(!n) return m; var p=new Array(n+1),c=new Array(n+1),i,j; for(j=0;j<=n;j++) p[j]=j; for(i=1;i<=m;i++){ c[0]=i; for(j=1;j<=n;j++){ c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); } var t=p;p=c;c=t; } return p[n]; }
+function sim(a,b){ var L=Math.max(a.length,b.length); return L?1-lev(a,b)/L:0; }
+
+/* ── riconoscimento di un frammento ── */
+function riconosci(fr, me, all, info){
+  var c=all.filter(function(k){ if(k.id===me.id) return false; var t=info[k.id].t; return fr.w.every(function(w){ return t.some(function(x){ return x===w || (w.length>=4 && x.indexOf(w)===0); }); }); });
+  if(c.length===1) return {st:'ok', c:[c[0].id]};
+  if(c.length>1){ var st=c.filter(function(k){ return k.tipo===me.tipo; }); if(st.length===1) return {st:'ok', c:[st[0].id]}; return {st:'amb', c:(st.length?st:c).slice(0,6).map(function(k){return k.id;})}; }
+  var s=fr.w.join(' '), best=[];
+  all.forEach(function(k){ if(k.id===me.id) return; var I=info[k.id], r=Math.max(sim(s,I.f1),sim(s,I.f2)); if(fr.w.length===1) I.t.forEach(function(t){ r=Math.max(r, sim(s,t)*0.95); }); if(r>=0.8) best.push([r,k]); });
+  best.sort(function(a,b){ return b[0]-a[0]; });
+  if(best.length) return {st:'sim', c:best.slice(0,3).map(function(x){return x[1].id;})};
+  return {st:'no', c:[]};
+}
+
+/* ── modello di un tipo (Grest / MiniGrest) ── */
+function modello(tipo){
+  var db=D(); var key=tipo+'|'+(db.iscritti||[]).length;
+  var all=(db.iscritti||[]).filter(function(k){ return !k._eliminato && !k.ritirato; });
+  var info={}; all.forEach(function(k){ var f1=norm((k.nome||'')+' '+(k.cognome||'')); info[k.id]={ t:f1.split(' '), f1:f1, f2:norm((k.cognome||'')+' '+(k.nome||'')) }; });
+  var kids=all.filter(function(k){ return k.tipo===tipo; });
+  var idx={}; kids.forEach(function(k,i){ idx[k.id]=i; });
+  var teams=(db.squadre||[]).filter(function(s){ return s.tipo===tipo; });
+  var tIdx={}; teams.forEach(function(s,i){ tIdx[s.id]=i; });
+  var ris=db.sqRichieste||{};
+  var req=[], reqSet={}, pend=[], avoid=[], strong={}, sib={};
+  function addReq(a,b){ var k=a+'>'+b; if(a===b||reqSet[k]) return; reqSet[k]=1; req.push([a,b]); }
+  function risolvi(k, testo, cb, conPend){
+    frammenti(testo).forEach(function(fr){
+      var man=ris[k.id] && ris[k.id][fr.key];
+      if(man){ if(man!=='_' && idx[man]!=null) cb(idx[man]); return; }
+      var r=riconosci(fr,k,all,info);
+      if(r.st==='ok' || r.st==='sim'){ var t=r.c[0]; if(idx[t]!=null) cb(idx[t]); }
+      if(conPend && r.st!=='ok') pend.push({ id:k.id, fr:fr, st:r.st, c:r.c });
+    });
+  }
+  kids.forEach(function(k,i){
+    risolvi(k, k.preferenze, function(j){ addReq(i,j); }, true);
+    risolvi(k, k.evita, function(j){ if(i!==j) avoid.push([i,j]); }, false);
+  });
+  // fratelli: stesso cognome e stesso telefono di un genitore
+  var fam={};
+  kids.forEach(function(k,i){ [k.telMamma,k.telPapa].forEach(function(t){ t=String(t||'').replace(/\D/g,''); if(t.length<6) return; var key=norm(k.cognome)+'|'+t; (fam[key]=fam[key]||[]).push(i); }); });
+  Object.keys(fam).forEach(function(key){ var L=fam[key]; for(var a=0;a<L.length;a++) for(var b=a+1;b<L.length;b++){ if(L[a]===L[b]) continue; sib[L[a]+'-'+L[b]]=sib[L[b]+'-'+L[a]]=1; } });
+  req.forEach(function(r){ if(reqSet[r[1]+'>'+r[0]]) strong[r[0]+'-'+r[1]]=strong[r[1]+'-'+r[0]]=1; });
+  Object.keys(sib).forEach(function(k){ strong[k]=1; });
+  avoid.forEach(function(x){ delete strong[x[0]+'-'+x[1]]; delete strong[x[1]+'-'+x[0]]; delete sib[x[0]+'-'+x[1]]; delete sib[x[1]+'-'+x[0]]; });
+  var adj=kids.map(function(){ return []; });
+  Object.keys(strong).forEach(function(k){ var p=k.split('-'), a=+p[0], b=+p[1]; if(adj[a].indexOf(b)<0) adj[a].push(b); });
+  // fasce / squadre ammesse / gruppi di bilanciamento
+  var allowed=[], grpOf=[], grpKey={}, grpTeams=[];
+  teams.forEach(function(s,t){ var g=(tipo==='MiniGrest' && s.fascia)?s.fascia:'*'; if(grpKey[g]==null){ grpKey[g]=grpTeams.length; grpTeams.push([]); } grpOf[t]=grpKey[g]; grpTeams[grpKey[g]].push(t); });
+  var fascia=[], own=[], FAS=['3-4 Anni','5-6 Anni','7-8 Anni'];
+  kids.forEach(function(k,i){
+    var al=teams.map(function(s,t){return t;}), ow=al;
+    if(tipo==='MiniGrest' && typeof _fasciaPerEta==='function'){
+      var fa=_fasciaPerEta(k.eta), ov=(typeof _rilevaFasciaDaNote==='function')?_rilevaFasciaDaNote(k.note,fa):null; fascia[i]=ov||fa;
+      var ff=al.filter(function(t){ return teams[t].fascia===fascia[i]; });
+      if(ff.length){ ow=ff; var fi=FAS.indexOf(fascia[i]); al=al.filter(function(t){ var x=FAS.indexOf(teams[t].fascia); return x<0 || fi<0 || Math.abs(x-fi)<=1; }); }
+    }
+    allowed[i]=al; own[i]=ow;
+  });
+  var NB = tipo==='MiniGrest'?6:4;
+  var band=kids.map(function(k){ var a=eta(k); if(tipo==='MiniGrest') return Math.max(0,Math.min(5,a-3)); return a<=8?0:a<=10?1:a<=12?2:3; });
+  var TAG=(typeof TAGLIE!=='undefined'?TAGLIE:[]).slice(); var tagI=kids.map(function(k){ return TAG.indexOf(k.taglia); });
+  var stock=teams.map(function(s){ return TAG.map(function(t){ return (typeof getStockMaglia==='function')?(getStockMaglia(tipo,s.id,t)||0):0; }); });
+  return { tipo:tipo, kids:kids, idx:idx, teams:teams, tIdx:tIdx, req:req, reqSet:reqSet, pend:pend, avoid:avoid, strong:strong, sib:sib, adj:adj,
+    allowed:allowed, own:own, ownGrp:own.map(function(L){ return grpOf[L[0]]; }), grpOf:grpOf, grpTeams:grpTeams, fascia:fascia, NB:NB, band:band, TAG:TAG, tagI:tagI, stock:stock,
+    male:kids.map(function(k){ return k.sesso==='M'?1:0; }), viv:kids.map(function(k){ return (parseInt(k.vivacita)||1)>1?1:0; }) };
+}
+function opzioni(){ var db=D(); var o=db.sqOpzioni||{}; return { eta:o.eta!==false, sesso:o.sesso!==false, viv:o.viv!==false, maglie:o.maglie==='dopo'?'dopo':'prima' }; }
+
+/* ── costo di una disposizione (A[i] = indice squadra, -1 = non assegnato) ── */
+var W={ req:10, alone:18, avoid:80, sib:40, fascia:30, band:2.5, sex:2.5, viv:4, mag:12 };
+function costo(M,A,o){
+  var n=M.kids.length, T=M.teams.length, c=0, i, r, t, g;
+  var has=new Uint8Array(n), sat=new Uint8Array(n);
+  for(r=0;r<M.req.length;r++){ var a=M.req[r][0], b=M.req[r][1]; if(A[a]<0||A[b]<0) continue; has[a]=1; if(A[a]===A[b]) sat[a]=1; else c+=W.req; }
+  for(i=0;i<n;i++) if(has[i]&&!sat[i]) c+=W.alone;
+  for(r=0;r<M.avoid.length;r++){ var x=M.avoid[r]; if(A[x[0]]>=0 && A[x[0]]===A[x[1]]) c+=W.avoid; }
+  if(M.tipo==='MiniGrest') for(i=0;i<n;i++) if(A[i]>=0 && M.own[i].indexOf(A[i])<0) c+=W.fascia;
+  if(!M.sibP){ M.sibP=[]; for(var k in M.sib){ var p=k.split('-'); if(+p[0]<+p[1]) M.sibP.push([+p[0],+p[1]]); } }
+  for(r=0;r<M.sibP.length;r++){ var sp=M.sibP[r]; if(A[sp[0]]>=0 && A[sp[1]]>=0 && A[sp[0]]!==A[sp[1]]) c+=W.sib; }
+  var NB=M.NB, NT=M.TAG.length, size=new Float64Array(T), bnd=new Float64Array(T*NB), ml=new Float64Array(T), vv=new Float64Array(T), tg=new Float64Array(T*Math.max(1,NT));
+  var exp=new Float64Array(M.grpTeams.length);
+  for(i=0;i<n;i++){ t=A[i]; if(t<0) continue; exp[M.ownGrp[i]]++; size[t]++; bnd[t*NB+M.band[i]]++; ml[t]+=M.male[i]; vv[t]+=M.viv[i]; if(M.tagI[i]>=0) tg[t*NT+M.tagI[i]]++; }
+  for(g=0;g<M.grpTeams.length;g++){
+    var L=M.grpTeams[g], m=L.length, tot=0, totM=0, totV=0, totB=new Float64Array(NB), j, b2;
+    for(j=0;j<m;j++){ t=L[j]; tot+=size[t]; totM+=ml[t]; totV+=vv[t]; for(b2=0;b2<NB;b2++) totB[b2]+=bnd[t*NB+b2]; }
+    if(!tot && !exp[g]) continue;
+    for(j=0;j<m;j++){ t=L[j];
+      var d=Math.abs(size[t]-exp[g]/m); c+=6*d*d + 300*Math.max(0,d-1.5);
+      if(o.eta) for(b2=0;b2<NB;b2++){ d=bnd[t*NB+b2]-totB[b2]/m; c+=W.band*d*d; }
+      if(o.sesso){ d=ml[t]-totM/m; c+=W.sex*d*d; }
+      if(o.viv){ d=vv[t]-totV/m; c+=W.viv*d*d; }
+    }
+  }
+  if(o.maglie==='dopo' && M.tipo==='Grest') for(t=0;t<T;t++) for(var q=0;q<NT;q++){ var need=tg[t*NT+q]*2, st=M.stock[t][q]; if(need>st) c+=W.mag*(need-st); }
+  return c;
+}
+function statistiche(M,A){
+  var s={ tot:0, ok:0, rec:0, recOk:0, alone:0, ko:[], avoid:0, sizes:[], diff:0, senza:0 };
+  var n=M.kids.length, has=new Uint8Array(n), sat=new Uint8Array(n), seen={};
+  M.req.forEach(function(r){ var a=r[0], b=r[1]; if(A[a]<0||A[b]<0) return; s.tot++; has[a]=1; if(A[a]===A[b]){ s.ok++; sat[a]=1; } else s.ko.push(r);
+    if(M.reqSet[b+'>'+a] && !seen[b+'-'+a]){ seen[a+'-'+b]=1; s.rec++; if(A[a]===A[b]) s.recOk++; } });
+  for(var i=0;i<n;i++){ if(has[i]&&!sat[i]) s.alone++; if(A[i]<0) s.senza++; }
+  M.avoid.forEach(function(x){ if(A[x[0]]>=0 && A[x[0]]===A[x[1]]) s.avoid++; });
+  var size=M.teams.map(function(){return 0;}); A.forEach(function(t){ if(t>=0) size[t]++; }); s.sizes=size;
+  M.grpTeams.forEach(function(L){ var v=L.map(function(t){return size[t];}); s.diff=Math.max(s.diff, Math.max.apply(null,v)-Math.min.apply(null,v)); });
+  return s;
+}
+function assegnazioneAttuale(M){ return M.kids.map(function(k){ var t=M.tIdx[k.squadraId]; return t==null?-1:t; }); }
+
+/* ── creazione automatica ── */
+function ottimizza(M, modo, o){
+  var best=null, bc=Infinity;
+  for(var g=0; g<4; g++){ var A=ottimizza1(M,modo,o), c=costo(M,A,o); if(c<bc){ bc=c; best=A; } }
+  return best;
+}
+function ottimizza1(M, modo, o){
+  var n=M.kids.length, A=assegnazioneAttuale(M), mov=new Uint8Array(n), i;
+  for(i=0;i<n;i++){ var k=M.kids[i]; if(A[i]<0) mov[i]=1; else if(modo==='tutte' && k.lucchetto!=='chiuso') mov[i]=1; if(mov[i]) A[i]=-1; }
+  // unità = gruppetti (fratelli + amici reciproci) tra i bambini da sistemare, con le stesse squadre ammesse
+  var par=[]; for(i=0;i<n;i++) par[i]=i;
+  function f(x){ while(par[x]!==x){ par[x]=par[par[x]]; x=par[x]; } return x; }
+  var alR={}; for(i=0;i<n;i++) alR[i]=M.allowed[i];
+  for(i=0;i<n;i++) if(mov[i]) M.adj[i].forEach(function(j){ if(!mov[j]) return; var a=f(i), b=f(j); if(a===b) return; var x=alR[a].filter(function(t){ return alR[b].indexOf(t)>=0; }); if(x.length){ par[b]=a; alR[a]=x; } });
+  var um={}, units=[];
+  for(i=0;i<n;i++) if(mov[i]){ var r=f(i); if(!um[r]){ um[r]={ m:[], al:alR[r], anc:-1 }; units.push(um[r]); } um[r].m.push(i); }
+  units.forEach(function(u){ u.m.forEach(function(i){ M.adj[i].forEach(function(j){ if(!mov[j] && A[j]>=0 && u.al.indexOf(A[j])>=0) u.anc=A[j]; }); }); });
+  function put(u,t){ u.t=t; u.m.forEach(function(i){ A[i]=t; }); }
+  units.sort(function(a,b){ return b.m.length-a.m.length; });
+  units.forEach(function(u){
+    if(u.anc>=0){ put(u,u.anc); return; }
+    var best=-1, bc=Infinity; u.al.forEach(function(t){ put(u,t); var c=costo(M,A,o); if(c<bc){ bc=c; best=t; } }); put(u,best);
+  });
+  var free=units.filter(function(u){ return u.anc<0 && u.al.length>1; });
+  var cur=costo(M,A,o), bestC=cur, bestA=A.slice();
+  if(free.length){
+    var IT=Math.min(40000, 250*free.length+8000), T0=8, T1=0.03;
+    for(var it=0; it<IT; it++){
+      var temp=T0*Math.pow(T1/T0, it/IT), u=free[(Math.random()*free.length)|0], old=u.t, v=null, c2;
+      if(Math.random()<0.55){
+        var nt=u.al[(Math.random()*u.al.length)|0]; if(nt===old) continue; put(u,nt);
+      } else {
+        v=free[(Math.random()*free.length)|0]; if(v===u || v.t===old || v.al.indexOf(old)<0 || u.al.indexOf(v.t)<0) continue; var vt=v.t; put(u,vt); put(v,old);
+      }
+      c2=costo(M,A,o);
+      if(c2<=cur || Math.random()<Math.exp((cur-c2)/temp)){ cur=c2; if(cur<bestC){ bestC=cur; bestA=A.slice(); } }
+      else { if(v){ put(v,u.t); } put(u,old); }
+    }
+  }
+  return bestA;
+}
+
+/* ── richieste da controllare ── */
+function nomeK(k){ return (k.cognome||'')+' '+(k.nome||''); }
+function byId(id){ var db=D(); return (db.iscritti||[]).find(function(k){ return k.id===id; }); }
+window.sq2Risolvi=function(iscId, key, val){
+  if(!puo()){ showToast('⛔ Non hai i permessi','error'); return; }
+  var db=D(); if(!db.sqRichieste) db.sqRichieste={}; if(!db.sqRichieste[iscId]) db.sqRichieste[iscId]={};
+  db.sqRichieste[iscId][key]=val; saveStorage(); if(typeof _uploadEFeedback==='function') _uploadEFeedback(); renderSquadre();
+};
+window.sq2RisolviInput=function(el){
+  var v=el.value.trim(); if(!v) return; var o=[].slice.call(document.getElementById('sq2-dl').options).find(function(x){ return x.value===v; });
+  if(!o){ showToast('Scegli un nome dall\'elenco','error'); return; }
+  sq2Risolvi(el.dataset.i, el.dataset.k, o.dataset.id);
+};
+function htmlRichieste(M){
+  var pend=M.pend; if(!pend.length) return '';
+  var dl='<datalist id="sq2-dl">'+M.kids.slice().sort(function(a,b){ return nomeK(a).localeCompare(nomeK(b)); }).map(function(k){ return '<option data-id="'+k.id+'" value="'+E(nomeK(k)+' ('+eta(k)+')')+'">'; }).join('')+'</datalist>';
+  var TAGN={no:['non trovato','sq2-t-no'], amb:['più bambini possibili','sq2-t-amb'], sim:['scritto diverso','sq2-t-sim']};
+  var rows=pend.map(function(p){
+    var k=byId(p.id), tg=TAGN[p.st];
+    var cand=p.c.map(function(id,ix){ var c=byId(id); if(!c) return ''; var altro=c.tipo!==M.tipo?' · '+(c.tipo==='MiniGrest'?'Mini':'Grest'):'';
+      return '<button type="button" class="sq2-btn'+(p.st==='sim'&&ix===0?' sug':'')+'" onclick="sq2Risolvi(\''+p.id+'\',\''+E(p.fr.key)+'\',\''+id+'\')">'+(p.st==='sim'&&ix===0?'✓ ':'')+E(nomeK(c))+' <small>('+eta(c)+altro+')</small></button>'; }).join(' ');
+    return '<div class="sq2-req"><div><b>'+E(nomeK(k))+'</b><br><small style="color:var(--text-muted)">'+eta(k)+' anni</small></div>'+
+      '<div><q>"'+E(p.fr.raw)+'"</q><br><span class="sq2-tag '+tg[1]+'">'+tg[0]+'</span></div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+cand+
+      '<input list="sq2-dl" placeholder="Cerca un altro bambino…" data-i="'+p.id+'" data-k="'+E(p.fr.key)+'" onchange="sq2RisolviInput(this)" style="flex:1;min-width:150px">'+
+      '<button type="button" class="sq2-btn" onclick="sq2Risolvi(\''+p.id+'\',\''+E(p.fr.key)+'\',\'_\')">Ignora</button></div></div>';
+  }).join('');
+  return '<div class="sq2-card" style="border-color:#f0b429">'+dl+'<div class="sq2-h"><span>⚠️ Richieste da controllare: '+pend.length+'</span>'+
+    '<button type="button" class="sq2-btn" onclick="_SQ2.openReq=!_SQ2.openReq;renderSquadre()">'+(S.openReq?'Chiudi':'Apri')+'</button></div>'+
+    '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">Nomi scritti dai genitori che il programma non riconosce con certezza. Quello che scegli resta salvato.</div>'+
+    (S.openReq?'<div style="margin-top:6px">'+rows+'</div>':'')+'</div>';
+}
+
+/* ── riepilogo / anteprima ── */
+function kpi(cl, val, lab, prima){ return '<div class="sq2-kpi '+cl+'"><b>'+val+(prima!=null?'<i>prima '+prima+'</i>':'')+'</b><span>'+lab+'</span></div>'; }
+function pct(a,b){ return b?Math.round(a/b*100):100; }
+function listaKo(M,A,s){
+  return '<div class="sq2-list">'+s.ko.map(function(r){ var a=M.kids[r[0]], b=M.kids[r[1]];
+    return '<div>'+E(nomeK(a))+' voleva <b>'+E(nomeK(b))+'</b> — '+E(M.teams[A[r[0]]].nome)+' / '+E(M.teams[A[r[1]]].nome)+(M.reqSet[r[1]+'>'+r[0]]?' ♥':'')+'</div>'; }).join('')+'</div>';
+}
+function htmlRiepilogo(M,A){
+  var s=statistiche(M,A);
+  if(S.prev){
+    var b=S.prev.prima;
+    return '<div class="sq2-card" style="border:2px solid var(--teal)"><div class="sq2-h"><span>👀 Anteprima — '+(S.prev.modo==='tutte'?'squadre create da zero (i fissati 🔒 restano)':'completate le squadre (chi è già in squadra resta)')+'</span>'+
+      '<span style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="sq2-btn ok" onclick="sq2Conferma()">✓ Conferma</button><button type="button" class="sq2-btn" onclick="sq2Anteprima(_SQ2.prev.modo)">🔄 Rigenera</button><button type="button" class="sq2-btn" onclick="sq2Annulla()">Annulla</button></span></div>'+
+      '<div style="font-size:12px;color:var(--text-muted)">Le squadre vere non cambiano finché non premi Conferma. In azzurro i bambini che cambiano squadra.</div>'+
+      '<div class="sq2-kpis">'+kpi('g', s.ok+' / '+s.tot, 'richieste rispettate ('+pct(s.ok,s.tot)+'%)', b.tot?b.ok+'/'+b.tot:null)+kpi('g', s.recOk+' / '+s.rec, 'coppie reciproche insieme')+
+      kpi(s.alone?'r':'g', s.alone, 'bambini senza nessun amico richiesto')+kpi('', '±'+s.diff, 'differenza di bambini tra squadre')+(s.avoid?kpi('r', s.avoid, 'bambini da tenere separati ma insieme'):'')+'</div>'+
+      (s.ko.length?'<div style="margin-top:8px"><button type="button" class="sq2-btn" onclick="_SQ2.openKo=!_SQ2.openKo;renderSquadre()">'+(S.openKo?'Nascondi':'Vedi')+' le '+s.ko.length+' richieste non rispettate</button></div>'+(S.openKo?listaKo(M,A,s):''):'')+'</div>';
+  }
+  if(!s.tot && !s.senza) return '';
+  return '<div class="sq2-card"><div class="sq2-h"><span>📊 Richieste rispettate: '+s.ok+' / '+s.tot+' ('+pct(s.ok,s.tot)+'%) · coppie reciproche insieme: '+s.recOk+' / '+s.rec+(s.alone?' · <span style="color:#c62828">'+s.alone+' senza amici</span>':'')+(s.avoid?' · <span style="color:#c62828">'+s.avoid+' da separare</span>':'')+'</span>'+
+    (s.ko.length?'<button type="button" class="sq2-btn" onclick="_SQ2.openKo=!_SQ2.openKo;renderSquadre()">'+(S.openKo?'Nascondi':'Vedi non rispettate')+'</button>':'')+'</div>'+(S.openKo&&s.ko.length?listaKo(M,A,s):'')+'</div>';
+}
+
+/* ── da sistemare (bambini senza squadra, già raggruppati) ── */
+function vicini(M,i,A){ return [i].concat(M.adj[i].filter(function(j){ return A[j]===A[i]; })); }
+function gruppetto(M,i,A){ var seen={}, q=[i], out=[]; seen[i]=1; while(q.length){ var x=q.shift(); out.push(x); M.adj[x].forEach(function(j){ if(!seen[j] && A[j]===A[i]){ seen[j]=1; q.push(j); } }); } return out; }
+function chipsRichieste(M,i,A){
+  return M.req.filter(function(r){ return r[0]===i; }).map(function(r){ var j=r[1], b=M.kids[j], cls=(A[j]<0||A[i]<0)?'':(A[j]===A[i]?'ok':'ko'), rec=M.reqSet[j+'>'+i], sb=M.sib[i+'-'+j];
+    var dove=(A[i]<0 && A[j]>=0)?' → '+E(M.teams[A[j]].nome):'';
+    return '<span class="sq2-chip '+cls+'" title="'+E(nomeK(b))+'">'+(rec?'♥ ':'')+E(b.nome||'')+' '+E((b.cognome||'').charAt(0))+'.'+dove+'</span>'; }).concat(
+    Object.keys(M.sib).filter(function(k){ return k.split('-')[0]==i && !M.reqSet[i+'>'+k.split('-')[1]]; }).map(function(k){ var j=+k.split('-')[1], b=M.kids[j], cls=(A[j]<0||A[i]<0)?'':(A[j]===A[i]?'ok':'ko');
+      return '<span class="sq2-chip '+cls+'">'+(b.sesso==='F'?'sorella':'fratello')+' '+E(b.nome||'')+'</span>'; })).join('');
+}
+function htmlDaSistemare(M,A,o){
+  var n=M.kids.length, fatto={}, units=[];
+  for(var i=0;i<n;i++){ if(A[i]>=0 || fatto[i]) continue; var g=gruppetto(M,i,A); g.forEach(function(x){ fatto[x]=1; }); units.push(g); }
+  if(!units.length) return '';
+  var f=norm(S.filtro), base=costo(M,A,o), ed=puo()&&!S.prev;
+  var vis=units.filter(function(u){ return !f || u.some(function(i){ return norm(nomeK(M.kids[i])).indexOf(f)>=0; }); });
+  vis.sort(function(a,b){ return (b.length-a.length) || nomeK(M.kids[a[0]]).localeCompare(nomeK(M.kids[b[0]])); });
+  var cards=vis.slice(0,150).map(function(u){
+    var al=M.allowed[u[0]], best=-1, bc=Infinity, B=A.slice();
+    if(ed) al.forEach(function(t){ u.forEach(function(i){ B[i]=t; }); var c=costo(M,B,o)-base; if(c<bc){ bc=c; best=t; } });
+    var kids=u.map(function(i){ var k=M.kids[i];
+      return '<div class="sq2-kid" draggable="'+(ed?'true':'false')+'" ondragstart="dragStart(event,\''+k.id+'\')"><span>'+E(nomeK(k))+'</span><small>'+(k.sesso==='F'?'♀':'♂')+' '+eta(k)+' a.'+(M.tipo==='MiniGrest'&&M.fascia[i]?' · '+E(M.fascia[i]):'')+'</small></div><div class="sq2-chips">'+chipsRichieste(M,i,A)+'</div>'; }).join('');
+    var dest=ed?'<div class="sq2-dest">'+al.map(function(t){ return '<button type="button" class="sq2-btn'+(t===best?' sug':'')+'" onclick="sq2Sposta(\''+M.kids[u[0]].id+'\',\''+M.teams[t].id+'\',false,true)" title="'+(t===best?'Consigliata':'')+'">'+(t===best?'★ ':'')+E(M.teams[t].nome)+'</button>'; }).join('')+'</div>':'';
+    return '<div class="sq2-unit'+(u.length>1?' grp':'')+'">'+(u.length>1?'<div style="font-size:10px;font-weight:800;color:#e91e63;margin-bottom:2px">GRUPPETTO DI '+u.length+' — ENTRANO INSIEME</div>':'')+kids+dest+'</div>';
+  }).join('');
+  var tot=units.reduce(function(a,u){ return a+u.length; },0);
+  return '<div class="sq2-card drop-zone" data-sq-id="" id="sq2-dasist"><div class="sq2-h"><span>🧒 Da sistemare: '+tot+' bambini</span>'+
+    '<input type="search" placeholder="Cerca…" value="'+E(S.filtro)+'" oninput="_SQ2.filtro=this.value;clearTimeout(_SQ2.ft);_SQ2.ft=setTimeout(function(){renderSquadre();var e=document.querySelector(\'#sq2-dasist input\');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}},250)" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card,#fff);color:inherit;max-width:200px"></div>'+
+    '<div style="font-size:12px;color:var(--text-muted)">Tocca una squadra (★ = consigliata) o trascina il nome. Chi metti a mano resta fissato 🔒.</div>'+
+    '<div class="sq2-units">'+cards+'</div>'+(vis.length>150?'<div style="font-size:12px;color:var(--text-muted);margin-top:4px">… usa la ricerca per vedere gli altri</div>':'')+'</div>';
+}
+
+/* ── spostamenti manuali ── */
+function salva(){ saveStorage(); if(typeof _uploadEFeedback==='function') _uploadEFeedback(); }
+function toastAzione(msg, lab, fn){
+  var t=document.getElementById('sq2-toast'); if(t) t.remove(); clearTimeout(S.tt);
+  t=document.createElement('div'); t.id='sq2-toast'; t.innerHTML='<span>'+msg+'</span>'+(lab?'<button type="button">'+lab+'</button>':'');
+  document.body.appendChild(t); if(lab) t.querySelector('button').onclick=function(){ t.remove(); fn(); };
+  S.tt=setTimeout(function(){ t.remove(); }, 7000);
+}
+function applica(k, sqId){
+  var old=k.squadraId||'';
+  if(k.tipo==='Grest' && k.taglia && typeof aggiornaStockMaglia==='function'){ aggiornaStockMaglia('Grest',old,k.taglia,+1); aggiornaStockMaglia('Grest',sqId,k.taglia,-1); }
+  k.squadraId=sqId||''; if(sqId) k.lucchetto='chiuso'; else delete k.lucchetto; _touchRecord(k);
+}
+window.sq2Sposta=function(id, sqId, soloLui, tutto){
+  if(!puo()){ showToast('⛔ Non hai i permessi per modificare le squadre','error'); return; }
+  if(S.prev){ showToast('Prima conferma o annulla l\'anteprima','warning'); return; }
+  var k0=byId(id); if(!k0) return; sqId=sqId||'';
+  if((k0.squadraId||'')===sqId) return;
+  var M=modello(k0.tipo), A=assegnazioneAttuale(M), i0=M.idx[id];
+  var unit=soloLui?[i0]:(tutto?gruppetto(M,i0,A):vicini(M,i0,A));
+  var prima=unit.map(function(i){ var k=M.kids[i]; return { k:k, sq:k.squadraId||'', l:k.lucchetto }; });
+  unit.forEach(function(i){ applica(M.kids[i], sqId); });
+  salva(); renderSquadre();
+  var avvisi=[];
+  if(sqId){
+    var t=M.tIdx[sqId];
+    if(M.tipo==='MiniGrest' && M.own[i0].indexOf(t)<0) avvisi.push('fascia diversa ('+E(M.fascia[i0])+')');
+    M.avoid.forEach(function(x){ if(unit.indexOf(x[0])>=0 && A[x[1]]===t) avvisi.push(E(M.kids[x[0]].nome)+' doveva stare lontano da '+E(nomeK(M.kids[x[1]]))); });
+  }
+  var dest=sqId?E(M.teams[M.tIdx[sqId]].nome):'Da sistemare';
+  if(unit.length>1){
+    var altri=unit.slice(1,5).map(function(i){ return E(M.kids[i].nome); }).join(', ')+(unit.length>5?' e altri '+(unit.length-5):'');
+    toastAzione('➜ '+E(k0.nome)+' e '+altri+' in <b>'+dest+'</b>'+(avvisi.length?' · ⚠️ '+avvisi.join('; '):''), 'Sposta solo '+E(k0.nome), function(){
+      prima.slice(1).forEach(function(p){ applica(p.k, p.sq); if(p.l) p.k.lucchetto=p.l; else delete p.k.lucchetto; }); salva(); renderSquadre(); });
+  } else if(avvisi.length) toastAzione('⚠️ '+avvisi.join('; '));
+  else showToast('✅ '+k0.nome+' '+k0.cognome+' → '+(sqId?M.teams[M.tIdx[sqId]].nome:'Da sistemare'),'success');
+};
+window.sq2Menu=function(ev,id){
+  ev.stopPropagation(); var m=document.getElementById('sq2-menu'); if(m) m.remove();
+  var k=byId(id); if(!k) return; var M=modello(k.tipo), i=M.idx[id];
+  m=document.createElement('div'); m.id='sq2-menu';
+  m.innerHTML='<div style="font-size:11px;color:var(--text-muted);padding:4px 10px">Sposta '+E(k.nome)+' in…</div>'+M.teams.map(function(s,t){ if(s.id===k.squadraId) return ''; return '<button type="button" data-s="'+s.id+'">'+E(s.nome)+(M.own[i].indexOf(t)<0?' <small>(altra fascia)</small>':'')+'</button>'; }).join('')+'<button type="button" data-s="" style="color:#c62828">Togli dalla squadra</button>';
+  document.body.appendChild(m);
+  var r=ev.target.getBoundingClientRect(); m.style.top=Math.min(r.bottom+4, innerHeight-m.offsetHeight-8)+'px'; m.style.left=Math.max(8,Math.min(r.left, innerWidth-m.offsetWidth-8))+'px';
+  m.onclick=function(e){ var b=e.target.closest('button'); if(!b) return; m.remove(); sq2Sposta(id, b.dataset.s); };
+  setTimeout(function(){ document.addEventListener('click', function h(){ m.remove(); document.removeEventListener('click',h); }); },0);
+};
+
+/* ── anteprima / conferma ── */
+window.sq2Anteprima=function(modo){
+  if(!puo()){ showToast('⛔ Non hai i permessi per generare squadre','error'); return; }
+  var tipo=tipoCorr(), M=modello(tipo);
+  if(!M.teams.length){ showToast('Crea prima le squadre nelle Impostazioni!','error'); return; }
+  if(!M.kids.length){ showToast('Nessun iscritto','warning'); return; }
+  if(modo==='completa' && !assegnazioneAttuale(M).some(function(t){ return t<0; })){ showToast('Tutti i bambini sono già in una squadra','info'); return; }
+  showToast('⏳ Creo l\'anteprima…','info');
+  setTimeout(function(){
+    var o=opzioni(), A=ottimizza(M,modo,o), assign={};
+    M.kids.forEach(function(k,i){ assign[k.id]=A[i]>=0?M.teams[A[i]].id:''; });
+    S.prev={ tipo:tipo, modo:modo, assign:assign, prima:statistiche(M,assegnazioneAttuale(M)) }; S.openKo=false;
+    renderSquadre(); var el=document.getElementById('sq2-top'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },30);
+};
+window.sq2Annulla=function(){ S.prev=null; renderSquadre(); };
+window.sq2Conferma=function(){
+  if(!S.prev||!puo()) return; var db=D(), p=S.prev, n=0, ids={};
+  (db.iscritti||[]).forEach(function(k){ if(!(k.id in p.assign)) return; ids[k.id]=1; var s=p.assign[k.id]; if((k.squadraId||'')!==s){ k.squadraId=s; _touchRecord(k); n++; } });
+  // i vecchi «gruppi di amici» della divisione squadre (senza nome) non servono più: restano solo i gruppi di lavoro
+  if(db.gruppi) db.gruppi=db.gruppi.filter(function(g){ return g.nome || !(g.membri||[]).some(function(m){ return ids[m]; }); });
+  S.prev=null; salva();
+  try{ auditLog('MODIFICA','Squadre '+p.tipo+' create automaticamente ('+n+' bambini spostati)',{sezione:'Squadre'}); }catch(e){}
+  renderSquadre(); showToast('✅ Squadre confermate ('+n+' bambini sistemati)','success');
+};
+window.sq2Opz=function(k,v){ var db=D(); if(!db.sqOpzioni) db.sqOpzioni={}; db.sqOpzioni[k]=v; saveStorage(); if(typeof _uploadEFeedback==='function') _uploadEFeedback(); };
+function htmlOpzioni(tipo){
+  var o=opzioni();
+  return '<div><b>Bilancia le squadre per</b><label><input type="checkbox" '+(o.eta?'checked':'')+' onchange="sq2Opz(\'eta\',this.checked)"> Fasce d\'età</label><label><input type="checkbox" '+(o.sesso?'checked':'')+' onchange="sq2Opz(\'sesso\',this.checked)"> Maschi / femmine</label><label><input type="checkbox" '+(o.viv?'checked':'')+' onchange="sq2Opz(\'viv\',this.checked)"> Bambini vivaci</label></div>'+
+    (tipo==='Grest'?'<div><b>Magliette</b><label><input type="radio" name="sq2mag" '+(o.maglie==='prima'?'checked':'')+' onchange="sq2Opz(\'maglie\',\'prima\')"> Prima dell\'ordine: ignora le taglie</label><label><input type="radio" name="sq2mag" '+(o.maglie==='dopo'?'checked':'')+' onchange="sq2Opz(\'maglie\',\'dopo\')"> Dopo l\'ordine: rispetta le magliette di ogni squadra</label></div>':'')+
+    '<div><b>Sempre</b><div style="font-size:12px;color:var(--text-muted);line-height:1.5">Fratelli e amici che si sono scelti a vicenda restano insieme.<br>I bambini fissati 🔒 non vengono spostati.<br>Ogni bambino tiene almeno un amico, se possibile.</div></div>';
+}
+
+/* ── sostituzioni delle funzioni della pagina ── */
+if(typeof window._rilevaFasciaDaNote==='function' && !window._rilevaFasciaDaNote._v2){
+  var _rfOrig=window._rilevaFasciaDaNote;
+  window._rilevaFasciaDaNote=function(note,f){ return _rfOrig(String(note||'').replace(/\b([3-8])\s*[\/\\ ]\s*([4-8])\b/g,'$1-$2'), f); };
+  window._rilevaFasciaDaNote._v2=1;
+}
+var _initOrig=window.initSquadre;
+window.initSquadre=function(){
+  var db=D(); if(!db) return;
+  if(S.prev && S.prev.tipo!==tipoCorr()) S.prev=null;
+  var oz=document.getElementById('sq2-opz'); if(oz) oz.innerHTML=htmlOpzioni(tipoCorr());
+  renderSquadre();
+};
+window.generaSquadre=function(tipo){ var el=document.getElementById('sq-tipo-filter'); if(el && tipo && el.value!==tipo){ el.value=tipo; initSquadre(); } sq2Anteprima('tutte'); };
+window.aggiungiNuoviSquadre=function(tipo){ var el=document.getElementById('sq-tipo-filter'); if(el && tipo && el.value!==tipo){ el.value=tipo; initSquadre(); } sq2Anteprima('completa'); };
+window.dragDrop=function(e,sqId){ if(e){ e.preventDefault(); e.stopPropagation(); } if(!draggedId) return; var id=draggedId; draggedId=null; sq2Sposta(id, sqId||''); };
+window.removeFromSquadra=function(id){ sq2Sposta(id,'',true); };
+window.toggleLucchetto=function(id){ if(!puo()) return; var k=byId(id); if(!k) return; if(k.lucchetto==='chiuso') delete k.lucchetto; else k.lucchetto='chiuso'; _touchRecord(k); salva(); renderSquadre(); };
+window.resetSquadre=function(tipo){
+  if(!puo()){ showToast('⛔ Non hai i permessi per azzerare le squadre','error'); return; }
+  showConfirm('Togliere tutti i bambini '+tipo+' dalle squadre (anche i fissati 🔒)?',function(){
+    var db=D(), ids={}; S.prev=null;
+    db.iscritti.filter(function(i){ return i.tipo===tipo && !i._eliminato && !i.ritirato; }).forEach(function(i){ ids[i.id]=1; i.squadraId=''; delete i.lucchetto; _touchRecord(i); });
+    if(db.gruppi) db.gruppi=db.gruppi.filter(function(g){ return g.nome || !(g.membri||[]).some(function(m){ return ids[m]; }); });
+    salva(); renderSquadre(); showToast('Squadre svuotate','warning');
+  });
+};
+
+window.renderSquadre=function(){
+  var db=D(); if(!db) return;
+  var tipo=tipoCorr(), M=modello(tipo), o=opzioni();
+  var A=assegnazioneAttuale(M);
+  if(S.prev && S.prev.tipo===tipo) A=M.kids.map(function(k){ var t=M.tIdx[S.prev.assign[k.id]]; return t==null?-1:t; });
+  else S.prev=null;
+  var A0=assegnazioneAttuale(M);
+  var top=document.getElementById('sq2-top');
+  if(top) top.innerHTML=(puo()?htmlRichieste(M):'')+htmlRiepilogo(M,A)+htmlDaSistemare(M,A,o);
+  var cont=document.getElementById('squadre-columns'); cont.innerHTML='';
+  var ed=puo()&&!S.prev, numSett=db.impostazioni&&db.impostazioni.numSettimane||4;
+  var ord=(document.getElementById('sq-ordina-membri')||{}).value||'cognome';
+  M.teams.forEach(function(sq,t){
+    var mem=[]; A.forEach(function(x,i){ if(x===t) mem.push(i); });
+    mem.sort(function(a,b){ var ka=M.kids[a], kb=M.kids[b]; if(ord==='eta-asc') return eta(ka)-eta(kb)||nomeK(ka).localeCompare(nomeK(kb)); if(ord==='eta-desc') return eta(kb)-eta(ka)||nomeK(ka).localeCompare(nomeK(kb)); return nomeK(ka).localeCompare(nomeK(kb)); });
+    var K=mem.map(function(i){ return M.kids[i]; });
+    var maschi=K.filter(function(k){ return k.sesso==='M'; }).length, femmine=K.length-maschi;
+    var vivMedia=K.length?Math.round(K.reduce(function(a,k){ return a+(parseInt(k.vivacita)||1); },0)/K.length*10)/10:0;
+    var etaMedia=K.length?Math.round(K.reduce(function(a,k){ return a+eta(k); },0)/K.length*10)/10:0;
+    var vociSq=(db.diarioSquadre||[]).filter(function(v){ return v.squadraId===sq.id; }).sort(function(a,b){ return b.data.localeCompare(a.data); });
+    var umore=vociSq[0]&&vociSq[0].umore;
+    var sett=[]; for(var w=1;w<=numSett;w++){ var cnt=K.filter(function(m){ return (m.settimane||[]).indexOf('S'+w)>=0; }).length; sett.push('<div class="week-chip"><div class="wc-label">W'+w+'</div>'+cnt+'</div>'); }
+    var etaMap={}; K.forEach(function(m){ var e=eta(m); if(e) etaMap[e]=(etaMap[e]||0)+1; });
+    var etaTxt=Object.keys(etaMap).length?'<div style="margin-bottom:8px;padding:8px;background:var(--bg,#f5f5f5);border-radius:6px"><div style="font-size:11px;font-weight:700;margin-bottom:4px;color:var(--text-muted)">FASCE D\'ETÀ:</div>'+Object.keys(etaMap).map(Number).sort(function(a,b){return a-b;}).map(function(e){ return '<span style="font-size:11px;padding:2px 7px;background:#e8eaf6;color:#3949ab;border-radius:4px;margin:0 4px 4px 0;display:inline-block;font-weight:700">'+e+' anni: '+etaMap[e]+'</span>'; }).join('')+'</div>':'';
+    var tg=(typeof TAGLIE!=='undefined'?TAGLIE:[]);
+    var maglieTxt=tg.map(function(x){ var c=K.filter(function(m){ return m.taglia===x; }).length; return c?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span>'+x+'</span><span style="font-weight:800">'+c+'</span></div>':''; }).join('');
+    var disp='';
+    if(tipo==='Grest'){ var di=tg.map(function(x){ var st=getStockMaglia('Grest',sq.id,x), c=K.filter(function(m){ return m.taglia===x; }).length; if(!c) return ''; var d=st-c*2, col=d<0?'#e53935':d===0?'#fb8c00':'#43a047'; return '<span style="font-size:11px;padding:2px 6px;background:'+col+';color:#fff;border-radius:4px;margin-right:4px">'+x+': '+(d>0?'+':'')+d+'</span>'; }).join('');
+      if(di) disp='<div style="margin-bottom:8px;padding:8px;background:var(--bg,#f5f5f5);border-radius:6px"><div style="font-size:11px;font-weight:700;margin-bottom:4px;color:var(--text-muted)">DISPONIBILITÀ MAGLIE:</div>'+di+'</div>'; }
+    var lista=mem.map(function(i,ix){ var m=M.kids[i], mv=S.prev && A[i]!==A0[i], fix=m.lucchetto==='chiuso';
+      return '<div class="presenza-card drag-item mt-2 sq2-mem'+(mv?' mv':'')+'" draggable="'+(ed?'true':'false')+'" data-id="'+m.id+'" ondragstart="dragStart(event,\''+m.id+'\')" ondragend="this.style.opacity=\'1\'" ondragover="event.preventDefault()">'+
+        '<div style="font-weight:800;font-size:13px;flex:1">'+(ix+1)+' '+E(nomeK(m))+(fix?' <span title="Fissato in questa squadra">🔒</span>':'')+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted)">'+(m.sesso==='F'?'♀':'♂')+' · Età '+(eta(m)||'–')+' · Taglia '+E(m.taglia||'–')+((parseInt(m.vivacita)||1)>1?' · ⚡':'')+'</div>'+
+        '<div class="sq2-chips">'+chipsRichieste(M,i,A)+'</div>'+
+        (ed?'<div class="sq2-act"><button type="button" class="btn btn-sm" style="background:#e8f0fe;color:var(--teal)" title="'+(fix?'Sblocca: la creazione automatica potrà spostarlo':'Fissa in questa squadra')+'" onclick="event.stopPropagation();toggleLucchetto(\''+m.id+'\')">'+(fix?'🔒':'🔓')+'</button><button type="button" class="btn btn-sm" style="background:#e8f0fe;color:var(--teal)" title="Sposta" onclick="sq2Menu(event,\''+m.id+'\')">⇄</button><button type="button" class="btn btn-sm btn-danger" title="Togli dalla squadra" onclick="event.stopPropagation();removeFromSquadra(\''+m.id+'\')">–</button></div>':'')+
+      '</div>'; }).join('');
+    var anim=(db.animatori||[]).filter(function(a){ return a.squadra===sq.id; }), animV=anim.slice(0,4);
+    var animHtml=animV.map(function(a){ var ini=((a.nome||'?')[0]+(a.cognome||'?')[0]).toUpperCase(); var bg=a.foto?'background-image:url(\''+a.foto+'\');background-size:cover;background-position:center':''; return '<div title="'+E(a.nome)+' '+E(a.cognome)+'" style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0;background:rgba(0,0,0,0.25);margin-left:-8px;'+bg+'">'+(a.foto?'':ini)+'</div>'; }).join('');
+    var nGrp=M.grpTeams[M.grpOf[t]].reduce(function(a,tt){ return a+A.filter(function(x){ return x===tt; }).length; },0)/M.grpTeams[M.grpOf[t]].length;
+    var col=document.createElement('div'); col.style.cssText='min-width:0;';
+    col.innerHTML='<div style="border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.12)">'+
+      '<div style="background:linear-gradient(135deg,'+sq.colore+','+sq.colore+'bb);padding:18px 18px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;position:relative">'+
+        (umore?'<span style="font-size:22px;position:absolute;top:14px;right:14px">'+umore+'</span>':'')+
+        (sq.logo?'<img src="'+sq.logo+'" style="width:'+(tipo==='MiniGrest'?100:130)+'px;height:'+(tipo==='MiniGrest'?100:130)+'px;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(0,0,0,0.3));border-radius:12px" alt="">':'')+
+        '<div style="font-size:20px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.8px;text-shadow:0 2px 8px rgba(0,0,0,0.25);line-height:1.2">'+E(sq.nome)+(sq.fascia&&tipo==='MiniGrest'?'<div style="font-size:12px;opacity:.85">'+E(sq.fascia)+'</div>':'')+'</div>'+
+        (animV.length?'<div style="display:flex;align-items:center;justify-content:center">'+animHtml+(anim.length>4?'<div style="width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;background:rgba(0,0,0,0.25);margin-left:-8px">+'+(anim.length-4)+'</div>':'')+'</div>':'<div style="font-size:11px;color:rgba(255,255,255,0.6);font-style:italic">Nessun animatore assegnato</div>')+
+      '</div>'+
+      '<div class="drop-zone" data-sq-id="'+sq.id+'" style="background:var(--card,#fff);padding:12px;min-height:120px">'+
+        '<div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">'+
+          '<span style="background:'+sq.colore+'22;color:'+sq.colore+';padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800">👥 '+K.length+'</span>'+
+          '<span style="background:#e3f2fd;color:#1976d2;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800">♂ '+maschi+'</span>'+
+          '<span style="background:#fce4ec;color:#c2185b;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800">♀ '+femmine+'</span>'+
+          '<span style="background:#f3e5f5;color:#7b1fa2;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800">⚡ '+vivMedia+'</span>'+
+          '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800">🎂 '+etaMedia+'a</span></div>'+
+        '<div style="height:4px;background:#f0f0f0;border-radius:4px;margin-bottom:8px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,Math.round(K.length/Math.max(1,nGrp)*100))+'%;background:'+sq.colore+';border-radius:4px"></div></div>'+
+        '<div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:8px">'+sett.join('')+'</div>'+etaTxt+disp+(maglieTxt?'<div style="margin-bottom:8px">'+maglieTxt+'</div>':'')+lista+
+      '</div></div>';
+    cont.appendChild(col);
+  });
+  if(!M.teams.length) cont.innerHTML='<div class="empty-state"><div class="ei">🧩</div><p>Nessuna squadra. Creale nelle Impostazioni.</p></div>';
+  document.querySelectorAll('#view-squadre .drop-zone').forEach(function(z){
+    z.addEventListener('dragover',function(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; this.style.outline='3px dashed var(--teal)'; });
+    z.addEventListener('dragleave',function(){ this.style.outline=''; });
+    z.addEventListener('drop',function(e){ e.preventDefault(); this.style.outline=''; dragDrop(e,this.dataset.sqId); });
+  });
+};
+window._sq2={ modello:modello, ottimizza:ottimizza, statistiche:statistiche, costo:costo, assegnazioneAttuale:assegnazioneAttuale, opzioni:opzioni };
+})();
+</script>
+
+<style id="com-v2-2026-11-css">
+.com2-riep{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg,#f5f7fa);font-size:13px;line-height:1.5}
+.com2-riep b{font-weight:900}
+.com2-riep .ok{color:#2e7d32}.com2-riep .ko{color:#c62828}
+.com2-link{background:none;border:0;color:var(--teal);font-weight:800;cursor:pointer;padding:0;font-size:12px;text-decoration:underline}
+.com2-elenco{margin-top:6px;max-height:220px;overflow:auto;font-size:12px}
+.com2-elenco div{padding:4px 0;border-top:1px dashed var(--border)}
+.com2-letti{margin-top:8px;font-size:12px;font-weight:800;color:var(--text-muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.com2-bar{flex:1;min-width:80px;max-width:180px;height:6px;border-radius:4px;background:var(--border);overflow:hidden}
+.com2-bar i{display:block;height:100%;background:#43a047}
+.com2-tit{font-size:14px;font-weight:900;margin-bottom:2px}
+.pa-msg2{background:#fffde7;border-radius:12px;padding:12px 14px;border-left:4px solid #ffb300;margin-bottom:10px;position:relative}
+.pa-msg2 .nuovo{position:absolute;top:10px;right:10px;background:#e53935;color:#fff;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px}
+.pa-msg2 small{font-size:11px;color:#999;font-weight:700}
+.pa-msg2 b{display:block;font-size:14px;margin:2px 0}
+.pa-msg2 p{margin:4px 0 0;font-size:14px;color:#333;line-height:1.5;white-space:pre-wrap}
+[data-theme="scuro"] .com2-riep{background:#1b2230}
+[data-theme="scuro"] .pa-msg2{background:#2a2614}
+[data-theme="scuro"] .pa-msg2 p{color:#e0e0e0}
+</style>
+<script id="com-v2-2026-11-js">
+/* ═══ COMUNICAZIONI v2 (11/2026) ═══
+   - riepilogo prima dell'invio (famiglie con / senza account), titolo facoltativo
+   - lettura per famiglia: un record per account in db.comunicazioni {id:'letture_<UTENTE>', tipo:'letture', user, letti:{idMsg:ts}}
+     (lo scrive solo quell'account, quindi niente conflitti nel sync)
+   - famiglie con più figli: vedono i messaggi di tutti i figli; le notifiche arrivano anche all'account del fratello
+   - messaggi agli animatori: sezione «Messaggi» nel portale animatori */
+(function(){
+'use strict';
+function D(){ try{ return getDb(); }catch(e){ return null; } }
+function E(s){ return escapeHtml(String(s==null?'':s)); }
+function tel(x){ return String(x||'').replace(/\D/g,''); }
+function utenti(){ try{ return ((typeof APP!=='undefined' && APP.utenti) || []).filter(function(u){ return u && !u._eliminato && u.username; }); }catch(e){ return []; } }
+function me(){ try{ var u=AUTH&&AUTH.currentUser; return u&&u.username?String(u.username).toUpperCase():''; }catch(e){ return ''; } }
+
+/* ── famiglie ── */
+function fratelli(isc, db){
+  if(!isc) return [];
+  var c1=String(isc.cognome||'').toUpperCase().trim(), ta=tel(isc.telMamma), tb=tel(isc.telPapa), g1=String((isc.genitore&&isc.genitore.nome)||'').toUpperCase().trim();
+  if(!c1) return [];
+  return (db.iscritti||[]).filter(function(i){
+    if(i._eliminato || i.id===isc.id || String(i.cognome||'').toUpperCase().trim()!==c1) return false;
+    var a=tel(i.telMamma), b=tel(i.telPapa);
+    if(!((ta && (ta===a||ta===b)) || (tb && (tb===a||tb===b)))) return false;
+    var g2=String((i.genitore&&i.genitore.nome)||'').toUpperCase().trim();
+    return !g1 || !g2 || g1===g2;
+  });
+}
+function famiglia(isc, db){ return isc ? [isc.id].concat(fratelli(isc,db).map(function(f){ return f.id; })) : []; }
+window.comFamiglia = function(isc, db){ return famiglia(isc, db||D()); };
+function figliAccount(u, db){
+  var ids={}; [u.iscrittoId].concat(u.iscrittiIds||[]).forEach(function(id){ if(!id) return; ids[id]=1; var i=(db.iscritti||[]).find(function(x){ return x.id===id; }); famiglia(i,db).forEach(function(f){ ids[f]=1; }); });
+  return ids;
+}
+/* raggruppa gli iscritti destinatari in famiglie, con gli account dei genitori */
+function famiglieDi(ids, db){
+  var set={}; ids.forEach(function(id){ set[id]=1; });
+  var visti={}, out=[], U=utenti().filter(function(u){ return u.ruolo==='Genitore'; }).map(function(u){ return { u:u, figli:figliAccount(u,db) }; });
+  ids.forEach(function(id){
+    if(visti[id]) return; var i=(db.iscritti||[]).find(function(x){ return x.id===id; }); if(!i) return;
+    var fam=famiglia(i,db).filter(function(f){ return set[f]; }); fam.forEach(function(f){ visti[f]=1; });
+    var acc=U.filter(function(x){ return fam.some(function(f){ return x.figli[f]; }); }).map(function(x){ return String(x.u.username).toUpperCase(); });
+    out.push({ ids:fam, isc:fam.map(function(f){ return (db.iscritti||[]).find(function(x){ return x.id===f; }); }).filter(Boolean), acc:acc });
+  });
+  return out;
+}
+window.comNumFamiglie = function(ids){ var db=D(); return db?famiglieDi(ids||[],db).length:0; };
+window.comAccountGenitori = function(ids){ var db=D(); if(!db) return []; var a={}; famiglieDi(ids||[],db).forEach(function(f){ f.acc.forEach(function(x){ a[x]=1; }); }); return Object.keys(a); };
+function animatoriDi(ids, db){
+  return (db.animatori||[]).filter(function(a){ return ids.indexOf(a.id)>=0; }).map(function(a){ var acc=[]; try{ acc=(window._nfNomiDi?window._nfNomiDi(a):[]).map(function(x){ return String(x).toUpperCase(); }); }catch(e){} return { a:a, acc:acc }; });
+}
+
+/* ── letture ── */
+function lettureDi(db){ var m={}; (db.comunicazioni||[]).forEach(function(c){ if(c && c.tipo==='letture' && c.user && !c._eliminato) m[String(c.user).toUpperCase()]=c.letti||{}; }); return m; }
+function lettoDa(user, c, db, L){ L=L||lettureDi(db); return !!((L[user]||{})[c.id]) || (!!c._letto && !c.letture); }
+window.comLettoDaMe = function(c, db){ db=db||D(); var u=me(); if(!db||!u||!c) return false; return lettoDa(u,c,db); };
+var APPENA={};   // letti in questa apertura: restano evidenziati come «nuovo» finché si resta nella sezione
+window.comNuovoPerMe = function(c, db){ return !window.comLettoDaMe(c,db) || !!APPENA[c.id]; };
+var _upT=null;
+window.comSegnaLetti = function(msgs){
+  var db=D(), u=me(); if(!db||!u||!msgs||!msgs.length) return 0;
+  if(!db.comunicazioni) db.comunicazioni=[];
+  var id='letture_'+u, rec=db.comunicazioni.find(function(c){ return c.id===id; }), n=0;
+  if(!rec){ rec={ id:id, tipo:'letture', user:u, letti:{} }; db.comunicazioni.push(rec); }
+  if(!rec.letti) rec.letti={};
+  msgs.forEach(function(c){ if(c && c.id && !rec.letti[c.id]){ rec.letti[c.id]=Date.now(); APPENA[c.id]=1; n++; } });
+  if(!n) return 0;
+  try{ _touchRecord(rec); }catch(e){ rec._ts=new Date().toISOString(); }
+  try{ saveStorage(); }catch(e){}
+  clearTimeout(_upT); _upT=setTimeout(function(){ try{ _forceNextUpload=true; delete _uploadedDataHashes[APP.currentDb]; if(typeof _uploadSingoloDb==='function' && APP.currentDb) _uploadSingoloDb(APP.currentDb, getDb()).catch(function(){}); }catch(e){} }, 1500);
+  return n;
+};
+window.comAzzeraAppena = function(){ APPENA={}; };
+
+/* ── per il portale genitori: il messaggio riguarda questa famiglia? ── */
+window.comPerMe = function(c, db, isc){
+  db=db||D(); if(!c || c._eliminato) return false;
+  if(c.tipo && c.tipo!=='broadcast') return false;
+  if(!isc){ try{ var u=AUTH&&AUTH.currentUser; isc=u&&u.iscrittoId?(db.iscritti||[]).find(function(i){ return i.id===u.iscrittoId; }):null; }catch(e){} }
+  if(!c.tipo) return true;
+  if(!c.dest || c.dest==='tutti') return true;
+  var fam=famiglia(isc,db);
+  if(Array.isArray(c.destIds) && c.destIds.length) return fam.some(function(id){ return c.destIds.indexOf(id)>=0; });
+  var F=fam.map(function(id){ return (db.iscritti||[]).find(function(x){ return x.id===id; }); }).filter(Boolean);
+  return F.some(function(i){ return (c.dest==='grest' && (i.tipo==='Grest'||!i.tipo)) || (c.dest==='mini' && i.tipo==='MiniGrest') || (c.dest==='squadra' && c.destSqId===i.squadraId) || (c.dest==='singolo' && c.destSingoloId===i.id); });
+};
+window.comPerMioAnimatore = function(c, db){
+  if(!c || c._eliminato || c.tipo!=='animatori') return false;
+  var a=null; try{ a=paGetAnimatore(); }catch(e){}
+  if(!a) return false;
+  return !Array.isArray(c.destIds) || !c.destIds.length || c.destIds.indexOf(a.id)>=0;
+};
+
+/* ═══ SEGRETERIA ═══ */
+window.comToggle = function(id){ var el=document.getElementById(id); if(el) el.style.display=el.style.display==='none'?'':'none'; };
+function nomeIsc(i){ return (i.cognome||'')+' '+(i.nome||''); }
+function riepilogoHtml(){
+  var db=D(); if(!db) return '';
+  var ids=(typeof comDestinatariIds!=='undefined'?comDestinatariIds:[])||[]; if(!ids.length) return '';
+  if(comDestCorrente==='animatori'){
+    var A=animatoriDi(ids,db), con=A.filter(function(x){ return x.acc.length; }), senza=A.filter(function(x){ return !x.acc.length; });
+    return '<div class="com2-riep"><b>'+A.length+'</b> animatori · <span class="ok"><b>'+con.length+'</b> con account</span> (ricevono la notifica sul telefono, se l\'hanno attivata, e lo trovano in «Messaggi» nel loro portale)'+
+      (senza.length?' · <span class="ko"><b>'+senza.length+'</b> senza account</span> — non lo riceveranno <button type="button" class="com2-link" onclick="comToggle(\'com2-senza\')">chi sono</button><div class="com2-elenco" id="com2-senza" style="display:none">'+
+        senza.map(function(x){ return '<div>'+E((x.a.cognome||'')+' '+(x.a.nome||''))+(x.a.telefono?' · '+E(x.a.telefono):'')+'</div>'; }).join('')+'</div>':'')+'</div>';
+  }
+  var F=famiglieDi(ids,db), con=F.filter(function(f){ return f.acc.length; }), senza=F.filter(function(f){ return !f.acc.length; });
+  return '<div class="com2-riep"><b>'+F.length+'</b> famiglie ('+ids.length+' bambini) · <span class="ok"><b>'+con.length+'</b> con account</span> (ricevono la notifica sul telefono, se l\'hanno attivata, e lo leggono nel portale)'+
+    (senza.length?' · <span class="ko"><b>'+senza.length+'</b> senza account</span> — non lo vedranno <button type="button" class="com2-link" onclick="comToggle(\'com2-senza\')">chi sono</button><div class="com2-elenco" id="com2-senza" style="display:none">'+
+      senza.map(function(f){ var i=f.isc[0]||{}; return '<div>'+f.isc.map(function(x){ return E(nomeIsc(x)); }).join(', ')+(i.telMamma?' · mamma '+E(i.telMamma):'')+(i.telPapa?' · papà '+E(i.telPapa):'')+'</div>'; }).join('')+'</div>':'')+'</div>';
+}
+var _aggOrig=window.comAggiornaDest;
+window.comAggiornaDest=function(){
+  var r=_aggOrig.apply(this,arguments);
+  try{ var el=document.getElementById('com2-riepilogo'); if(el) el.innerHTML=riepilogoHtml(); }catch(e){}
+  return r;
+};
+var _initOrig=window.initComunicazioni;
+window.initComunicazioni=function(){ var r=_initOrig.apply(this,arguments); try{ comAggiornaDest(); comRenderInviati(); }catch(e){} return r; };
+window.comRenderInviati=function(){
+  var db=D(); if(!db) return;
+  var lista=document.getElementById('com-inviati-lista'); if(!lista) return;
+  var msgs=(db.comunicazioni||[]).filter(function(c){ return !c._eliminato && (c.tipo==='broadcast'||c.tipo==='animatori'); }).slice().reverse().slice(0,20);
+  if(!msgs.length){ lista.innerHTML='<div style="color:#ccc;text-align:center;padding:16px;font-size:13px">Nessun messaggio inviato</div>'; return; }
+  var L=lettureDi(db);
+  lista.innerHTML=msgs.map(function(c){
+    var destLabel={tutti:'👥 Tutti',grest:'🏕️ GREST',mini:'⭐ MiniGrest',squadra:'🛡️ Squadra',singolo:'👤 Singola famiglia',animatori:'🧑‍🎤 Animatori'}[c.dest]||c.dest||'Tutti';
+    if(c.dest==='squadra' && c.destSqId){ var sq=(db.squadre||[]).find(function(s){ return s.id===c.destSqId; }); if(sq) destLabel='🛡️ '+sq.nome; }
+    var ids=c.destIds||[], gruppi, tot, letti, non=[];
+    if(c.tipo==='animatori'){ gruppi=animatoriDi(ids,db).filter(function(x){ return x.acc.length; }); gruppi.forEach(function(x){ x.nome=(x.a.cognome||'')+' '+(x.a.nome||''); }); }
+    else { gruppi=famiglieDi(ids,db).filter(function(f){ return f.acc.length; }); gruppi.forEach(function(f){ f.nome=f.isc.map(nomeIsc).join(', '); }); }
+    tot=gruppi.length; letti=0;
+    gruppi.forEach(function(g){ if(g.acc.some(function(u){ return lettoDa(u,c,db,L); })) letti++; else non.push(g.nome); });
+    var nTot=c.tipo==='animatori'?ids.length+' animatori':(famiglieDi(ids,db).length)+' famiglie';
+    var pct=tot?Math.round(letti/tot*100):0, idL='com2-nl-'+c.id;
+    var legacy=!c.letture;
+    return '<div class="com-inviato-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">'
+      +'<span class="badge-dest">'+E(destLabel)+(ids.length?' · '+nTot:'')+'</span>'
+      +'<div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:#bbb;font-weight:700">'+E(c.data||'')+'</span>'
+      +'<button type="button" onclick="comEliminaMsg(\''+c.id+'\')" style="background:none;border:none;color:#e53935;cursor:pointer;font-size:16px;padding:0;line-height:1">🗑️</button></div></div>'
+      +(c.titolo?'<div class="com2-tit">'+E(c.titolo)+'</div>':'')
+      +'<div style="font-size:13px;line-height:1.5;white-space:pre-wrap">'+E(c.testo||'')+'</div>'
+      +(legacy?'':(tot?'<div class="com2-letti"><span>👁 Letto da '+letti+' / '+tot+(c.tipo==='animatori'?' animatori':' famiglie')+' con account</span><span class="com2-bar"><i style="width:'+pct+'%"></i></span>'
+        +(non.length?'<button type="button" class="com2-link" onclick="comToggle(\''+idL+'\')">chi non l\'ha letto</button>':'')+'</div>'
+        +(non.length?'<div class="com2-elenco" id="'+idL+'" style="display:none">'+non.map(function(n){ return '<div>'+E(n)+'</div>'; }).join('')+'</div>':''):'<div class="com2-letti">Nessun destinatario ha un account sul portale</div>'))
+      +'</div>';
+  }).join('');
+};
+
+/* ═══ PORTALE ANIMATORI: sezione Messaggi ═══ */
+function mieiMsgAnim(db){ return (db.comunicazioni||[]).filter(function(c){ return window.comPerMioAnimatore(c,db); }).slice().reverse(); }
+function nonLettiAnim(db){ return mieiMsgAnim(db).filter(function(c){ return !window.comLettoDaMe(c,db); }).length; }
+window.paRenderMessaggi=function(){
+  var db=D(), el=document.getElementById('pa-messaggi-lista'); if(!db||!el) return;
+  var L=mieiMsgAnim(db).slice(0,30);
+  el.innerHTML=L.length?L.map(function(c){ var nuovo=window.comNuovoPerMe(c,db);
+    return '<div class="pa-msg2">'+(nuovo?'<span class="nuovo">NUOVO</span>':'')+'<small>'+E(typeof pgFmtData==='function'&&/^\d{4}-/.test(c.data||'')?pgFmtData(c.data):(c.data||''))+' · Segreteria</small>'+(c.titolo?'<b>'+E(c.titolo)+'</b>':'')+'<p>'+E(c.testo||'')+'</p></div>'; }).join('')
+    :'<div style="text-align:center;color:#999;padding:24px;font-size:13px">Nessun messaggio dalla segreteria</div>';
+  window.comSegnaLetti(L);
+  paBadgeMessaggi();
+};
+function paBadgeMessaggi(){
+  var db=D(); if(!db) return; var n=nonLettiAnim(db);
+  var b=document.getElementById('pa-altro-badge-messaggi'); if(b){ b.style.display=n?'':'none'; b.textContent=n||''; }
+  var nav=document.getElementById('pa-nav-badge-altro');
+  if(nav){ var sond=parseInt((document.getElementById('pa-altro-badge-sondaggi')||{}).textContent)||0, tot=sond+n; nav.style.display=tot?'':'none'; nav.textContent=tot||''; }
+  return n;
+}
+var _pgSwOrig=window.pgSwitchTab;
+if(typeof _pgSwOrig==='function'){ window.pgSwitchTab=function(tab){ if(tab!=='comunicazioni') window.comAzzeraAppena(); return _pgSwOrig.apply(this,arguments); }; }
+var _swOrig=window.paSwitchTab;
+if(typeof _swOrig==='function'){
+  window.paSwitchTab=function(id,btn){
+    if(id==='comunicazioni') id='messaggi';
+    if(id!=='messaggi') window.comAzzeraAppena();
+    if(id==='messaggi'){
+      document.querySelectorAll('#portale-animatore .pa-tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      document.querySelectorAll('#portale-animatore .pa-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      var p=document.getElementById('pa-tab-messaggi'); if(p) p.classList.add('active');
+      window.paRenderMessaggi(); return;
+    }
+    return _swOrig.apply(this,arguments);
+  };
+}
+var _ckOrig=window.paCheckNotifiche;
+if(typeof _ckOrig==='function'){
+  window.paCheckNotifiche=function(){
+    var r=_ckOrig.apply(this,arguments);
+    try{
+      var n=paBadgeMessaggi(), banner=document.getElementById('pa-notifica-banner');
+      if(n && banner && !banner.querySelector('[data-com2]')){
+        var row=document.createElement('div'); row.setAttribute('data-com2','1');
+        row.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fffde7;'+(banner.children.length?'border-top:1px solid rgba(0,0,0,0.06)':'');
+        row.innerHTML='<div style="font-size:22px;flex-shrink:0">📣</div><div style="flex:1;font-size:13px;font-weight:700;color:#333;line-height:1.4">'+(n===1?'Hai <b>1 messaggio</b> dalla segreteria':'Hai <b>'+n+' messaggi</b> dalla segreteria')+'</div>'
+          +'<button type="button" style="background:#f9a825;color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap">Leggi →</button>'
+          +'<button type="button" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999;padding:0;flex-shrink:0">✕</button>';
+        var bt=row.querySelectorAll('button');
+        bt[0].onclick=function(){ row.remove(); if(!banner.children.length) banner.style.display='none'; paNavAltro('messaggi'); };
+        bt[1].onclick=function(){ row.remove(); if(!banner.children.length) banner.style.display='none'; };
+        banner.appendChild(row); banner.style.display='block';
+      }
+    }catch(e){}
+    return r;
+  };
+}
+})();
+</script>
+
 </body>
 </html>
