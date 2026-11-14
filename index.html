@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 08:19</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 08:19 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93336,7 +93336,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   function filtrati(){
     var F = S.F; return lista().filter(function(c){ var v = norm(S.doc.val[c.cod] || {});
       if(F.q && (c.nome + ' ' + c.cod).toLowerCase().indexOf(F.q.toLowerCase()) < 0) return false;
-      if(F.gmo && c.gmo !== F.gmo) return false; if(F.alt && c.altro !== F.alt) return false; if(F.dub && !aperti(v)) return false; return true; });
+      if(F.gmo && c.gmo !== F.gmo) return false; if(F.alt && c.altro !== F.alt) return false; if(F.dub && !aperti(v)) return false; if(F.ncol && hasColl(v)) return false; return true; });
   }
   function V(cod){ if(!S.doc.val[cod]) S.doc.val[cod] = { liv:'', att:false, tit:'', dubbi:[] }; return norm(S.doc.val[cod]); }
 
@@ -93369,15 +93369,38 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     if(!puoVedere()){ root.innerHTML = '<div class="sel-card">🔒 Non hai il permesso per le Selezioni del Servizio Civile. Chiedilo a un amministratore (permesso «Servizio Civile – Selezioni»).</div>'; return; }
     if(!S.doc){ root.innerHTML = '<div class="sel-card">⏳ Carico le selezioni dal NAS…</div>'; return; }
     var cfg = SCU_PROGRAMMI[S.prog] || { nome:S.prog, ico:'' }, n = lista().length, mod = puoMod();
-    var h = '<div class="sel-bar"><div><div style="font-size:18px;font-weight:800">' + cfg.ico + ' Selezioni · ' + E(cfg.nome) + '</div><div class="sel-muted">' + E(crit().progetto) + ' · ' + n + ' domande · scadenza bando ' + SCADENZA + '</div></div><span class="sp"></span>'
-      + (mod ? '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sel-in-csv\').click()">📥 Importa domande (CSV)</button><button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sel-in-pdf\').click()">📎 Carica PDF domande</button><button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sel-in-json\').click()">⬆ Importa valutazioni</button>' : '')
-      + (mod ? (crit().pronto ? '<button class="btn btn-outline btn-sm" title="' + E('Criteri caricati' + (crit().nomeFile ? ' da «' + crit().nomeFile + '»' : '') + ' — tocca per sostituirli') + '" onclick="document.getElementById(\'sel-in-crit\').click()">✅ Criteri caricati · Cambia</button>' : '<button class="btn btn-sm" style="background:#ea580c;color:#fff" onclick="document.getElementById(\'sel-in-crit\').click()">📥 Carica criteri</button>') : '')
-      + '<button class="btn btn-outline btn-sm" onclick="selEsporta()">⬇ Salva copia</button><button class="btn btn-outline btn-sm" onclick="selRicarica()">↻</button>'
-      + '<input type="file" id="sel-in-csv" accept=".csv,.CSV" style="display:none" onchange="selImportaCsv(this)"><input type="file" id="sel-in-pdf" accept="application/pdf" multiple style="display:none" onchange="selCaricaPdf(this)"><input type="file" id="sel-in-json" accept=".json" style="display:none" onchange="selImportaJson(this)"><input type="file" id="sel-in-crit" accept=".json,application/json" style="display:none" onchange="selCaricaCriteri(this)"></div>';
-    if(!crit().pronto) h += '<div class="sel-avv">⚠️ ' + E(crit().breve) + (mod ? ' Usa <b>📥 Carica criteri</b> e scegli il file dei criteri di questo programma.' : '') + ' Finché non ci sono, la proposta automatica mette tutti i titoli come non attinenti.</div>';
-    h += '<div class="sel-sub">' + [['tab','📋 Tabella'],['dub','⚠️ Da verificare'],['cri','📖 Criteri'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.vista === t[0] ? 'on' : '') + '" onclick="selVista(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('')
-      + '<span style="flex:1"></span><button class="btn btn-sm" onclick="selStampaTabella()">🖨 Tabella A3</button><button class="btn btn-outline btn-sm" onclick="selStampaSchede()">🖨 Tutte le schede</button><button class="btn btn-outline btn-sm" onclick="selStampaCriteri()">🖨 Criteri</button></div>';
-    if(!n){ root.innerHTML = h + '<div class="sel-card">Nessuna domanda caricata per questo programma.' + (mod ? ' Usa <b>Importa domande (CSV)</b> con l’esportazione della piattaforma, poi <b>Carica PDF domande</b>. Se hai già un file di valutazioni, usa <b>Importa valutazioni</b>.' : '') + '</div>'; return; }
+    var all0 = lista(), pdfOk = all0.filter(function(c){ return c.pdf; }).length, apT = all0.reduce(function(a, c){ return a + aperti(V(c.cod)); }, 0), apC = all0.filter(function(c){ return aperti(V(c.cod)); }).length, collN = all0.filter(function(c){ return hasColl(V(c.cod)); }).length;
+    var fileIn = '<input type="file" id="sel-in-csv" accept=".csv,.CSV" style="display:none" onchange="selImportaCsv(this)"><input type="file" id="sel-in-pdf" accept="application/pdf" multiple style="display:none" onchange="selCaricaPdf(this)"><input type="file" id="sel-in-json" accept=".json" style="display:none" onchange="selImportaJson(this)"><input type="file" id="sel-in-crit" accept=".json,application/json" style="display:none" onchange="selCaricaCriteri(this)">';
+    var h = '<div class="sel-head"><div class="sel-head-t"><div class="sel-h1">' + cfg.ico + ' Selezioni · ' + E(cfg.nome) + '</div><div class="sel-muted">' + E(crit().progetto) + ' · scadenza bando ' + SCADENZA + '</div></div>'
+      + '<details class="sel-menu"><summary class="sel-mbtn" title="Altre azioni">⋯</summary><div class="sel-mpop">'
+      + (mod ? '<button onclick="selMenuChiudi();document.getElementById(\'sel-in-json\').click()">⬆ Importa valutazioni da file</button>' : '')
+      + '<button onclick="selMenuChiudi();selEsporta()">⬇ Salva una copia (backup)</button><button onclick="selMenuChiudi();selRicarica()">↻ Ricarica dal NAS</button>'
+      + (mod && crit().pronto ? '<button onclick="selMenuChiudi();document.getElementById(\'sel-in-crit\').click()">🔁 Sostituisci i criteri</button>' : '')
+      + '</div></details>' + fileIn + '</div>';
+    // passi
+    var passo = function(num, tit, stato, cls, az, tt){ return '<button type="button" class="sel-passo ' + cls + '"' + (az ? ' onclick="' + az + '"' : ' disabled') + (tt ? ' title="' + E(tt) + '"' : '') + '><span class="sel-pn">' + (cls === 'ok' ? '✓' : num) + '</span><span class="sel-pt"><b>' + tit + '</b><small>' + stato + '</small></span></button>'; };
+    var cOk = crit().pronto, dOk = n > 0, pOk = dOk && pdfOk >= n;
+    var prossimo = !cOk ? 1 : !dOk ? 2 : !pOk ? 3 : apT ? 4 : 5;
+    var cl = function(k, ok){ return ok ? 'ok' : (k === prossimo ? 'ora' : ''); };
+    h += '<div class="sel-passi">'
+      + passo(1, 'Criteri', cOk ? 'caricati' : 'da caricare', cl(1, cOk), mod ? "document.getElementById('sel-in-crit').click()" : '', cOk ? 'Criteri caricati' + (crit().nomeFile ? ' da «' + crit().nomeFile + '»' : '') + ' — tocca per sostituirli' : 'Carica il file dei criteri di questo programma')
+      + passo(2, 'Domande', dOk ? n + ' dal CSV' : 'carica il CSV', cl(2, dOk), mod ? "document.getElementById('sel-in-csv').click()" : '', 'Importa (o aggiorna) le domande dal file CSV della piattaforma')
+      + passo(3, 'PDF domande', dOk ? pdfOk + ' su ' + n : '—', cl(3, pOk), mod && dOk ? "document.getElementById('sel-in-pdf').click()" : '', 'Carica i PDF delle domande (nel nome del file: codice fiscale o cognome e nome)')
+      + passo(4, 'Da verificare', !dOk ? '—' : apT ? apT + ' casi · ' + apC + ' candidati' : 'nessun caso', cl(4, dOk && !apT), dOk ? "selVista('dub')" : '', 'Controlla i casi dubbi candidato per candidato')
+      + passo(5, 'Colloqui', dOk ? collN + ' su ' + n : '—', cl(5, dOk && collN >= n), dOk ? "_SEL.F.ncol=1;_SEL.F.dub=false;selVista('tab')" : '', 'Il colloquio si inserisce nella scheda di ogni candidato: tocca per vedere chi non l’ha ancora')
+      + '</div>';
+    if(!cOk) h += '<div class="sel-avv">⚠️ ' + E(crit().breve) + (mod ? ' Tocca il passo <b>① Criteri</b> e scegli il file dei criteri di questo programma.' : '') + ' Finché non ci sono, la proposta automatica mette tutti i titoli come non attinenti.</div>';
+    // linguette + stampa
+    h += '<div class="sel-sub">' + [['tab','📋 Tabella'],['dub','⚠️ Da verificare' + (apC ? ' <i class="sel-bd">' + apC + '</i>' : '')],['cri','📖 Criteri'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.vista === t[0] ? 'on' : '') + '" onclick="selVista(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('')
+      + '<span style="flex:1"></span>'
+      + (dOk ? '<details class="sel-menu sel-menu-dx"><summary class="btn btn-teal btn-sm sel-stbtn">🖨 Stampa ▾</summary><div class="sel-mpop">'
+        + '<button onclick="selMenuChiudi();selStampaTabella()"><b>Tabella punteggi (A3)</b><small>griglia di tutti i candidati, orizzontale</small></button>'
+        + '<button onclick="selMenuChiudi();selStampaSchede()"><b>Schede dei candidati</b><small>una scheda individuale per candidato</small></button>'
+        + '<button onclick="selMenuChiudi();selStampaCriteri()"><b>Criteri di valutazione</b><small>la legenda da mostrare ai candidati</small></button>'
+        + '<label class="sel-mfld">Istituto da scrivere nelle stampe<input class="form-control" type="text" value="' + E(S.doc.istituto || '') + '" onchange="selIstituto(this.value)" placeholder="es. Istituto Catechistico Divina Provvidenza"' + (mod ? '' : ' disabled') + '></label>'
+        + '</div></details>' : '')
+      + '</div>';
+    if(!n){ root.innerHTML = h + '<div class="sel-card">Nessuna domanda caricata per questo programma.' + (mod ? ' Segui i passi qui sopra: <b>① Criteri</b>, poi <b>② Domande</b> con il CSV della piattaforma, poi <b>③ PDF domande</b>. Se hai già un file di valutazioni, lo trovi nel menu <b>⋯</b>.' : '') + '</div>'; return; }
     if(S.vista === 'tab') h += vistaTab(); else if(S.vista === 'dub') h += vistaDub(); else if(S.vista === 'cri') h += '<div class="sel-card sel-crit">' + criteriHTML() + '</div>'; else h += vistaLog();
     root.innerHTML = h;
     if(S.vista === 'tab') zApplica();
@@ -93385,14 +93408,14 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   }
   function vistaTab(){
     var F = S.F, L = filtrati();
-    var bar = '<div class="sel-bar"><input id="sel-q" class="form-control" type="search" placeholder="Cerca nome o n. domanda" value="' + E(F.q) + '" oninput="_SEL.F.q=this.value;_SEL.F._f=1;selRender()" style="min-width:220px">'
-      + '<label class="sel-muted">GMO <select class="form-control" onchange="_SEL.F.gmo=this.value;selRender()"><option value="">tutti</option><option' + (F.gmo === 'SÌ' ? ' selected' : '') + '>SÌ</option><option' + (F.gmo === 'NO' ? ' selected' : '') + '>NO</option></select></label>'
-      + '<label class="sel-muted">Altro progetto <select class="form-control" onchange="_SEL.F.alt=this.value;selRender()"><option value="">tutti</option><option' + (F.alt === 'SÌ' ? ' selected' : '') + '>SÌ</option><option' + (F.alt === 'NO' ? ' selected' : '') + '>NO</option></select></label>'
-      + '<label class="sel-muted"><input type="checkbox"' + (F.dub ? ' checked' : '') + ' onchange="_SEL.F.dub=this.checked;selRender()"> solo con casi da verificare</label>'
-      + '<label class="sel-muted">Istituto (stampa) <input class="form-control" type="text" value="' + E(S.doc.istituto || '') + '" onchange="selIstituto(this.value)" style="min-width:160px"' + (puoMod() ? '' : ' disabled') + '></label><span class="sp"></span><span class="sel-muted">' + L.length + ' di ' + lista().length + '</span>'
-      + '<div class="sel-zoom" title="Ingrandisci o rimpicciolisci la tabella (anche Ctrl + rotellina)"><button onclick="selZoom(-.1)" title="Rimpicciolisci">🔍−</button><span id="sel-zl">' + Math.round(S.zoom * 100) + '%</span><button onclick="selZoom(.1)" title="Ingrandisci">🔍+</button><button data-zm="largo" onclick="selZoomFit(\'largo\')" title="Adatta alla larghezza della pagina">↔ Adatta</button><button data-zm="tutto" onclick="selZoomFit(\'tutto\')" title="Tutta la tabella in una schermata">⛶ Tutta</button></div></div>';
-    var all0 = lista(), pdfOk = all0.filter(function(c){ return c.pdf; }).length, ap = all0.reduce(function(a, c){ return a + aperti(V(c.cod)); }, 0), coll = all0.filter(function(c){ return hasColl(V(c.cod)); }).length;
-    bar = '<div class="sel-kpi"><div><b>' + all0.length + '</b><span>domande</span></div><div' + (pdfOk < all0.length ? ' class="w"' : '') + '><b>' + pdfOk + ' / ' + all0.length + '</b><span>PDF sul NAS</span></div><div' + (ap ? ' class="w"' : '') + '><b>' + ap + '</b><span>casi da verificare</span></div><div><b>' + coll + ' / ' + all0.length + '</b><span>colloqui inseriti</span></div></div>' + bar;
+    var seg = function(k, t){ var on = (k === 'tutti' && !F.dub && !F.ncol) || (k === 'dub' && F.dub) || (k === 'ncol' && F.ncol); return '<button class="' + (on ? 'on' : '') + '" onclick="_SEL.F.dub=' + (k === 'dub') + ';_SEL.F.ncol=' + (k === 'ncol' ? 1 : 0) + ';selRender()">' + t + '</button>'; };
+    var bar = '<div class="sel-fbar">'
+      + '<input id="sel-q" class="form-control sel-q" type="search" placeholder="🔍 Cerca nome o n. domanda" value="' + E(F.q) + '" oninput="_SEL.F.q=this.value;_SEL.F._f=1;selRender()">'
+      + '<div class="sel-seg">' + seg('tutti', 'Tutti') + seg('dub', '⚠️ Da verificare') + seg('ncol', 'Senza colloquio') + '</div>'
+      + '<select class="form-control sel-fsel" title="Posti riservati GMO" onchange="_SEL.F.gmo=this.value;selRender()"><option value="">GMO: tutti</option><option value="SÌ"' + (F.gmo === 'SÌ' ? ' selected' : '') + '>GMO: sì</option><option value="NO"' + (F.gmo === 'NO' ? ' selected' : '') + '>GMO: no</option></select>'
+      + '<select class="form-control sel-fsel" title="Disponibile ad altro progetto" onchange="_SEL.F.alt=this.value;selRender()"><option value="">Altro progetto: tutti</option><option value="SÌ"' + (F.alt === 'SÌ' ? ' selected' : '') + '>Altro progetto: sì</option><option value="NO"' + (F.alt === 'NO' ? ' selected' : '') + '>Altro progetto: no</option></select>'
+      + '<span class="sp"></span><span class="sel-muted sel-cnt">' + L.length + ' di ' + lista().length + '</span>'
+      + '<div class="sel-zoom" title="Ingrandisci o rimpicciolisci la tabella (anche Ctrl + rotellina)"><button onclick="selZoom(-.1)" title="Rimpicciolisci">−</button><span id="sel-zl">' + Math.round(S.zoom * 100) + '%</span><button onclick="selZoom(.1)" title="Ingrandisci">+</button><button data-zm="largo" onclick="selZoomFit(\'largo\')" title="Adatta alla larghezza della pagina">↔ Adatta</button><button data-zm="tutto" onclick="selZoomFit(\'tutto\')" title="Tutta la tabella in una schermata">⛶ Tutta</button></div></div>';
     var all = lista();
     var rows = L.map(function(c){ var v = V(c.cod), od = aperti(v), cod = c.cod;
       var ult = v.ult.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; '), comp = v.comp.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; ');
@@ -93621,6 +93644,8 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
 
   /* ── navigazione ── */
   window.selVista = function(v){ S.vista = v; render(); };
+  window.selMenuChiudi = function(){ document.querySelectorAll('details.sel-menu[open]').forEach(function(d){ d.removeAttribute('open'); }); };
+  document.addEventListener('click', function(e){ if(!e.target.closest('details.sel-menu')) window.selMenuChiudi(); });
   window.selRender = render;
   window.selRicarica = async function(){ S.doc = null; render(); if(!(await carica(true))) showToast('⚠️ NAS non raggiungibile: selezioni non caricate', 'warning'); render(); };
   window.selApriSezione = async function(){
@@ -93647,5 +93672,51 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
 </script>
 
 
+<style id="sel-pulsanti-2026-11">
+/* (novembre 2026) Selezioni: pulsanti riordinati — passi in alto, menu ⋯ e Stampa */
+.sel-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sel-head-t{flex:1;min-width:0}
+.sel-h1{font-size:18px;font-weight:800;line-height:1.25}
+.sel-menu{position:relative}
+.sel-menu > summary{list-style:none;cursor:pointer}
+.sel-menu > summary::-webkit-details-marker{display:none}
+.sel-mbtn{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--text)}
+.sel-mbtn:hover{background:var(--teal-light)}
+.sel-mpop{position:absolute;right:0;top:calc(100% + 6px);z-index:50;min-width:270px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 32px rgba(15,23,42,.18);padding:6px;display:flex;flex-direction:column;gap:2px}
+.sel-mpop button{border:0;background:transparent;text-align:left;font:inherit;font-size:13.5px;font-weight:600;color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;display:block;line-height:1.3}
+.sel-mpop button svg{vertical-align:-3px;margin-right:6px}
+.sel-mpop button small{display:block;margin-top:1px}
+.sel-mpop button:hover{background:var(--teal-light)}
+.sel-mpop button small{font-size:11.5px;font-weight:500;color:var(--text-muted)}
+.sel-mfld{display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:600;color:var(--text-muted);padding:8px 12px 6px;border-top:1px solid var(--border);margin-top:4px}
+.sel-mfld .form-control{font-size:13px}
+.sel-stbtn{display:inline-flex;align-items:center;gap:6px}
+.sel-passi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.sel-passo{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--border);background:var(--card);border-radius:14px;padding:10px 12px;font:inherit;color:var(--text);cursor:pointer;min-width:0;transition:border-color .15s,box-shadow .15s}
+.sel-passo:hover:not([disabled]){border-color:var(--teal);box-shadow:0 2px 10px rgba(15,23,42,.08)}
+.sel-passo[disabled]{cursor:default;opacity:.75}
+.sel-pn{flex:0 0 30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:var(--bg,#f1f5f9);color:var(--text-muted);border:1.5px solid var(--border)}
+.sel-pt{display:flex;flex-direction:column;min-width:0}
+.sel-pt b{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-pt small{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-passo.ok .sel-pn{background:#16a34a;border-color:#16a34a;color:#fff}
+.sel-passo.ora{border-color:#ea580c;background:#fff7ed}
+.sel-passo.ora .sel-pn{background:#ea580c;border-color:#ea580c;color:#fff}
+.sel-passo.ora small{color:#c2410c;font-weight:700}
+.sel-sub{align-items:center}
+.sel-sub .sel-bd{font-style:normal;margin-left:4px}
+.sel-fbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:8px}
+.sel-fbar .form-control{width:auto;min-width:0;height:36px;padding-top:4px;padding-bottom:4px;font-size:13px}
+.sel-fbar .sel-q{min-width:220px;flex:0 1 260px}
+.sel-fbar .sp{flex:1}
+.sel-seg{display:inline-flex;background:var(--bg,#f1f5f9);border-radius:11px;padding:3px;gap:2px}
+.sel-seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--text-muted);padding:6px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.sel-seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.15)}
+.sel-cnt{white-space:nowrap}
+html[data-pi-tema="scuro"] .sel-passo.ora{background:rgba(234,88,12,.12)}
+html[data-pi-tema="scuro"] .sel-seg, html[data-pi-tema="scuro"] .sel-pn{background:#0b1220}
+@media (max-width:900px){ .sel-passi{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:560px){ .sel-passi{grid-template-columns:repeat(2,minmax(0,1fr))} .sel-fbar .sel-q{flex:1 1 100%} .sel-fbar .form-control{height:auto;min-height:40px;font-size:16px} .sel-fbar .sel-fsel{flex:1 1 40%} .sel-seg{flex:1 1 100%} .sel-seg button{flex:1;padding:7px 6px} .sel-mpop{min-width:240px} }
+</style>
 </body>
 </html>
