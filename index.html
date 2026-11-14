@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 08:55</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 08:55 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93489,44 +93489,62 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   function renderDr(){
     var c = S.doc.cands[S.cur]; if(!c){ selChiudi(); return; } var v = V(S.cur);
     var ini = c.nome.split(' ').slice(0, 2).map(function(x){ return x[0] || ''; }).join(''), L = filtrati(), pos = L.map(function(x){ return x.cod; }).indexOf(c.cod) + 1;
-    var chip = function(t, cl){ return '<span class="sel-chip' + (cl ? ' ' + cl : '') + '">' + t + '</span>'; };
-    document.getElementById('sel-dr').innerHTML = '<div class="sel-dh"><div class="sel-av">' + E(ini) + '</div><div style="min-width:0"><h2>' + E(c.nome) + '</h2><div class="sel-chips">'
-      + chip('Domanda n. ' + c.cod) + chip(E(c.nato) + ' · ' + eta(c.nato) + ' anni') + chip('📍 ' + E(c.res)) + chip('GMO ' + c.gmo, c.gmo === 'SÌ' ? 'si' : '') + chip('Stesso progetto ' + c.stesso, c.stesso === 'SÌ' ? 'si' : 'no') + chip('Altro progetto ' + c.altro, c.altro === 'SÌ' ? 'si' : 'no') + '</div></div>'
-      + '<div class="sel-dact"><span class="sel-muted">' + (pos || '–') + ' di ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')">📄 PDF</button>' : '') + '<button class="btn btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])">🖨 Scheda</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
+    var com = (c.raw && c.raw.ComuneResidenza) ? String(c.raw.ComuneResidenza).trim() : String(c.res || '').replace(/^.*\d{5}\s*/, '').replace(/\s*\(.*$/, '');
+    var bdg = [c.gmo === 'SÌ' ? '<span class="sx-bdg g">GMO</span>' : '', c.altro === 'SÌ' ? '<span class="sx-bdg">disponibile altro progetto</span>' : '', c.stesso === 'SÌ' ? '<span class="sx-bdg">subentro stesso progetto</span>' : ''].join('');
+    document.getElementById('sel-dr').innerHTML = '<div class="sel-dh sx-dh"><div class="sel-av">' + E(ini) + '</div><div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
+      + '<div class="sel-dact sx-act"><span class="sel-muted">' + (pos || '–') + ' / ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')" title="Apri la domanda con il CV">📄 PDF</button>' : '') + '<button class="btn btn-outline btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])" title="Stampa la scheda di questo candidato">🖨</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
       + '<div class="sel-segw"><div class="sel-seg">' + [['val','📊 Valutazione'],['dom','📝 Domanda'],['pdf','📄 PDF domanda e CV'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.dtab === t[0] ? 'on' : '') + '" onclick="selDtab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div></div>'
       + '<div class="sel-db">' + (S.dtab === 'val' ? drVal(c, v) : S.dtab === 'dom' ? drDom(c) : S.dtab === 'pdf' ? drPdf(c) : drLog(c)) + '</div>';
   }
   function manNote(v, k, calc){ return isMan(v, k) ? '<div class="sel-man">✎ Valore inserito a mano dalla tabella: <b>' + fmt(MN(v, k)) + '</b> · il dettaglio qui sotto darebbe ' + fmt(calc) + (puoMod() ? ' <button class="btn btn-outline btn-sm" onclick="selTogliMan(\'' + k + '\')">Torna al calcolo</button>' : '') + '</div>' : ''; }
   function drVal(c, v){
-    var dis = puoMod() ? '' : ' disabled', cod = c.cod;
-    var lopt = '<option value="">— nessun titolo valutabile</option>' + LIV.map(function(l){ return '<option value="' + l[0] + '"' + (v.liv === l[0] ? ' selected' : '') + '>' + l[1] + '</option>'; }).join('');
-    var item = function(arr, i, x){ return '<div class="sel-row"><input type="checkbox" title="conta 1 punto"' + (x.v ? ' checked' : '') + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'v\',this.checked)"><input class="form-control" type="text" value="' + E(x.t) + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'t\',this.value)"><input class="form-control nt" type="text" placeholder="nota / motivo" value="' + E(x.n || '') + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'n\',this.value)">' + (puoMod() ? '<button class="btn btn-sm" style="background:var(--danger-light);color:#b42318" onclick="selDel(\'' + arr + '\',' + i + ')">×</button>' : '') + '</div>'; };
-    var iopt = function(e){ return '<option value="">non valutata</option>' + INDK.map(function(k){ return '<option value="' + k + '"' + (e.ind === k ? ' selected' : '') + '>' + IND[k][0] + '</option>'; }).join(''); };
-    var cl = col(v), num = function(k, mx, st, lab){ return '<label>' + lab + ' <input class="form-control" type="number" min="0" max="' + mx + '" step="' + st + '" value="' + (cl[k] != null ? cl[k] : '') + '"' + dis + ' onchange="selColl(\'' + k + '\',this.value,' + mx + ')" style="width:76px;flex:0 0 76px"> <span class="sel-muted">/ ' + mx + '</span></label>'; };
-    var agg = function(arr){ return puoMod() ? '<button class="btn btn-outline btn-sm" onclick="selAdd(\'' + arr + '\')">+ aggiungi</button>' : ''; };
-    var side = '<div class="sel-side"><div class="sel-card"><div class="sel-big"><div><b>' + fmt(pTitoli(v)) + '</b><span>Titoli / 20</span></div><div><b>' + fmt(pEsp(v)) + '</b><span>Esperienze / 30</span></div><div><b>' + fmt(pCV(v)) + '</b><span>Curriculum / 50</span></div><div><b>' + (hasColl(v) ? fmt(pColl(v)) : '–') + '</b><span>Colloquio / 50</span></div><div class="t"><b>' + (hasColl(v) ? fmt(pTot(v)) : '–') + '</b><span>Totale / 100</span></div></div>'
-      + (hasColl(v) && pColl(v) < 30 ? '<div class="sel-avv" style="margin:8px 0 0">Colloquio sotto 30: non idoneo</div>' : '') + '</div>'
-      + '<div class="sel-card"><h3>Casi da verificare <span class="sel-pts">' + aperti(v) + ' aperti</span></h3>' + (v.dubbi.length ? v.dubbi.map(function(d, i){ return '<div class="sel-dub' + (d.ok ? ' ok' : '') + '"><input type="checkbox"' + (d.ok ? ' checked' : '') + dis + ' onchange="selDub(\'' + cod + '\',' + i + ',this.checked)"><span>' + E(d.t) + '</span></div>'; }).join('') : '<div class="sel-muted">Nessuno.</div>')
-      + (puoMod() ? '<div class="sel-row"><input id="sel-nuovodub" class="form-control" type="text" placeholder="Aggiungi un caso…" onkeydown="if(event.key===\'Enter\')selAddDub()"><button class="btn btn-outline btn-sm" onclick="selAddDub()">+</button></div>' : '') + '</div>'
-      + '<div class="sel-card"><h3>Note della commissione</h3><textarea class="form-control" rows="4"' + dis + ' onchange="selSet(\'note\',this.value,\'Note\')" style="width:100%">' + E(v.note || '') + '</textarea>'
-      + (v._by ? '<div class="sel-muted" style="margin-top:6px">Ultima modifica: ' + E(v._by) + ' · ' + E(new Date(v._ts).toLocaleString('it-IT')) + '</div>' : '') + '</div></div>';
-    return '<div class="sel-dgrid"><div>'
-      + '<div class="sel-card"><h3>Titolo di studio <span class="sel-pts">' + fmt(pTit(v)) + ' / 12</span></h3>' + manNote(v, 'tit', cTit(v))
-      + '<div class="sel-row"><input class="form-control" type="text" value="' + E(v.tit) + '"' + dis + ' onchange="selSet(\'tit\',this.value,\'Titolo dichiarato\')"></div>'
-      + '<div class="sel-row"><select class="form-control"' + dis + ' onchange="selSet(\'liv\',this.value,\'Livello del titolo\')">' + lopt + '</select><label><input type="checkbox"' + (v.att ? ' checked' : '') + dis + ' onchange="selSet(\'att\',this.checked,\'Attinenza del titolo\')"> attinente al progetto</label></div>'
-      + '<div class="sel-muted">Attinenti: ' + E(crit().breve) + ' Si valuta solo il titolo più favorevole.</div></div>'
-      + '<div class="sel-card"><h3>Ulteriori titoli <span class="sel-pts">' + fmt(pUlt(v)) + ' / 5</span></h3>' + manNote(v, 'ult', cUlt(v)) + '<div class="sel-muted">Master, specializzazioni, abilitazioni professionali, iscrizione ad albi, inerenti al progetto e dopo il diploma. Spunta per assegnare 1 punto.</div>' + v.ult.map(function(x, i){ return item('ult', i, x); }).join('') + agg('ult') + '</div>'
-      + '<div class="sel-card"><h3>Competenze certificate <span class="sel-pts">' + fmt(pComp(v)) + ' / 3</span></h3>' + manNote(v, 'comp', cComp(v)) + '<div class="sel-muted">Certificazioni e attestati informatici e linguistici, sicurezza (min. 8 ore), patente da almeno 3 anni. Solo con data successiva al diploma. Spunta per assegnare 1 punto.</div>'
-      + '<div class="sel-row"><b style="font-size:13px">Patente</b><input class="form-control" type="text" style="flex:.4" placeholder="tipo" value="' + E(v.pat.tipo) + '"' + dis + ' onchange="selPat(\'tipo\',this.value)"><input class="form-control" type="text" style="flex:.4" placeholder="data rilascio" value="' + E(v.pat.data) + '"' + dis + ' onchange="selPat(\'data\',this.value)"><label><input type="checkbox"' + (v.pat.valida ? ' checked' : '') + dis + ' onchange="selPat(\'valida\',this.checked)"> posseduta da almeno 3 anni</label></div>'
-      + v.comp.map(function(x, i){ return item('comp', i, x); }).join('') + agg('comp') + '</div>'
-      + '<div class="sel-card"><h3>Esperienze <span class="sel-pts">' + fmt(pEsp(v)) + ' / 30</span></h3>' + INDK.map(function(k){ return manNote(v, k, cInd(v, k)); }).join('') + '<div class="sel-muted">Ente = Istituto in cui si realizza il progetto. Stesso settore = socio-educativo-assistenziale (anche GREST e centri estivi). Fino a 12 mesi per voce; frazione oltre 15 giorni = 1 mese.</div>'
-      + v.esp.map(function(e, i){ return '<div class="sel-row"><input class="form-control" type="text" value="' + E(e.t) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'t\',this.value)"><select class="form-control"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'ind\',this.value)">' + iopt(e) + '</select><label>mesi <input class="form-control" type="number" min="0" value="' + (e.mesi || 0) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'mesi\',+this.value)" style="width:70px;flex:0 0 70px"></label><input class="form-control nt" type="text" placeholder="nota / motivo" value="' + E(e.n || '') + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'n\',this.value)">' + (puoMod() ? '<button class="btn btn-sm" style="background:var(--danger-light);color:#b42318" onclick="selDel(\'esp\',' + i + ')">×</button>' : '') + '</div>'; }).join('')
-      + agg('esp') + '<div class="sel-muted" style="margin-top:6px">' + INDK.map(function(k){ return SIG[k] + ': ' + mesi(v, k) + ' mesi → ' + fmt(pInd(v, k)) + ' pt'; }).join(' · ') + '</div></div>'
-      + '<div class="sel-card"><h3>Colloquio <span class="sel-pts">' + (hasColl(v) ? fmt(pColl(v)) : '–') + ' / 50</span></h3>' + manNote(v, 'quest', cQuest(v))
-      + '<div class="sel-row">' + num('scu', 3, .5, 'Questionario SCU') + num('enti', 3, .5, 'Questionario enti') + num('prog', 4, .5, 'Questionario progetto') + '</div><div class="sel-row">' + num('mot', 12, 1, 'Motivazione') + num('disp', 12, 1, 'Disponibilità') + num('cap', 16, 1, 'Capacità pratica') + '</div>'
-      + (hasColl(v) && pColl(v) < 30 ? '<div class="sel-avv" style="margin-top:6px">Colloquio sotto i 30 punti: secondo il sistema di selezione il candidato risulta non idoneo.</div>' : '')
-      + '<div class="sel-muted">Motivazione: debole 1–3 · essenziale 4–6 · buona 7–9 · elevata 10–12. Disponibilità: insufficiente 1–3 · parziale 4–6 · adeguata 7–9 · piena 10–12. Capacità pratica: 1–3 · 4–6 · 7–9 · 10–12 · 13–16.</div></div>'
-      + '</div>' + side + '</div>';
+    var mod = puoMod(), dis = mod ? '' : ' disabled', cod = c.cod;
+    var lopt = '<option value="">— nessun titolo valutabile</option>' + LIV.map(function(l){ return '<option value="' + l[0] + '"' + (v.liv === l[0] ? ' selected' : '') + '>' + l[1].replace(/ \(liv.*/, '') + '</option>'; }).join('');
+    var sw = function(on, js, si, no){ return '<label class="sx-sw' + (on ? ' on' : '') + '" title="' + (on ? 'Conta nel punteggio' : 'Non conta nel punteggio') + '"><input type="checkbox"' + (on ? ' checked' : '') + dis + ' onchange="' + js + '"><span class="sx-sw-k"></span><b>' + (on ? (si || 'Conta') : (no || 'Non conta')) + '</b></label>'; };
+    var del = function(arr, i){ return mod ? '<button class="sx-del" title="Elimina questa riga" onclick="selDel(\'' + arr + '\',' + i + ')">🗑</button>' : ''; };
+    var item = function(arr, i, x){ return '<div class="sx-it' + (x.v ? ' on' : '') + '"><div class="sx-it-t"><input class="sx-in" type="text" placeholder="descrizione…" value="' + E(x.t) + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'t\',this.value)"><input class="sx-in sx-nt" type="text" placeholder="nota o motivo (facoltativa)" value="' + E(x.n || '') + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'n\',this.value)"></div>' + sw(x.v, "selUpd('" + arr + "'," + i + ",'v',this.checked)") + del(arr, i) + '</div>'; };
+    var agg = function(arr, t){ return mod ? '<button class="sx-add" onclick="selAdd(\'' + arr + '\')">+ ' + t + '</button>' : ''; };
+    var info = function(t){ return '<details class="sx-info"><summary title="Come si valuta">ⓘ</summary><div>' + t + '</div></details>'; };
+    var sez = function(n, tit, pts, max, inf, corpo){ return '<section class="sx-sez"><header><span class="sx-n">' + n + '</span><h3>' + tit + '</h3>' + (inf ? info(inf) : '') + '<span class="sx-pts' + (pts === '–' ? ' vuoto' : '') + '">' + pts + '<small> / ' + max + '</small></span></header>' + corpo + '</section>'; };
+    var barra = function(lab, val, max, t){ var pc = val === null ? 0 : Math.max(0, Math.min(100, val / max * 100)); return '<div class="sx-sc' + (t ? ' t' : '') + '"><span>' + lab + '</span><b>' + (val === null ? '–' : fmt(val)) + '<small> / ' + max + '</small></b><i><u style="width:' + pc + '%"></u></i></div>'; };
+    var hc = hasColl(v);
+    // punteggi
+    var h = '<div class="sx-score">' + barra('Titoli', pTitoli(v), 20) + barra('Esperienze', pEsp(v), 30) + barra('Colloquio', hc ? pColl(v) : null, 50) + barra(hc ? 'Totale' : 'Curriculum', hc ? pTot(v) : pCV(v), hc ? 100 : 50, true) + '</div>';
+    if(hc && pColl(v) < 30) h += '<div class="sel-avv">Colloquio sotto i 30 punti: secondo il sistema di selezione il candidato risulta non idoneo.</div>';
+    // casi da verificare
+    var ap = [], ch = [];
+    v.dubbi.forEach(function(d, i){ (d.ok ? ch : ap).push([d, i]); });
+    var addDub = mod ? '<div class="sx-dub-add"><input id="sel-nuovodub" class="sx-in" type="text" placeholder="+ aggiungi un caso da verificare…" onkeydown="if(event.key===\'Enter\')selAddDub()"><button class="sx-add" onclick="selAddDub()">Aggiungi</button></div>' : '';
+    if(ap.length) h += '<div class="sx-dub"><div class="sx-dub-h">⚠️ Da verificare <span>' + ap.length + '</span></div>' + ap.map(function(x){ return '<div class="sx-dub-r"><span>' + E(x[0].t) + '</span>' + (mod ? '<button onclick="selDub(\'' + cod + '\',' + x[1] + ',true)">✓ Risolto</button>' : '') + '</div>'; }).join('') + addDub + (ch.length ? '<details class="sx-dub-ok"><summary>Già risolti (' + ch.length + ')</summary>' + ch.map(function(x){ return '<div class="sx-dub-r ok"><span>' + E(x[0].t) + '</span>' + (mod ? '<button onclick="selDub(\'' + cod + '\',' + x[1] + ',false)">Riapri</button>' : '') + '</div>'; }).join('') + '</details>' : '') + '</div>';
+    else h += '<div class="sx-dub ok"><div class="sx-dub-h">✓ Nessun caso da verificare' + (ch.length ? ' <small>(' + ch.length + ' risolti)</small>' : '') + '</div>' + (ch.length ? '<details class="sx-dub-ok"><summary>Vedi i casi risolti</summary>' + ch.map(function(x){ return '<div class="sx-dub-r ok"><span>' + E(x[0].t) + '</span>' + (mod ? '<button onclick="selDub(\'' + cod + '\',' + x[1] + ',false)">Riapri</button>' : '') + '</div>'; }).join('') + '</details>' : '') + addDub + '</div>';
+    // 1 titolo
+    h += sez('1', 'Titolo di studio', fmt(pTit(v)), 12, 'Si valuta solo il titolo più favorevole. Titoli attinenti al progetto: ' + E(crit().breve),
+      manNote(v, 'tit', cTit(v)) + '<input class="sx-in sx-big" type="text" placeholder="titolo dichiarato" value="' + E(v.tit) + '"' + dis + ' onchange="selSet(\'tit\',this.value,\'Titolo dichiarato\')">'
+      + '<div class="sx-row"><select class="form-control sx-sel"' + dis + ' onchange="selSet(\'liv\',this.value,\'Livello del titolo\')">' + lopt + '</select>' + sw(v.att, "selSet('att',this.checked,'Attinenza del titolo')", 'Attinente', 'Non attinente') + '</div>');
+    // 2 ulteriori
+    h += sez('2', 'Ulteriori titoli', fmt(pUlt(v)), 5, 'Master, specializzazioni, abilitazioni professionali, iscrizione ad albi, inerenti al progetto e conseguiti dopo il diploma. 1 punto ciascuno.',
+      manNote(v, 'ult', cUlt(v)) + (v.ult.length ? v.ult.map(function(x, i){ return item('ult', i, x); }).join('') : '<div class="sx-vuoto">Nessuno</div>') + agg('ult', 'aggiungi titolo'));
+    // 3 competenze
+    var pat = '<div class="sx-it' + (v.pat.valida ? ' on' : '') + '"><div class="sx-it-t"><div class="sx-pat"><b>🚗 Patente</b><input class="sx-in" type="text" placeholder="tipo (es. B)" value="' + E(v.pat.tipo) + '"' + dis + ' onchange="selPat(\'tipo\',this.value)"><input class="sx-in" type="text" placeholder="rilasciata il…" value="' + E(v.pat.data) + '"' + dis + ' onchange="selPat(\'data\',this.value)"></div><div class="sx-nt-f">conta se posseduta da almeno 3 anni</div></div>' + sw(v.pat.valida, "selPat('valida',this.checked)") + (mod ? '<span class="sx-del-sp"></span>' : '') + '</div>';
+    h += sez('3', 'Competenze certificate', fmt(pComp(v)), 3, 'Certificazioni e attestati informatici e linguistici, corsi sulla sicurezza di almeno 8 ore, patente da almeno 3 anni. Valgono solo se con data successiva al diploma. 1 punto ciascuno.',
+      manNote(v, 'comp', cComp(v)) + pat + v.comp.map(function(x, i){ return item('comp', i, x); }).join('') + agg('comp', 'aggiungi competenza'));
+    // 4 esperienze
+    var iopt = function(e){ return '<option value="">Non conta</option>' + INDK.map(function(k){ return '<option value="' + k + '"' + (e.ind === k ? ' selected' : '') + '>' + IND[k][0] + ' (' + fmt(IND[k][1]) + ' al mese)</option>'; }).join(''); };
+    var espR = v.esp.map(function(e, i){ var pt = e.ind ? (+e.mesi || 0) * IND[e.ind][1] : 0; return '<div class="sx-it sx-esp' + (e.ind ? ' on' : '') + '"><div class="sx-it-t"><input class="sx-in" type="text" placeholder="ente, periodo, mansione…" value="' + E(e.t) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'t\',this.value)">'
+      + '<div class="sx-esp-r"><select class="form-control sx-sel"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'ind\',this.value)">' + iopt(e) + '</select><label class="sx-mesi">mesi <input class="form-control" type="number" min="0" value="' + (e.mesi || 0) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'mesi\',+this.value)"></label>' + '</div>'
+      + '<input class="sx-in sx-nt" type="text" placeholder="nota o motivo (facoltativa)" value="' + E(e.n || '') + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'n\',this.value)"></div>' + del('esp', i) + '</div>'; }).join('');
+    var riep = INDK.filter(function(k){ return mesi(v, k); }).map(function(k){ return '<span>' + IND[k][0] + ': <b>' + mesi(v, k) + ' mesi → ' + fmt(pInd(v, k)) + ' pt</b></span>'; }).join('');
+    h += sez('4', 'Esperienze', fmt(pEsp(v)), 30, 'Ente = l’Istituto in cui si realizza il progetto. Stesso settore = socio-educativo-assistenziale (anche GREST e centri estivi). Per ogni tipo si contano al massimo 12 mesi; una frazione oltre i 15 giorni vale un mese. Tirocini curriculari e stage interni a un corso non contano.',
+      INDK.map(function(k){ return manNote(v, k, cInd(v, k)); }).join('') + (espR || '<div class="sx-vuoto">Nessuna esperienza</div>') + agg('esp', 'aggiungi esperienza') + (riep ? '<div class="sx-riep">' + riep + '</div>' : ''));
+    // 5 colloquio
+    var cl = col(v), num = function(k, mx, st, lab){ return '<label class="sx-num"><span>' + lab + '</span><div><input class="form-control" type="number" min="0" max="' + mx + '" step="' + st + '" value="' + (cl[k] != null ? cl[k] : '') + '"' + dis + ' onchange="selColl(\'' + k + '\',this.value,' + mx + ')"><small>/ ' + mx + '</small></div></label>'; };
+    h += sez('5', 'Colloquio', hc ? fmt(pColl(v)) : '–', 50, 'Questionari: 0,5 punti per risposta esatta. Motivazione: debole 1–3 · essenziale 4–6 · buona 7–9 · elevata 10–12. Disponibilità: insufficiente 1–3 · parziale 4–6 · adeguata 7–9 · piena 10–12. Capacità pratica: 1–3 · 4–6 · 7–9 · 10–12 · 13–16. Sotto i 30 punti il candidato non è idoneo.',
+      manNote(v, 'quest', cQuest(v)) + '<div class="sx-sub2">Questionario</div><div class="sx-nums">' + num('scu', 3, .5, 'Servizio Civile') + num('enti', 3, .5, 'Enti') + num('prog', 4, .5, 'Progetto') + '</div>'
+      + '<div class="sx-sub2">Colloquio</div><div class="sx-nums">' + num('mot', 12, 1, 'Motivazione') + num('disp', 12, 1, 'Disponibilità') + num('cap', 16, 1, 'Capacità pratica') + '</div>');
+    // note
+    h += '<section class="sx-sez"><header><span class="sx-n">✎</span><h3>Note della commissione</h3></header><textarea class="form-control" rows="3"' + dis + ' placeholder="annotazioni libere…" onchange="selSet(\'note\',this.value,\'Note\')" style="width:100%">' + E(v.note || '') + '</textarea>'
+      + (v._by ? '<div class="sx-ult">Ultima modifica: ' + E(v._by) + (v._ts ? ' · ' + E(new Date(v._ts).toLocaleString('it-IT')) : '') + '</div>' : '') + '</section>';
+    return '<div class="sx-wrap">' + h + '</div>';
   }
   var fv = function(x){ return x === true ? 'sì' : x === false ? 'no' : (x === '' || x == null) ? '(vuoto)' : x; };
   window.selSet = function(k, val, lab){ var old = V(S.cur)[k]; modifica(S.cur, function(v){ v[k] = val; }, lab + ': ' + fv(old) + ' → ' + fv(val)); };
@@ -93717,6 +93735,122 @@ html[data-pi-tema="scuro"] .sel-passo.ora{background:rgba(234,88,12,.12)}
 html[data-pi-tema="scuro"] .sel-seg, html[data-pi-tema="scuro"] .sel-pn{background:#0b1220}
 @media (max-width:900px){ .sel-passi{grid-template-columns:repeat(3,minmax(0,1fr))} }
 @media (max-width:560px){ .sel-passi{grid-template-columns:repeat(2,minmax(0,1fr))} .sel-fbar .sel-q{flex:1 1 100%} .sel-fbar .form-control{height:auto;min-height:40px;font-size:16px} .sel-fbar .sel-fsel{flex:1 1 40%} .sel-seg{flex:1 1 100%} .sel-seg button{flex:1;padding:7px 6px} .sel-mpop{min-width:240px} }
+</style>
+<style id="sel-scheda-2026-11">
+/* (novembre 2026) Selezioni: scheda del candidato più semplice e ordinata */
+.sx-dh{align-items:flex-start}
+.sx-dh-t{flex:1;min-width:0}
+.sx-dh-t h2{margin:0 0 2px}
+.sx-sub{font-size:13px;color:var(--text-muted)}
+.sx-bdgs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.sx-bdg{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--teal-light);color:var(--teal)}
+.sx-bdg.g{background:#dcfce7;color:#15803d}
+.sx-act{align-items:center}
+.sx-wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.sx-score{position:sticky;top:-1px;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:10px;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+.sx-sc{display:flex;flex-direction:column;gap:3px;padding:4px 8px;min-width:0}
+.sx-sc span{font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+.sx-sc b{font-size:22px;font-weight:800;color:var(--text);line-height:1.1}
+.sx-sc b small{font-size:12px;font-weight:600;color:var(--text-muted)}
+.sx-sc i{display:block;height:6px;border-radius:99px;background:var(--bg,#eef2f7);overflow:hidden}
+.sx-sc i u{display:block;height:100%;border-radius:99px;background:var(--teal)}
+.sx-sc.t{background:var(--teal);border-radius:12px}
+.sx-sc.t span,.sx-sc.t b,.sx-sc.t b small{color:#fff}
+.sx-sc.t i{background:rgba(255,255,255,.3)}.sx-sc.t i u{background:#fff}
+.sx-dub{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:16px;padding:10px 12px}
+.sx-dub.ok{background:#f0fdf4;border-color:#bbf7d0}
+.sx-dub-h{font-weight:800;font-size:14px;color:#92400e;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.sx-dub.ok .sx-dub-h{color:#15803d;margin-bottom:0}
+.sx-dub-h span{background:#f59e0b;color:#fff;border-radius:99px;font-size:12px;padding:1px 8px}
+.sx-dub-h small{font-weight:600;color:var(--text-muted)}
+.sx-dub-r{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid rgba(146,64,14,.15);font-size:13.5px;line-height:1.4}
+.sx-dub-r span{flex:1}
+.sx-dub-r button{flex-shrink:0;border:1.5px solid #16a34a;background:#fff;color:#15803d;font:inherit;font-size:12.5px;font-weight:700;border-radius:999px;padding:4px 12px;cursor:pointer}
+.sx-dub-r.ok{color:var(--text-muted);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.25)}
+.sx-dub-r.ok button{border-color:var(--border);color:var(--text-muted);text-decoration:none}
+.sx-dub-ok summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text-muted);padding:6px 0 2px}
+.sx-dub-add{display:flex;gap:8px;margin-top:6px}
+.sx-dub-add .sx-in{flex:1;background:rgba(255,255,255,.7)}
+.sx-sez{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:12px 14px}
+.sx-sez > header{display:flex;align-items:center;gap:10px;margin-bottom:10px;position:relative}
+.sx-sez h3{margin:0;font-size:15px;font-weight:800;flex:1}
+.sx-n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.sx-pts{font-size:18px;font-weight:800;color:var(--teal);white-space:nowrap}
+.sx-pts small{font-size:12px;color:var(--text-muted);font-weight:600}
+.sx-pts.vuoto{color:var(--text-muted)}
+.sx-info{position:static}
+.sx-info summary{list-style:none;cursor:pointer;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:15px}
+.sx-info summary::-webkit-details-marker{display:none}
+.sx-info summary:hover{background:var(--teal-light);color:var(--teal)}
+.sx-info[open] summary{background:var(--teal-light);color:var(--teal)}
+.sx-info > div{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:6;background:#1e293b;color:#f1f5f9;font-size:12.5px;line-height:1.5;border-radius:12px;padding:10px 12px;box-shadow:0 10px 24px rgba(15,23,42,.25)}
+.sx-in{width:100%;border:1.5px solid transparent;background:transparent;border-radius:9px;padding:6px 8px;font:inherit;font-size:14px;color:var(--text);min-width:0}
+.sx-in:hover:not([disabled]){border-color:var(--border)}
+.sx-in:focus{outline:0;border-color:var(--teal);background:var(--card)}
+.sx-in.sx-big{font-size:15px;font-weight:600;border-color:var(--border);margin-bottom:8px}
+.sx-nt{font-size:12.5px;color:var(--text-muted);padding-top:2px;padding-bottom:2px}
+.sx-nt-f{font-size:12.5px;color:var(--text-muted);padding:2px 8px}
+.sx-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sx-sel{width:auto;min-width:0;flex:1 1 220px;height:38px}
+.sx-it{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 4px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:6px;background:var(--bg,#f8fafc)}
+.sx-it.on{border-color:#86efac;background:#f0fdf4}
+.sx-it-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.sx-sw{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;flex-shrink:0;padding:4px 8px;border-radius:999px}
+.sx-sw input{position:absolute;opacity:0;width:0;height:0}
+.sx-sw-k{width:36px;height:20px;border-radius:99px;background:#cbd5e1;position:relative;transition:background .15s;flex-shrink:0}
+.sx-sw-k::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.sx-sw.on .sx-sw-k{background:#16a34a}
+.sx-sw.on .sx-sw-k::after{left:18px}
+.sx-sw b{font-size:12.5px;font-weight:700;color:var(--text-muted);min-width:66px}
+.sx-sw.on b{color:#15803d}
+.sx-sw input:focus-visible + .sx-sw-k{outline:2px solid var(--teal);outline-offset:2px}
+.sx-del{flex-shrink:0;border:0;background:transparent;opacity:.45;cursor:pointer;font-size:15px;width:30px;height:30px;border-radius:8px}
+.sx-del:hover{opacity:1;background:var(--danger-light)}
+.sx-del-sp{flex:0 0 30px}
+.sx-add{border:1.5px dashed var(--border);background:transparent;color:var(--teal);font:inherit;font-size:13px;font-weight:700;border-radius:10px;padding:7px 12px;cursor:pointer}
+.sx-add:hover{border-color:var(--teal);background:var(--teal-light)}
+.sx-vuoto{font-size:13px;color:var(--text-muted);padding:2px 4px 8px}
+.sx-pat{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sx-pat b{font-size:13.5px;padding-left:8px;white-space:nowrap}
+.sx-pat .sx-in{flex:1 1 110px;width:auto}
+.sx-esp-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px 6px}
+.sx-esp-r .sx-sel{height:34px;font-size:13px;flex:1 1 240px}
+.sx-mesi{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-muted);font-weight:600}
+.sx-mesi input{width:70px;height:34px}
+.sx-esp-pt{font-size:12.5px;font-weight:800;color:#15803d;white-space:nowrap}
+.sx-riep{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.sx-riep b{color:var(--text)}
+.sx-sub2{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin:4px 0 6px}
+.sx-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.sx-num{display:flex;flex-direction:column;gap:4px;background:var(--bg,#f8fafc);border:1.5px solid var(--border);border-radius:12px;padding:8px 10px}
+.sx-num span{font-size:12.5px;font-weight:700;color:var(--text)}
+.sx-num div{display:flex;align-items:center;gap:6px}
+.sx-num input{width:76px;height:36px;font-size:16px;font-weight:700}
+.sx-num small{font-size:12.5px;color:var(--text-muted);font-weight:600}
+.sx-ult{font-size:12px;color:var(--text-muted);margin-top:6px}
+html[data-pi-tema="scuro"] .sx-it{background:#0f172a}
+html[data-pi-tema="scuro"] .sx-it.on{background:rgba(22,163,74,.12);border-color:#166534}
+html[data-pi-tema="scuro"] .sx-dub{background:rgba(245,158,11,.1);border-color:#92400e}
+html[data-pi-tema="scuro"] .sx-dub.ok{background:rgba(22,163,74,.1);border-color:#166534}
+html[data-pi-tema="scuro"] .sx-dub-h{color:#fcd34d}
+html[data-pi-tema="scuro"] .sx-dub-r button{background:transparent}
+html[data-pi-tema="scuro"] .sx-num{background:#0f172a}
+@media (max-width:640px){
+  .sx-score{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sx-nums{grid-template-columns:1fr}
+  .sx-sw b{display:none}
+  #sel-dr .sx-dh{flex-wrap:wrap}
+  #sel-dr .sx-dh-t{flex:1 1 calc(100% - 64px)}
+  #sel-dr .sx-act{flex:1 1 100%;justify-content:flex-end;margin-top:4px}
+}
+
+#sel-dr .sx-in{border:1.5px solid transparent !important;background:transparent !important;box-shadow:none !important;height:auto !important;min-height:0 !important}
+#sel-dr .sx-in:hover:not([disabled]){border-color:var(--border) !important}
+#sel-dr .sx-in:focus{border-color:var(--teal) !important;background:var(--card) !important}
+#sel-dr .sx-in.sx-big{border-color:var(--border) !important;background:var(--card) !important}
+#sel-dr .sx-dub-add .sx-in{border-color:rgba(146,64,14,.25) !important;background:rgba(255,255,255,.6) !important}
+#sel-dr .sx-sel{height:auto !important;min-height:36px;padding-top:5px !important;padding-bottom:5px !important;line-height:1.3}
+#sel-dr .sx-mesi input,#sel-dr .sx-num input{height:auto !important;min-height:34px;padding-top:4px !important;padding-bottom:4px !important}
 </style>
 </body>
 </html>
