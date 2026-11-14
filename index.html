@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 10:57</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -50443,6 +50443,8 @@ function _wsConnetti() {
             if (typeof _lockAggiornaVistaCorrente === 'function') _lockAggiornaVistaCorrente();
             return;
           }
+          // Casella dei portali (messaggi e letture): solo la segreteria la importa, nessuno riscarica il database
+          if (String(msg.dbName||'').indexOf('_posta_') === 0) { if (typeof window.comPostaWs === 'function') window.comPostaWs(msg.dbName); return; }
           // Registro timbrature, sue copie, nome ufficiale, database d'archivio
           if (typeof _regGestisciWs === 'function' && _regGestisciWs(msg.dbName)) return;
           if (_uploadInCorso || _syncInCorso || _operazioneCriticaInCorso) return;
@@ -56054,9 +56056,8 @@ function pgInviaMessaggio(){
   var user=AUTH&&AUTH.currentUser;if(!user)return;
   var db=getDb();if(!db)return;
   var isc=user.iscrittoId?(db.iscritti||[]).find(function(i){return i.id===user.iscrittoId;}):null;
-  if(!db.comunicazioni)db.comunicazioni=[];
-  db.comunicazioni.push({
-    id:'msg_'+Date.now(),
+  var _msgFam={
+    id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
     tipo:'famiglia',
     testo:testo,
     mittente:isc?(isc.cognome+' '+isc.nome).toUpperCase():user.username,
@@ -56064,26 +56065,13 @@ function pgInviaMessaggio(){
     data:new Date().toISOString().slice(0,10),
     creato:Date.now(),
     letto:false
-  });
-  saveStorage();
+  };
   document.getElementById('pg-msg-testo').value='';
   if(status){status.style.display='';status.style.color='#2e7d32';status.textContent='⏳ Invio in corso...';}
-  // Upload forzato sul NAS così la segreteria lo vede subito
-  // (sincronizzaOra scarica e sovrascrive — NON va usata qui)
-  _forceNextUpload = true;
-  delete _uploadedDataHashes[APP.currentDb];
-  var _pgUploadPromise = (typeof _uploadSingoloDb==='function' && APP.currentDb && db)
-    ? _uploadSingoloDb(APP.currentDb, db)
-    : Promise.resolve(false);
-  _pgUploadPromise.then(function(ok){
-    if(ok){
-      if(status){status.style.display='';status.style.color='#2e7d32';status.textContent='✅ Messaggio inviato!';}
-    } else {
-      if(status){status.style.display='';status.style.color='#ff9800';status.textContent='⚠️ Salvato localmente, sync in sospeso';}
-    }
-    setTimeout(function(){if(status)status.style.display='none';},3000);
-  }).catch(function(){
-    if(status){status.style.display='';status.style.color='#ff9800';status.textContent='⚠️ Salvato localmente, sync in sospeso';}
+  // va nella casella dei portali (pochi byte), non più l'intero database
+  postaAggiungiMsg(_msgFam).then(function(ok){
+    if(ok){ if(status){status.style.display='';status.style.color='#2e7d32';status.textContent='✅ Messaggio inviato!';} }
+    else { if(status){status.style.display='';status.style.color='#ff9800';status.textContent='⚠️ Salvato sul telefono: lo invio appena c\'è connessione';} }
     setTimeout(function(){if(status)status.style.display='none';},3000);
   });
   pgRenderComunicazioni(db);
@@ -57435,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 10:57 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76331,8 +76319,34 @@ function passNasRender(){
     + '<button type="button" class="btn btn-outline btn-sm" onclick="archivioNasMostra()">📦 Peso degli archivi</button>'
     + '<button type="button" class="btn btn-outline btn-sm" onclick="documentiNasMostra()">📎 Documenti e cestino</button></div>'
     + '<div id="porta-box" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">Stato della porta: …</div>'
+    + '<div id="filtro-box" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">Portale famiglie: …</div>'
     + '<div id="pass-nas-reg" style="margin-top:12px"></div>';
-  if(box.offsetParent !== null) portaRender();
+  if(box.offsetParent !== null){ portaRender(); filtroRender(); }
+}
+/* ── Portale famiglie: ogni genitore riceve solo i suoi dati (server 2.15) ── */
+async function filtroRender(){
+  var box = document.getElementById('filtro-box'); if(!box) return;
+  var st = null; try{ var r = await fetch(NAS_URL + '/api/pass/filtro'); if(r.ok) st = await r.json(); }catch(e){}
+  if(!st){ box.innerHTML = '<div style="font-size:13px">Portale famiglie: <b style="color:#b45309">server non aggiornato</b> (serve il server 2.15)</div>'; return; }
+  var nomi = { spento:'<b>spento</b> — i genitori ricevono ancora tutto il database', prova:'<b style="color:#1d4ed8">🧪 in prova</b> solo per: ' + _pnE((st.prova || []).join(', ') || '—'), acceso:'<b style="color:#15803d">🔒 ACCESO PER TUTTI</b> — ogni genitore riceve solo i suoi dati' };
+  box.innerHTML = '<div style="font-size:13px;margin-bottom:8px">Portale famiglie: ' + (nomi[st.stato] || st.stato) + (st.il ? ' <small style="color:var(--text-muted)">· dal ' + _pnData(st.il) + (st.da ? ' (' + _pnE(st.da) + ')' : '') + '</small>' : '') + '</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+    + '<input id="filtro-prova-utenti" class="form-control" style="max-width:260px;font-size:13px" placeholder="Nome utente del genitore di prova" value="' + _pnE((st.prova || []).join(', ')) + '">'
+    + '<button type="button" class="btn btn-outline btn-sm" onclick="filtroImposta(\'prova\')">🧪 Prova su questi account</button>'
+    + (st.stato !== 'acceso' ? '<button type="button" class="btn btn-teal btn-sm" onclick="filtroImposta(\'acceso\')">🔒 Accendi per tutti</button>' : '')
+    + (st.stato !== 'spento' ? '<button type="button" class="btn btn-sm btn-danger" onclick="filtroImposta(\'spento\')">Spegni</button>' : '')
+    + '</div><div style="font-size:12px;color:var(--text-muted);margin-top:6px">Acceso: ogni genitore vede solo i propri figli; non può leggere gli altri archivi del NAS né salvare il database. Segreteria e animatori non cambiano. Si spegne in un attimo da qui.</div>';
+}
+async function filtroImposta(stato){
+  var prova = String((document.getElementById('filtro-prova-utenti') || {}).value || '').split(/[,\s]+/).filter(Boolean);
+  if(stato === 'prova' && !prova.length){ showToast('Scrivi il nome utente di un genitore per la prova', 'warning'); return; }
+  if(stato === 'acceso' && !await xConferma('ACCENDERE il filtro del portale famiglie per TUTTI i genitori?\n\nOgni genitore riceverà solo i dati dei suoi figli. Si spegne da qui in qualsiasi momento.')) return;
+  try{
+    var r = await fetch(NAS_URL + '/api/pass/filtro', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ stato: stato, prova: prova }) });
+    if(r.ok) showToast(stato === 'acceso' ? '🔒 Filtro acceso per tutti' : stato === 'prova' ? '🧪 Filtro in prova' : 'Filtro spento', 'success');
+    else showToast(r.status === 403 ? 'Serve il pass da amministratore: premi "Richiedi il pass ora"' : 'Il NAS non ha accettato il cambio', 'warning');
+  }catch(e){ showToast('NAS non raggiungibile', 'warning'); }
+  filtroRender();
 }
 async function portaRender(){
   var box = document.getElementById('porta-box'); if(!box) return;
@@ -94667,10 +94681,15 @@ function lettoDa(user, c, db, L){ L=L||lettureDi(db); return !!((L[user]||{})[c.
 window.comLettoDaMe = function(c, db){ db=db||D(); var u=me(); if(!db||!u||!c) return false; return lettoDa(u,c,db); };
 var APPENA={};   // letti in questa apertura: restano evidenziati come «nuovo» finché si resta nella sezione
 window.comNuovoPerMe = function(c, db){ return !window.comLettoDaMe(c,db) || !!APPENA[c.id]; };
-var _upT=null;
 window.comSegnaLetti = function(msgs){
   var db=D(), u=me(); if(!db||!u||!msgs||!msgs.length) return 0;
   if(!db.comunicazioni) db.comunicazioni=[];
+  if(typeof _inContestoPortale==='function' && _inContestoPortale() && typeof window.postaAggiungiLetti==='function'){
+    var Lm=lettureDi(db)[u]||{}, nuovi=msgs.filter(function(c){ return c && c.id && !Lm[c.id]; });
+    nuovi.forEach(function(c){ APPENA[c.id]=1; });
+    if(nuovi.length) window.postaAggiungiLetti(nuovi.map(function(c){ return c.id; }));
+    return nuovi.length;
+  }
   var id='letture_'+u, rec=db.comunicazioni.find(function(c){ return c.id===id; }), n=0;
   if(!rec){ rec={ id:id, tipo:'letture', user:u, letti:{} }; db.comunicazioni.push(rec); }
   if(!rec.letti) rec.letti={};
@@ -94678,7 +94697,6 @@ window.comSegnaLetti = function(msgs){
   if(!n) return 0;
   try{ _touchRecord(rec); }catch(e){ rec._ts=new Date().toISOString(); }
   try{ saveStorage(); }catch(e){}
-  clearTimeout(_upT); _upT=setTimeout(function(){ try{ _forceNextUpload=true; delete _uploadedDataHashes[APP.currentDb]; if(typeof _uploadSingoloDb==='function' && APP.currentDb) _uploadSingoloDb(APP.currentDb, getDb()).catch(function(){}); }catch(e){} }, 1500);
   return n;
 };
 window.comAzzeraAppena = function(){ APPENA={}; };
@@ -94762,6 +94780,7 @@ window.comRenderInviati=function(){
 function mieiMsgAnim(db){ return (db.comunicazioni||[]).filter(function(c){ return window.comPerMioAnimatore(c,db); }).slice().reverse(); }
 function nonLettiAnim(db){ return mieiMsgAnim(db).filter(function(c){ return !window.comLettoDaMe(c,db); }).length; }
 window.paRenderMessaggi=function(){
+  try{ if(typeof window.postaAllinea==='function') window.postaAllinea(); }catch(e){}
   var db=D(), el=document.getElementById('pa-messaggi-lista'); if(!db||!el) return;
   var L=mieiMsgAnim(db).slice(0,30);
   el.innerHTML=L.length?L.map(function(c){ var nuovo=window.comNuovoPerMe(c,db);
@@ -94771,6 +94790,7 @@ window.paRenderMessaggi=function(){
   paBadgeMessaggi();
 };
 function paBadgeMessaggi(){
+  try{ if(typeof window.postaAllinea==='function') window.postaAllinea(); }catch(e){}
   var db=D(); if(!db) return; var n=nonLettiAnim(db);
   var b=document.getElementById('pa-altro-badge-messaggi'); if(b){ b.style.display=n?'':'none'; b.textContent=n||''; }
   var nav=document.getElementById('pa-nav-badge-altro');
@@ -94778,7 +94798,12 @@ function paBadgeMessaggi(){
   return n;
 }
 var _pgSwOrig=window.pgSwitchTab;
-if(typeof _pgSwOrig==='function'){ window.pgSwitchTab=function(tab){ if(tab!=='comunicazioni') window.comAzzeraAppena(); return _pgSwOrig.apply(this,arguments); }; }
+function _allinea(){ try{ if(typeof window.postaAllinea==='function') window.postaAllinea(); }catch(e){} }
+if(typeof _pgSwOrig==='function'){ window.pgSwitchTab=function(tab){ if(tab!=='comunicazioni') window.comAzzeraAppena(); else _allinea(); return _pgSwOrig.apply(this,arguments); }; }
+var _pgBadgeOrig=window.pgAggiornaBadgeComm;
+if(typeof _pgBadgeOrig==='function'){ window.pgAggiornaBadgeComm=function(){ _allinea(); return _pgBadgeOrig.apply(this,arguments); }; }
+var _pgRendOrig=window.pgRenderComunicazioni;
+if(typeof _pgRendOrig==='function'){ window.pgRenderComunicazioni=function(){ _allinea(); return _pgRendOrig.apply(this,arguments); }; }
 var _swOrig=window.paSwitchTab;
 if(typeof _swOrig==='function'){
   window.paSwitchTab=function(id,btn){
@@ -94817,5 +94842,400 @@ if(typeof _ckOrig==='function'){
 })();
 </script>
 
+<script id="posta-portali-2026-11-js">
+/* ═══ CASELLA DEI PORTALI (11/2026) ═══
+   Genitori e animatori NON caricano più l'intero database per un messaggio o una lettura:
+   scrivono solo la loro parte in una chiave piccola del NAS  «_posta_<database>»
+   { msgs:{ id:messaggio }, letture:{ UTENTE:{ idMsg:ts } } }.
+   La segreteria (gestionale, non portale) la legge e la porta nel database come sempre.
+   Sul telefono resta una coda: ogni cosa viene rimandata finché non compare nel database scaricato,
+   così niente va perso anche se due telefoni scrivono nello stesso istante. */
+(function(){
+'use strict';
+function D(){ try{ return getDb(); }catch(e){ return null; } }
+function me(){ try{ var u=AUTH&&AUTH.currentUser; return u&&u.username?String(u.username).toUpperCase():''; }catch(e){ return ''; } }
+function portale(){ try{ return typeof _inContestoPortale==='function' && _inContestoPortale(); }catch(e){ return false; } }
+function chiave(){ var n='main'; try{ n=_dbCanonico(APP.currentDb||'main'); }catch(e){ n=APP.currentDb||'main'; } return '_posta_'+n; }
+function kCoda(){ return 'posta_coda_'+chiave()+'_'+me(); }
+function coda(){ try{ var c=JSON.parse(localStorage.getItem(kCoda())||'null'); if(c&&c.msgs&&c.letti){ if(!c.ops) c.ops={}; return c; } }catch(e){} return { msgs:{}, letti:{}, ops:{} }; }
+function vuota(c){ return !Object.keys(c.msgs).length && !Object.keys(c.letti).length && !Object.keys(c.ops||{}).length; }
+function salvaCoda(c){ try{ localStorage.setItem(kCoda(), JSON.stringify(c)); }catch(e){} }
+async function leggi(){
+  var r=await nasFetch(NAS_URL+'/api/db/'+encodeURIComponent(chiave()),{ headers:{'Content-Type':'application/json; charset=utf-8'} });
+  if(r.status===404) return { msgs:{}, letture:{}, ops:{}, fatti:{} };
+  if(!r.ok) throw new Error('GET '+r.status);
+  var j=await r.json(), d=(j&&j.db)||j||{};
+  return { msgs:d.msgs||{}, letture:d.letture||{}, ops:d.ops||{}, fatti:d.fatti||{} };
+}
+async function scrivi(p){
+  var r=await nasFetch(NAS_URL+'/api/db/'+encodeURIComponent(chiave()),{ method:'POST', headers:{'Content-Type':'application/json; charset=utf-8'},
+    body:JSON.stringify({ db:p, dbName:chiave(), aggiornato:new Date().toISOString() }) });
+  if(!r.ok) throw new Error('POST '+r.status);
+}
+
+/* ── lato telefono ── */
+/* toglie dalla coda quello che il database scaricato ha già; rimette nel database locale il resto (per vederlo subito) */
+function allinea(db){
+  db=db||D(); var u=me(); if(!db||!u) return coda();
+  var c=coda(), cam=false; if(!db.comunicazioni) db.comunicazioni=[];
+  var rec=db.comunicazioni.find(function(x){ return x.id==='letture_'+u; });
+  Object.keys(c.msgs).forEach(function(id){
+    var inDb=db.comunicazioni.find(function(x){ return x.id===id; });
+    if(inDb && !inDb._daCoda){ delete c.msgs[id]; cam=true; }
+    else if(!inDb){ var m=JSON.parse(JSON.stringify(c.msgs[id])); m._daCoda=1; db.comunicazioni.push(m); }
+  });
+  Object.keys(c.letti).forEach(function(id){
+    if(rec && rec.letti && rec.letti[id] && !rec._daCoda){ delete c.letti[id]; cam=true; }
+  });
+  if(Object.keys(c.letti).length){
+    if(!rec){ rec={ id:'letture_'+u, tipo:'letture', user:u, letti:{}, _daCoda:1 }; db.comunicazioni.push(rec); }
+    if(!rec.letti) rec.letti={};
+    Object.keys(c.letti).forEach(function(id){ if(!rec.letti[id]) rec.letti[id]=c.letti[id]; });
+  }
+  if(cam) salvaCoda(c);
+  return c;
+}
+window.postaAllinea=allinea;
+var _inviando=null;
+async function invia(){
+  if(_inviando){ var prec=_inviando; return prec.then(function(){ return invia(); }, function(){ return invia(); }); }
+  _inviando=(async function(){
+    var c=allinea(); if(vuota(c)) return true;
+    var u=me();
+    // server 2.15: unione fatta dal NAS in un colpo solo (nessun rischio di sovrascrivere altri telefoni)
+    if(window._postaServer!==false){
+      try{
+        var nomeDb=chiave().slice(7);
+        var r=await nasFetch(NAS_URL+'/api/posta/'+encodeURIComponent(nomeDb),{ method:'POST', headers:{'Content-Type':'application/json; charset=utf-8'},
+          body:JSON.stringify({ msgs:c.msgs, letti:c.letti, ops:c.ops }) });
+        if(r.status===404 || r.status===405){ window._postaServer=false; }
+        else if(r.ok){
+          window._postaServer=true;
+          var j=await r.json().catch(function(){ return {}; }), cc=coda(), cam=false;
+          (j.fatti||[]).concat(j.scartate||[]).forEach(function(id){ if(cc.ops[id]){ delete cc.ops[id]; cam=true; } });
+          if((j.scartate||[]).length) console.warn('[posta] il NAS ha scartato '+j.scartate.length+' modifiche non permesse');
+          if(cam) salvaCoda(cc);
+          return true;
+        } else return false;
+      }catch(e){ return false; }
+    }
+    for(var t=0;t<3;t++){
+      try{
+        var p=await leggi();
+        // modifiche già portate nel database dalla segreteria: via dalla coda
+        var tolte=false; Object.keys(c.ops).forEach(function(id){ if(p.fatti[id]){ delete c.ops[id]; tolte=true; } }); if(tolte) salvaCoda(c);
+        Object.keys(c.ops).forEach(function(id){ if(!p.ops[id]) p.ops[id]=c.ops[id]; });
+        Object.keys(c.msgs).forEach(function(id){ if(!p.msgs[id]){ var m=JSON.parse(JSON.stringify(c.msgs[id])); delete m._daCoda; p.msgs[id]=m; } });
+        if(Object.keys(c.letti).length){ var L=p.letture[u]=p.letture[u]||{}; Object.keys(c.letti).forEach(function(id){ if(!L[id]) L[id]=c.letti[id]; }); }
+        await scrivi(p);
+        await new Promise(function(r){ setTimeout(r, 900+Math.random()*900); });
+        var q=await leggi(), L2=q.letture[u]||{};
+        var ok=Object.keys(c.msgs).every(function(id){ return q.msgs[id]; }) && Object.keys(c.letti).every(function(id){ return L2[id]; }) && Object.keys(c.ops).every(function(id){ return q.ops[id] || q.fatti[id]; });
+        if(ok) return true;
+      }catch(e){ await new Promise(function(r){ setTimeout(r, 1500); }); }
+    }
+    return false;
+  })();
+  try{ return await _inviando; } finally { _inviando=null; }
+}
+window.postaInvia=invia;
+window.postaAggiungiMsg=function(m){ var c=coda(); c.msgs[m.id]=m; salvaCoda(c); allinea(); return invia(); };
+window.postaAggiungiLetti=function(ids){ var c=coda(), n=0; ids.forEach(function(id){ if(!c.letti[id]){ c.letti[id]=Date.now(); n++; } }); if(!n) return; salvaCoda(c); allinea(); clearTimeout(window._postaT); window._postaT=setTimeout(invia, 1500); };
+// ad ogni apertura del portale rimanda quello che è rimasto in coda
+setInterval(function(){ try{ if(portale() && me()){ var c=allinea(); if(!vuota(c)) invia(); } }catch(e){} }, 60000);
+setTimeout(function(){ try{ if(portale() && me()) invia(); }catch(e){} }, 8000);
+
+/* ── lato segreteria: porta la casella nel database ── */
+var _importando=false, _ultimoImport=0;
+async function importa(forza){
+  if(_importando || portale()) return; var u=AUTH&&AUTH.currentUser; if(!u || u.ruolo==='Totem' || u.ruolo==='Genitore') return;
+  if(!forza && Date.now()-_ultimoImport<20000) return;
+  var db=D(); if(!db) return;
+  _importando=true; _ultimoImport=Date.now();
+  try{
+    var p=await leggi(), n=0; db=D(); if(!db) return; if(!db.comunicazioni) db.comunicazioni=[];
+    var del=new Set(db.deletedIds||[]);
+    Object.keys(p.msgs).forEach(function(id){
+      if(del.has(id)) return;
+      var gia=db.comunicazioni.find(function(x){ return x.id===id; });
+      if(gia){ if(gia._daCoda){ delete gia._daCoda; try{ _touchRecord(gia); }catch(e){} n++; } return; }
+      var m=p.msgs[id]; delete m._daCoda; try{ _touchRecord(m); }catch(e){} db.comunicazioni.push(m); n++;
+    });
+    Object.keys(p.letture).forEach(function(user){
+      var L=p.letture[user]||{}, id='letture_'+user, rec=db.comunicazioni.find(function(x){ return x.id===id; }), cam=false;
+      if(!rec){ rec={ id:id, tipo:'letture', user:user, letti:{} }; db.comunicazioni.push(rec); }
+      if(rec._daCoda){ delete rec._daCoda; cam=true; }
+      if(!rec.letti) rec.letti={};
+      Object.keys(L).forEach(function(m){ if(!rec.letti[m]){ rec.letti[m]=L[m]; cam=true; } });
+      if(cam){ try{ _touchRecord(rec); }catch(e){} n++; }
+    });
+    var fattiNuovi=false;
+    Object.keys(p.ops).map(function(id){ return p.ops[id]; }).sort(function(a,b){ return (a.ts||0)-(b.ts||0); }).forEach(function(op){
+      if(!op || !op.id || p.fatti[op.id]) return;
+      try{ if(applica(db, op, true)) n++; }catch(e){ console.warn('[posta] modifica non applicata', op, e); }
+      p.fatti[op.id]=Date.now(); fattiNuovi=true;
+    });
+    if(n){
+      saveStorage();
+      try{ { _forceNextUpload=true; delete _uploadedDataHashes[APP.currentDb]; _uploadSingoloDb(APP.currentDb, getDb()).catch(function(){}); } }catch(e){}
+      try{ var v=document.querySelector('.view.active'); if(v && v.id==='view-comunicazioni'){ comRenderInviati(); if(typeof comRenderInbox==='function') comRenderInbox(); } if(typeof comAggiornaBadge==='function') comAggiornaBadge(); }catch(e){}
+    }
+    // pulizia: via dalla casella ciò che è nel database da più di 10 giorni (i telefoni rimandano comunque ciò che non vedono)
+    var lim=Date.now()-10*864e5, pul=false;
+    Object.keys(p.msgs).forEach(function(id){ var m=p.msgs[id]; if((m.creato||0)<lim && db.comunicazioni.some(function(x){ return x.id===id; })){ delete p.msgs[id]; pul=true; } });
+    Object.keys(p.letture).forEach(function(user){ var L=p.letture[user]; Object.keys(L).forEach(function(m){ if(L[m]<lim){ delete L[m]; pul=true; } }); if(!Object.keys(L).length) delete p.letture[user]; });
+    Object.keys(p.ops).forEach(function(id){ var op=p.ops[id]; if(p.fatti[id] && (op.ts||0)<lim){ delete p.ops[id]; pul=true; } });
+    Object.keys(p.fatti).forEach(function(id){ if(p.fatti[id]<Date.now()-30*864e5 && !p.ops[id]){ delete p.fatti[id]; pul=true; } });
+    if(pul || fattiNuovi) await scrivi(p);
+  }catch(e){ console.warn('[posta]', e); }
+  finally{ _importando=false; }
+}
+window.postaImporta=importa;
+
+/* ── modifiche fatte dai portali: differenza tra il database scaricato e quello attuale ── */
+// presenze dei bambini: hanno già il loro invio puntuale (PATCH con ritentativi)
+var ESCLUSI={ servizioCivile:1, comunicazioni:1, auditLog:1, accessLog:1, deletedIds:1, presenze:1 };
+function cl(x){ return x===undefined?undefined:JSON.parse(JSON.stringify(x)); }
+function piatto(o){ return o && typeof o==='object' && !Array.isArray(o); }
+function conId(a){ return Array.isArray(a) && a.length>0 && a.every(function(x){ return x && typeof x==='object' && x.id; }); }
+function eq(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function differenze(base, cur){
+  var ops=[];
+  function mappa(path, a, b, prof){
+    if(prof<3 && (piatto(a)||a===undefined) && (piatto(b)||b===undefined) && (piatto(a)||piatto(b))){
+      a=a||{}; b=b||{};
+      var ks={}; Object.keys(a).forEach(function(k){ ks[k]=1; }); Object.keys(b).forEach(function(k){ ks[k]=1; });
+      Object.keys(ks).forEach(function(k){ mappa(path.concat(k), a[k], b[k], prof+1); });
+      return;
+    }
+    if(eq(a,b)) return;
+    var semp=function(x){ return Array.isArray(x) && x.every(function(v){ return v===null || typeof v!=='object'; }); };
+    if(path.length>1 && (semp(a)||a===undefined) && (semp(b)||b===undefined) && (semp(a)||semp(b))){
+      var A=a||[], Bv=b||[];
+      ops.push({ t:'arr', path:path, agg:Bv.filter(function(v){ return A.indexOf(v)<0; }), tolti:A.filter(function(v){ return Bv.indexOf(v)<0; }) });
+      return;
+    }
+    // presenze degli animatori: solo la propria (le altre arrivano in tempo reale da altri telefoni)
+    if(path[0]==='presenzeAnimatori' && (path.length<3 || !mio || (path[2]!==mio && path[2]!=='_ts_'+mio))) return;
+    ops.push(b===undefined ? { t:'map', path:path, del:1 } : { t:'map', path:path, v:cl(b) });
+  }
+  var mio=null; try{ var an=(typeof paGetAnimatore==='function')?paGetAnimatore():null; mio=an&&an.id; }catch(e){}
+  var ks={}; Object.keys(cur||{}).forEach(function(k){ ks[k]=1; }); Object.keys(base||{}).forEach(function(k){ ks[k]=1; });
+  Object.keys(ks).forEach(function(k){
+    if(k.charAt(0)==='_' || ESCLUSI[k]) return;
+    var a=base[k], b=cur[k];
+    if(Array.isArray(b) && (conId(b) || conId(a)) && (!a || Array.isArray(a))){
+      var ma={}; (a||[]).forEach(function(r){ if(r&&r.id) ma[r.id]=r; });
+      b.forEach(function(rb){
+        if(!rb || !rb.id) return; var ra=ma[rb.id];
+        if(!ra){ ops.push({ t:'rec', coll:k, rid:rb.id, rec:cl(rb) }); return; }
+        if(eq(ra,rb)) return;
+        var campi={}, sub={}, agg={}, tolti={}, n=0, fs={}; Object.keys(ra).forEach(function(f){ fs[f]=1; }); Object.keys(rb).forEach(function(f){ fs[f]=1; });
+        Object.keys(fs).forEach(function(f){
+          if(f==='_ts' || eq(ra[f],rb[f])) return; var x=ra[f], y=rb[f];
+          // mappe (es. risposte dei sondaggi): solo le voci cambiate, così due telefoni non si cancellano a vicenda
+          if(piatto(x) && piatto(y)){ var m={}, ks={}; Object.keys(x).forEach(function(q){ ks[q]=1; }); Object.keys(y).forEach(function(q){ ks[q]=1; });
+            Object.keys(ks).forEach(function(q){ if(!eq(x[q],y[q])) m[q]= y[q]===undefined?{ __del:1 }:cl(y[q]); }); sub[f]=m; n++; return; }
+          // elenchi semplici (es. reclami): solo cosa è stato aggiunto o tolto
+          var semp=function(a){ return Array.isArray(a) && a.every(function(v){ return v===null || typeof v!=='object'; }); };
+          if(semp(x) && semp(y)){ agg[f]=y.filter(function(v){ return x.indexOf(v)<0; }); tolti[f]=x.filter(function(v){ return y.indexOf(v)<0; }); n++; return; }
+          campi[f]= y===undefined?{ __del:1 }:cl(y); n++;
+        });
+        if(n) ops.push({ t:'rec', coll:k, rid:rb.id, campi:campi, sub:sub, agg:agg, tolti:tolti });
+      });
+      return;
+    }
+    mappa([k], a, b, 1);
+  });
+  return ops;
+}
+function applica(db, op, tocca){
+  if(op.t==='rec'){
+    if(!Array.isArray(db[op.coll])) db[op.coll]=[];
+    var arr=db[op.coll], r=arr.find(function(x){ return x && x.id===op.rid; });
+    if(!r){ if(!op.rec) return false; r=cl(op.rec); arr.push(r); if(tocca){ try{ _touchRecord(r); }catch(e){} } return true; }
+    var campi=op.campi || op.rec || {};
+    Object.keys(campi).forEach(function(f){ if(f==='_ts') return; var v=campi[f]; if(v && v.__del) delete r[f]; else r[f]=cl(v); });
+    Object.keys(op.sub||{}).forEach(function(f){ if(!piatto(r[f])) r[f]={}; var m=op.sub[f]; Object.keys(m).forEach(function(q){ var v=m[q]; if(v && v.__del) delete r[f][q]; else r[f][q]=cl(v); }); });
+    Object.keys(op.agg||{}).forEach(function(f){ if(!Array.isArray(r[f])) r[f]=[]; op.agg[f].forEach(function(v){ if(r[f].indexOf(v)<0) r[f].push(v); }); });
+    Object.keys(op.tolti||{}).forEach(function(f){ if(Array.isArray(r[f])) r[f]=r[f].filter(function(v){ return op.tolti[f].indexOf(v)<0; }); });
+    if(tocca){ try{ _touchRecord(r); }catch(e){} }
+    return true;
+  }
+  if(op.t==='arr' && op.path && op.path.length){
+    var o2=db; for(var j=0;j<op.path.length-1;j++){ var k2=op.path[j]; if(!piatto(o2[k2])) o2[k2]={}; o2=o2[k2]; }
+    var l2=op.path[op.path.length-1]; if(!Array.isArray(o2[l2])) o2[l2]=[];
+    (op.agg||[]).forEach(function(v){ if(o2[l2].indexOf(v)<0) o2[l2].push(v); });
+    if((op.tolti||[]).length) o2[l2]=o2[l2].filter(function(v){ return op.tolti.indexOf(v)<0; });
+    return true;
+  }
+  if(op.t==='map' && op.path && op.path.length){
+    var o=db; for(var i=0;i<op.path.length-1;i++){ var k=op.path[i]; if(!piatto(o[k])) o[k]={}; o=o[k]; }
+    var last=op.path[op.path.length-1];
+    if(op.del) delete o[last]; else o[last]=cl(op.v);
+    return true;
+  }
+  return false;
+}
+window._postaDiff=differenze; window._postaApplica=applica;
+
+/* il database com'era quando è arrivato sul telefono (per capire cosa è cambiato) */
+var BASE={ db:null, copia:null };
+function copia(db){ var o={}; Object.keys(db).forEach(function(k){ if(k.charAt(0)!=='_' && !ESCLUSI[k]) o[k]=db[k]; }); return JSON.parse(JSON.stringify(o)); }
+function controllaBase(){
+  if(!portale()) return;
+  var raw=APP.databases && APP.databases[APP.currentDb]; if(!raw || BASE.db===raw) return;
+  BASE.db=raw; BASE.copia=copia(raw);
+  // le modifiche ancora in coda valgono anche sul database appena scaricato
+  try{ var c=coda(); Object.keys(c.ops).map(function(id){ return c.ops[id]; }).sort(function(a,b){ return (a.ts||0)-(b.ts||0); }).forEach(function(op){ applica(raw, op, false); applica(BASE.copia, op, false); }); }catch(e){}
+}
+window._postaBase=function(){ BASE.db=null; controllaBase(); };
+var _gdOrig=window.getDb;
+if(typeof _gdOrig==='function'){ window.getDb=function(){ var r=_gdOrig.apply(this,arguments); try{ if(BASE.db!==(APP.databases&&APP.databases[APP.currentDb])) controllaBase(); }catch(e){} return r; }; }
+/* nei portali il caricamento dell'intero database diventa: solo le modifiche, nella casella */
+var _upOrig=window._uploadSingoloDb;
+if(typeof _upOrig==='function'){
+  window._uploadSingoloDb=async function(nomeDb, db){
+    if(!portale() || !me()) return _upOrig.apply(this,arguments);
+    if(nomeDb!==APP.currentDb) return true;   // dai portali non si modificano altri database
+    controllaBase();
+    var raw=APP.databases[APP.currentDb]; if(!raw || !BASE.copia) return true;
+    var ops=differenze(BASE.copia, raw);
+    if(ops.length){
+      var c=coda(), ora=Date.now();
+      ops.forEach(function(op,i){ op.id='op_'+ora+'_'+i+'_'+Math.random().toString(36).slice(2,6); op.ts=ora+i; op.da=me(); c.ops[op.id]=op; });
+      salvaCoda(c);
+      BASE.copia=copia(raw);
+      console.log('[posta] '+ops.length+' modifiche dal portale nella casella (niente upload del database)');
+    }
+    return await invia();
+  };
+}
+window.comPostaWs=function(){ if(portale()) return; clearTimeout(window._postaWsT); window._postaWsT=setTimeout(function(){ importa(true); }, 1500+Math.random()*2500); };
+setInterval(function(){ importa(false); }, 120000);
+setTimeout(function(){ importa(true); }, 12000);
+})();
+
+/* ═══ ETÀ CALCOLATA (11/2026) ═══
+   L'età non è più un testo scritto all'iscrizione: si calcola dalla data di nascita
+   al primo giorno del GREST (Impostazioni › data inizio). Il campo «eta» degli iscritti
+   viene riallineato da solo (solo numero, es. "11"). */
+(function(){
+'use strict';
+function riferimento(db){
+  var imp=(db&&db.impostazioni)||{};
+  if(imp.dataInizio && /^\d{4}-\d{2}-\d{2}/.test(imp.dataInizio)){ var p=imp.dataInizio.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+  var a=parseInt(imp.anno)||new Date().getFullYear(); return new Date(a,5,15);
+}
+function etaAl(nascita, rif){
+  if(!nascita || !/^\d{4}-\d{2}-\d{2}/.test(nascita)) return null;
+  var p=nascita.split('-').map(Number), e=rif.getFullYear()-p[0];
+  if(rif.getMonth()+1<p[1] || (rif.getMonth()+1===p[1] && rif.getDate()<p[2])) e--;
+  return (e>=0 && e<30)?e:null;
+}
+window.etaIscritto=function(i, db){ db=db||getDb(); var e=etaAl(i&&i.nascita, riferimento(db)); if(e!=null) return e; var n=parseInt(i&&i.eta); return isNaN(n)?null:n; };
+function riallinea(db){
+  if(!db || !Array.isArray(db.iscritti)) return 0;
+  var rif=riferimento(db), n=0;
+  db.iscritti.forEach(function(i){
+    if(!i || i._eliminato) return;
+    var e=etaAl(i.nascita, rif), v;
+    if(e!=null) v=String(e);
+    else { var x=parseInt(i.eta); v=isNaN(x)?(i.eta||''):String(x); }
+    if(String(i.eta==null?'':i.eta)!==v){ i.eta=v; try{ _touchRecord(i); }catch(ex){} n++; }
+  });
+  return n;
+}
+window.etaRiallinea=riallinea;
+// modulo iscrizione: età al primo giorno del GREST
+if(typeof window.calcolaEta==='function'){
+  window.calcolaEta=function(){
+    var el=document.getElementById('f-eta'), v=(document.getElementById('f-nascita')||{}).value; if(!el) return;
+    var e=v?etaAl(v, riferimento(getDb())):null; el.value=e==null?'':String(e);
+    el.title='Età al primo giorno del GREST';
+  };
+}
+// riallinea da solo nel gestionale (non nei portali), una volta per database e data di inizio
+function giro(){
+  try{
+    if(typeof _inContestoPortale==='function' && _inContestoPortale()) return;
+    var u=AUTH&&AUTH.currentUser; if(!u || ['Admin','Responsabile Generale','Responsabile GREST','Responsabile Mini GREST','Segretario'].indexOf(u.ruolo)<0) return;
+    var db=getDb(); if(!db || !db.iscritti || !db.iscritti.length) return;
+    var k='eta_ok_'+APP.currentDb+'_'+((db.impostazioni||{}).dataInizio||'')+'_'+db.iscritti.length;
+    if(sessionStorage.getItem(k)) return;
+    var n=riallinea(db); sessionStorage.setItem(k,'1');
+    if(n){ saveStorage(); try{ _forceNextUpload=true; delete _uploadedDataHashes[APP.currentDb]; _uploadSingoloDb(APP.currentDb, getDb()).catch(function(){}); }catch(e){} console.log('[età] riallineate '+n+' età dalla data di nascita'); }
+  }catch(e){}
+}
+setTimeout(giro, 15000); setInterval(giro, 300000);
+})();
+</script>
+
+<script id="utenti-portali-2026-11-js">
+/* ═══ ELENCO UTENTI DAI PORTALI (11/2026) ═══
+   Prima un telefono (cambio password, foto, profilo) ricaricava sul NAS l'intero elenco utenti che aveva in memoria:
+   se era vecchio, poteva cancellare le modifiche fatte nel frattempo dalla segreteria o da altri.
+   Ora dai portali: si scarica l'elenco fresco dal NAS, si cambia SOLO il proprio account e solo i campi
+   che la persona ha davvero modificato (mai ruolo, permessi, nome utente, collegamenti ai figli), e si ricarica subito.
+   Se qualcosa non torna (elenco non scaricato, account non trovato) non si carica niente. */
+(function(){
+'use strict';
+var PROTETTI={ id:1, username:1, ruolo:1, permessi:1, aree:1, attivo:1, scadenza:1, _eliminato:1, iscrittoId:1, iscrittiIds:1, animatoreId:1, userId:1, creato:1, _ts:1, tipo:1, storico:1, archiviato:1 };
+var SICURI=['password','foto','telefono','tel','email','dataNascita','taglia'];
+function portale(){ try{ return typeof _inContestoPortale==='function' && _inContestoPortale(); }catch(e){ return false; } }
+function cl(x){ return x===undefined?undefined:JSON.parse(JSON.stringify(x)); }
+function eq(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function mio(list){ var u=AUTH&&AUTH.currentUser; return (u && u.id && Array.isArray(list)) ? list.find(function(x){ return x && x.id===u.id; }) : null; }
+var BU={ arr:null, id:null, rec:null, sess:null, uref:null };
+// com'era il proprio account quando l'elenco è arrivato sul telefono
+function foto(){
+  var u=AUTH&&AUTH.currentUser; if(!portale() || !u || !u.id || !APP.utenti) return false;
+  if(BU.arr===APP.utenti && BU.id===u.id && BU.uref===u) return false;
+  var nuovo=!(BU.arr===APP.utenti && BU.id===u.id);
+  BU.uref=u; BU.sess={}; SICURI.forEach(function(k){ BU.sess[k]=cl(u[k]); });
+  if(!nuovo) return false;
+  BU.arr=APP.utenti; BU.id=u.id; var r=mio(APP.utenti); BU.rec=r?cl(r):null; return true;
+}
+setInterval(function(){ try{ foto(); }catch(e){} }, 1000);
+var _orig=window.uploadUtentiCloud;
+if(typeof _orig!=='function') return;
+var _inCorso=null;
+window.uploadUtentiCloud=async function(){
+  if(!portale()) return _orig.apply(this,arguments);
+  if(_inCorso){ try{ await _inCorso; }catch(e){} }
+  _inCorso=(async function(){
+    var u=AUTH&&AUTH.currentUser; if(!u || !u.id) return false;
+    var appena=foto();
+    var loc=mio(APP.utenti)||u, cur=Object.assign({}, loc);
+    // le pagine del portale a volte cambiano solo la sessione (AUTH.currentUser): conta anche quella
+    if(BU.sess && BU.uref===u) SICURI.forEach(function(k){ if(u[k]!==undefined && !eq(u[k], BU.sess[k])) cur[k]=u[k]; });
+    var fresco=await scaricaUtentiDaCloud(), list=fresco&&fresco.data&&fresco.data.utenti;
+    if(!Array.isArray(list) || list.length<2){ console.warn('[utenti] elenco dal NAS non disponibile: niente caricato'); return false; }
+    var rem=list.find(function(x){ return x && x.id===u.id; });
+    if(!rem){ console.warn('[utenti] account non trovato sul NAS: niente caricato'); return false; }
+    var campi={}, ks={};
+    if(!appena && BU.rec){
+      Object.keys(cur).forEach(function(k){ ks[k]=1; }); Object.keys(BU.rec).forEach(function(k){ ks[k]=1; });
+      Object.keys(ks).forEach(function(k){ if(PROTETTI[k]) return; if(!eq(cur[k], BU.rec[k])) campi[k]=cur[k]; });
+    } else {
+      SICURI.forEach(function(k){ if(cur[k]!==undefined && !eq(cur[k], rem[k])) campi[k]=cur[k]; });
+    }
+    var nomi=Object.keys(campi);
+    var aggiornaFoto=function(){ BU.arr=list; BU.rec=cl(rem); BU.sess={}; SICURI.forEach(function(k){ BU.sess[k]=cl(u[k]); }); };
+    if(!nomi.length){ APP.utenti=list; aggiornaFoto(); return true; }
+    nomi.forEach(function(k){ if(campi[k]===undefined) delete rem[k]; else rem[k]=cl(campi[k]); });
+    var ora=new Date().toISOString();
+    var res=await nasFetch(NAS_URL+'/api/utenti', { method:'POST', headers:{'Content-Type':'application/json; charset=utf-8'}, body:JSON.stringify({ utenti:list, aggiornato:ora }) });
+    if(!res.ok){ console.warn('[utenti] caricamento non riuscito', res.status); return false; }
+    APP.utenti=list; APP._utentiDaCache=false; aggiornaFoto();
+    try{ _ultimoSyncUtenti=ora; }catch(e){}
+    try{ localStorage.setItem('grest_utenti_cache', JSON.stringify(list)); }catch(e){}
+    console.log('[utenti] aggiornato solo il proprio account: '+nomi.join(', '));
+    return true;
+  })();
+  try{ return await _inCorso; }catch(e){ console.warn('[utenti]', e); return false; } finally { _inCorso=null; }
+};
+})();
+</script>
 </body>
 </html>
