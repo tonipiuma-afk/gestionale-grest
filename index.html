@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 13/11/2026 14:15</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 13/11/2026 14:15 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93084,15 +93084,16 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   var IND = { sEsS:['Presso l’Istituto, stesso settore',1,12], dEsS:['Altri enti, stesso settore',.75,9], sEdS:['Presso l’Istituto, settore diverso',.5,6], dEdS:['Altri enti, settore diverso',.25,3] };
   var INDK = ['sEsS','dEsS','sEdS','dEdS'], SIG = { sEsS:'sE/sS', dEsS:'dE/sS', sEdS:'sE/dS', dEdS:'dE/dS' };
   var SCADENZA = '13/11/2026';
-  /* ── attinenze per programma ── */
-  var CRIT = {
-    digitale: { pronto:true, progetto:'Percorsi di educazione e inclusione digitale',
-      testo:'lauree magistrali e triennali in Ingegneria (qualunque indirizzo) o in Informatica; diploma di liceo scientifico opzione scienze applicate; diploma di istituto tecnico a indirizzo informatico (Informatica e telecomunicazioni, Sistemi informativi aziendali)',
-      breve:'Lauree in Ingegneria o Informatica; liceo scientifico opz. scienze applicate; istituti tecnici a indirizzo informatico.',
-      att:function(liv, t){ if(/^(Dt|LM|L)$/.test(liv)) return /ingegner|informatic/i.test(t); if(liv === 'D') return /scienze applicate|informatic|sistemi informativi|telecomunicaz/i.test(t); return /informatic|digital|web|software|reti/i.test(t); } },
-    agricolo: { pronto:false, progetto:'Servizio Civile Agricolo', testo:'attinenze non ancora impostate', breve:'Attinenze del programma Agricolo non ancora impostate.', att:function(){ return false; } },
-    ordinario:{ pronto:false, progetto:'Servizio Civile Ordinario', testo:'attinenze non ancora impostate', breve:'Attinenze del programma Ordinario non ancora impostate.', att:function(){ return false; } }
-  };
+  /* ── attinenze per programma: si caricano da file («Carica criteri»), restano sul NAS con le domande ── */
+  var NOMI_PROG = { digitale:'Servizio Civile Digitale', agricolo:'Servizio Civile Agricolo', ordinario:'Servizio Civile Ordinario' };
+  var esc = function(x){ return String(x).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+  function compila(c){
+    var A = c.attinenze || {}, re = function(L){ L = (L || []).map(function(x){ return String(x || '').trim(); }).filter(Boolean); return L.length ? new RegExp(L.map(esc).join('|'), 'i') : null; };
+    var rL = re(A.lauree), rD = re(A.diplomi), rA = re(A.altri);
+    return { pronto:true, progetto:c.progetto || NOMI_PROG[S.prog] || 'Servizio Civile', testo:c.testo || '', breve:c.breve || c.testo || '', nomeFile:c.nomeFile || '', il:c.il || '',
+      att:function(liv, t){ var r = /^(Dt|LM|L)$/.test(liv) ? rL : liv === 'D' ? rD : rA; return !!(r && r.test(String(t || ''))); } };
+  }
+  var _critCache = { src:null, c:null };
   var ENTE = 'Ultreya Pedara O.D.V.', SEDE = 'Istituto Catechistico Divina Provvidenza, San Giovanni la Punta (cod. 149397)';
 
   var S = window._SEL = { prog:null, doc:null, carico:false, vista:'tab', cur:null, dtab:'val', F:{ q:'', gmo:'', alt:'', dub:false }, pop:null, zoom:1, zmode:'' };
@@ -93116,7 +93117,12 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   var vuoto = function(){ return { v:1, prog:S.prog, istituto:'', cands:{}, val:{}, log:[] }; };
   var puoVedere = function(){ return _iosOk('scu_selezioni') || _iosOk('scu_selezioni_edit'); };
   var puoMod = function(){ return _iosOk('scu_selezioni_edit'); };
-  var crit = function(){ return CRIT[S.prog] || CRIT.ordinario; };
+  var crit = function(){
+    var src = S.doc && S.doc.criteri;
+    if(src){ if(_critCache.src !== src){ _critCache = { src:src, c:compila(src) }; } return _critCache.c; }
+    var nm = (SCU_PROGRAMMI[S.prog] || {}).nome || S.prog || '';
+    return { pronto:false, progetto:NOMI_PROG[S.prog] || 'Servizio Civile', testo:'attinenze non ancora caricate', breve:'Criteri del programma ' + nm + ' non ancora caricati.', att:function(){ return false; } };
+  };
   var clone = function(o){ return JSON.parse(JSON.stringify(o)); };
   var fmt = function(n){ if(n === '' || n == null) return ''; n = Math.round(n * 100) / 100; return String(n).replace('.', ','); };
   var fz = function(n){ return !n ? '' : fmt(n); };
@@ -93227,7 +93233,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     else if(/\bITS\b|tecnico superiore/i.test(t)) liv = 'ITS'; else if(/secondaria di 2/i.test(t)) liv = 'D'; else if(/qualifica/i.test(t)) liv = 'Q';
     var disc = [r.FormazioneDisciplina, r.FormazioneIstituto].join(' ');
     var dubbi = [{ t:'Valutazione proposta in automatico dal CSV (solo titolo di studio): controllare titolo, competenze ed esperienze leggendo domanda e CV', ok:false }];
-    if(!crit().pronto) dubbi.push({ t:'Attinenze del programma non ancora impostate: titolo messo come non attinente', ok:false });
+    if(!crit().pronto) dubbi.push({ t:'Criteri del programma non ancora caricati: titolo messo come non attinente', ok:false });
     if(!r.NomeFileCV) dubbi.push({ t:'Nessun CV allegato: valutare solo la domanda', ok:false });
     return { liv:liv, att:liv ? crit().att(liv, disc) : false, tit:[t, r.FormazioneDisciplina, r.FormazioneIstituto].filter(Boolean).join(' – ') + (r.FormazioneAnno ? ', ' + r.FormazioneAnno : ''), ult:[], comp:[], pat:{ tipo:'', data:'', valida:false }, esp:[], dubbi:dubbi, _auto:true };
   }
@@ -93275,6 +93281,34 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     render();
   };
   window.selApriPdf = function(cod){ var c = S.doc.cands[cod]; if(c && c.pdf) iosFileApri(null, null, false, c.pdf); };
+  /* ── criteri del programma da file ── */
+  window.selCaricaCriteri = async function(inp){
+    var f = inp.files && inp.files[0]; inp.value = ''; if(!f) return;
+    var p; try{ p = JSON.parse(await leggiTesto(f)); }catch(e){ showToast('⚠️ File non valido: deve essere il file .json dei criteri', 'warning'); return; }
+    if(!p || p.tipo !== 'criteri-selezione-scu' || !p.attinenze){ showToast('⚠️ Questo file non contiene criteri di selezione', 'warning'); return; }
+    var nm = (SCU_PROGRAMMI[S.prog] || {}).nome || S.prog;
+    if(p.programma && p.programma !== S.prog){ await xConferma('Questo file è dei criteri del programma «' + ((SCU_PROGRAMMI[p.programma] || {}).nome || p.programma) + '», ma sei nelle selezioni «' + nm + '».\n\nApri le selezioni giuste e caricalo lì.'); return; }
+    var A = p.attinenze, n = ['lauree', 'diplomi', 'altri'].map(function(k){ return (A[k] || []).length; });
+    if(!await xConferma('Caricare i criteri per «' + nm + '»?\n\nProgetto: ' + (p.progetto || '—') + '\nParole per le lauree: ' + n[0] + ' · diplomi: ' + n[1] + ' · corsi/altri titoli: ' + n[2] + (S.doc.criteri ? '\n\nSostituiscono quelli caricati prima.' : ''))) return;
+    var C = { tipo:p.tipo, programma:S.prog, progetto:p.progetto || '', testo:p.testo || '', breve:p.breve || '', attinenze:{ lauree:A.lauree || [], diplomi:A.diplomi || [], altri:A.altri || [] }, nomeFile:f.name, il:new Date().toISOString(), da:_imzUtente() };
+    var ok = await scriviTutto(function(base){ base.criteri = C; }, 'Caricati i criteri del programma da ' + f.name);
+    if(!ok) return;
+    showToast('✅ Criteri caricati', 'success');
+    // ricalcolo l'attinenza solo dove la valutazione è ancora quella proposta in automatico
+    var auto = Object.keys(S.doc.val || {}).filter(function(k){ var v = S.doc.val[k]; return v && (v.dubbi || []).some(function(d){ return /proposta in automatico/i.test(d.t || '') && !d.ok; }); });
+    if(auto.length && await xConferma('Ricalcolare l\'attinenza del titolo per ' + auto.length + ' candidati con la valutazione ancora automatica?\n\nLe valutazioni già controllate o corrette a mano non vengono toccate.')){
+      var cc = crit(), nr = 0;
+      await scriviTutto(function(base){
+        auto.forEach(function(k){ var v = base.val[k], c = base.cands[k]; if(!v || !c) return;
+          var r = c.raw || {}, disc = [r.FormazioneDisciplina, r.FormazioneIstituto].join(' ');
+          v.att = v.liv ? cc.att(v.liv, disc) : false;
+          v.dubbi = (v.dubbi || []).filter(function(d){ return !/(Attinenze del programma non ancora impostate|Criteri del programma non ancora caricati)/i.test(d.t || ''); });
+          nr++; });
+      }, 'Attinenze ricalcolate con i nuovi criteri');
+      showToast('✅ Attinenza ricalcolata per ' + nr + ' candidati', 'success');
+    }
+    render();
+  };
   /* ── import / export valutazioni (pacchetto o "Salva copia" del file HTML) ── */
   window.selImportaJson = async function(inp){
     var f = inp.files && inp.files[0]; inp.value = ''; if(!f) return;
@@ -93337,9 +93371,10 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var cfg = SCU_PROGRAMMI[S.prog] || { nome:S.prog, ico:'' }, n = lista().length, mod = puoMod();
     var h = '<div class="sel-bar"><div><div style="font-size:18px;font-weight:800">' + cfg.ico + ' Selezioni · ' + E(cfg.nome) + '</div><div class="sel-muted">' + E(crit().progetto) + ' · ' + n + ' domande · scadenza bando ' + SCADENZA + '</div></div><span class="sp"></span>'
       + (mod ? '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sel-in-csv\').click()">📥 Importa domande (CSV)</button><button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sel-in-pdf\').click()">📎 Carica PDF domande</button><button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sel-in-json\').click()">⬆ Importa valutazioni</button>' : '')
+      + (mod ? (crit().pronto ? '<button class="btn btn-outline btn-sm" title="' + E('Criteri caricati' + (crit().nomeFile ? ' da «' + crit().nomeFile + '»' : '') + ' — tocca per sostituirli') + '" onclick="document.getElementById(\'sel-in-crit\').click()">✅ Criteri caricati · Cambia</button>' : '<button class="btn btn-sm" style="background:#ea580c;color:#fff" onclick="document.getElementById(\'sel-in-crit\').click()">📥 Carica criteri</button>') : '')
       + '<button class="btn btn-outline btn-sm" onclick="selEsporta()">⬇ Salva copia</button><button class="btn btn-outline btn-sm" onclick="selRicarica()">↻</button>'
-      + '<input type="file" id="sel-in-csv" accept=".csv,.CSV" style="display:none" onchange="selImportaCsv(this)"><input type="file" id="sel-in-pdf" accept="application/pdf" multiple style="display:none" onchange="selCaricaPdf(this)"><input type="file" id="sel-in-json" accept=".json" style="display:none" onchange="selImportaJson(this)"></div>';
-    if(!crit().pronto) h += '<div class="sel-avv">⚠️ ' + E(crit().breve) + ' La proposta automatica mette tutti i titoli come non attinenti finché non vengono impostate.</div>';
+      + '<input type="file" id="sel-in-csv" accept=".csv,.CSV" style="display:none" onchange="selImportaCsv(this)"><input type="file" id="sel-in-pdf" accept="application/pdf" multiple style="display:none" onchange="selCaricaPdf(this)"><input type="file" id="sel-in-json" accept=".json" style="display:none" onchange="selImportaJson(this)"><input type="file" id="sel-in-crit" accept=".json,application/json" style="display:none" onchange="selCaricaCriteri(this)"></div>';
+    if(!crit().pronto) h += '<div class="sel-avv">⚠️ ' + E(crit().breve) + (mod ? ' Usa <b>📥 Carica criteri</b> e scegli il file dei criteri di questo programma.' : '') + ' Finché non ci sono, la proposta automatica mette tutti i titoli come non attinenti.</div>';
     h += '<div class="sel-sub">' + [['tab','📋 Tabella'],['dub','⚠️ Da verificare'],['cri','📖 Criteri'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.vista === t[0] ? 'on' : '') + '" onclick="selVista(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('')
       + '<span style="flex:1"></span><button class="btn btn-sm" onclick="selStampaTabella()">🖨 Tabella A3</button><button class="btn btn-outline btn-sm" onclick="selStampaSchede()">🖨 Tutte le schede</button><button class="btn btn-outline btn-sm" onclick="selStampaCriteri()">🖨 Criteri</button></div>';
     if(!n){ root.innerHTML = h + '<div class="sel-card">Nessuna domanda caricata per questo programma.' + (mod ? ' Usa <b>Importa domande (CSV)</b> con l’esportazione della piattaforma, poi <b>Carica PDF domande</b>. Se hai già un file di valutazioni, usa <b>Importa valutazioni</b>.' : '') + '</div>'; return; }
