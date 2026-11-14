@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 09:49</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57467,7 +57467,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 09:49 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93427,7 +93427,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   function filtrati(){
     var F = S.F; return lista().filter(function(c){ var v = norm(S.doc.val[c.cod] || {});
       if(F.q && (c.nome + ' ' + c.cod).toLowerCase().indexOf(F.q.toLowerCase()) < 0) return false;
-      if(F.gmo && c.gmo !== F.gmo) return false; if(F.alt && c.altro !== F.alt) return false; if(F.dub && !aperti(v)) return false; if(F.ncol && hasColl(v)) return false; return true; });
+      if(F.gmo && c.gmo !== F.gmo) return false; if(F.alt && c.altro !== F.alt) return false; if(F.dub && !aperti(v)) return false; if(F.ncol && hasColl(v)) return false; if(F.nctl && v.ctrl) return false; return true; });
   }
   function V(cod){ if(!S.doc.val[cod]) S.doc.val[cod] = { liv:'', att:false, tit:'', dubbi:[] }; return norm(S.doc.val[cod]); }
 
@@ -93499,18 +93499,18 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   }
   function vistaTab(){
     var F = S.F, L = filtrati();
-    var seg = function(k, t){ var on = (k === 'tutti' && !F.dub && !F.ncol) || (k === 'dub' && F.dub) || (k === 'ncol' && F.ncol); return '<button class="' + (on ? 'on' : '') + '" onclick="_SEL.F.dub=' + (k === 'dub') + ';_SEL.F.ncol=' + (k === 'ncol' ? 1 : 0) + ';selRender()">' + t + '</button>'; };
+    var seg = function(k, t){ var on = (k === 'tutti' && !F.dub && !F.ncol && !F.nctl) || (k === 'dub' && F.dub) || (k === 'ncol' && F.ncol) || (k === 'nctl' && F.nctl); return '<button class="' + (on ? 'on' : '') + '" onclick="_SEL.F.dub=' + (k === 'dub') + ';_SEL.F.ncol=' + (k === 'ncol' ? 1 : 0) + ';_SEL.F.nctl=' + (k === 'nctl' ? 1 : 0) + ';selRender()">' + t + '</button>'; };
     var bar = '<div class="sel-fbar">'
       + '<input id="sel-q" class="form-control sel-q" type="search" placeholder="🔍 Cerca nome o n. domanda" value="' + E(F.q) + '" oninput="_SEL.F.q=this.value;_SEL.F._f=1;selRender()">'
-      + '<div class="sel-seg">' + seg('tutti', 'Tutti') + seg('dub', '⚠️ Da verificare') + seg('ncol', 'Senza colloquio') + '</div>'
+      + '<div class="sel-seg">' + seg('tutti', 'Tutti') + seg('dub', '⚠️ Da verificare') + seg('ncol', 'Senza colloquio') + seg('nctl', 'Da controllare') + '</div>'
       + '<select class="form-control sel-fsel" title="Posti riservati GMO" onchange="_SEL.F.gmo=this.value;selRender()"><option value="">GMO: tutti</option><option value="SÌ"' + (F.gmo === 'SÌ' ? ' selected' : '') + '>GMO: sì</option><option value="NO"' + (F.gmo === 'NO' ? ' selected' : '') + '>GMO: no</option></select>'
       + '<select class="form-control sel-fsel" title="Disponibile ad altro progetto" onchange="_SEL.F.alt=this.value;selRender()"><option value="">Altro progetto: tutti</option><option value="SÌ"' + (F.alt === 'SÌ' ? ' selected' : '') + '>Altro progetto: sì</option><option value="NO"' + (F.alt === 'NO' ? ' selected' : '') + '>Altro progetto: no</option></select>'
-      + '<span class="sp"></span><span class="sel-muted sel-cnt">' + L.length + ' di ' + lista().length + '</span>'
+      + '<span class="sp"></span><span class="sel-muted sel-cnt">' + L.length + ' di ' + lista().length + ' · <b style="color:#15803d">' + lista().filter(function(c){ return (S.doc.val[c.cod] || {}).ctrl; }).length + ' controllati</b></span>'
       + '<div class="sel-zoom" title="Ingrandisci o rimpicciolisci la tabella (anche Ctrl + rotellina)"><button onclick="selZoom(-.1)" title="Rimpicciolisci">−</button><span id="sel-zl">' + Math.round(S.zoom * 100) + '%</span><button onclick="selZoom(.1)" title="Ingrandisci">+</button><button data-zm="largo" onclick="selZoomFit(\'largo\')" title="Adatta alla larghezza della pagina">↔ Adatta</button><button data-zm="tutto" onclick="selZoomFit(\'tutto\')" title="Tutta la tabella in una schermata">⛶ Tutta</button></div></div>';
     var all = lista();
     var rows = L.map(function(c){ var v = V(c.cod), od = aperti(v), cod = c.cod;
       var ult = v.ult.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; '), comp = v.comp.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; ');
-      return '<tr><td>' + (all.indexOf(c) + 1) + '</td><td class="nm" onclick="selApri(\'' + cod + '\')" title="Apri dettaglio, domanda e PDF">' + E(c.nome) + ' ' + (od ? '<span class="sel-bd" title="Casi da verificare aperti">' + od + '</span>' : '') + (c.pdf ? '' : ' <span title="PDF non caricato" style="opacity:.5">📄✗</span>') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td>' + c.gmo + '</td><td>' + c.altro + '</td>'
+      return '<tr><td>' + (all.indexOf(c) + 1) + '</td><td class="nm" onclick="selApri(\'' + cod + '\')" title="Apri dettaglio, domanda e PDF">' + E(c.nome) + ' ' + (v.ctrl ? '<span class="sx-tk" title="Valutazione controllata">✓</span>' : '') + (od ? '<span class="sel-bd" title="Casi da verificare aperti">' + od + '</span>' : '') + (c.pdf ? '' : ' <span title="PDF non caricato" style="opacity:.5">📄✗</span>') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td>' + c.gmo + '</td><td>' + c.altro + '</td>'
         + COLT.map(function(t, i){ return ec(cod, 'tit:' + t[1] + ':' + (t[2] ? 1 : 0), fz(titCell(v, t)), isMan(v, 'tit') && titCell(v, t) !== '', !i); }).join('')
         + '<td class="txt gs" onclick="selApri(\'' + cod + '\')" title="' + E(ult) + '"><div>' + E(ult) + '</div></td>' + ec(cod, 'ult', fz(pUlt(v)), isMan(v, 'ult'))
         + '<td class="gs" onclick="selApri(\'' + cod + '\')">' + E(v.pat.tipo) + '</td><td onclick="selApri(\'' + cod + '\')">' + E(v.pat.data) + '</td><td class="txt gs" onclick="selApri(\'' + cod + '\')" title="' + E(comp) + '"><div>' + E(comp) + '</div></td>' + ec(cod, 'comp', fz(pComp(v)), isMan(v, 'comp'))
@@ -93574,18 +93574,45 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
 
   /* ── dettaglio candidato ── */
   window.selApri = function(cod){ S.cur = cod; document.getElementById('sel-dr').classList.add('on'); document.getElementById('sel-ov').classList.add('on'); renderDr(); };
-  window.selChiudi = function(){ S.cur = null; document.getElementById('sel-dr').classList.remove('on'); document.getElementById('sel-ov').classList.remove('on'); render(); };
+  window.selChiudi = function(){ S.cur = null; var dr0 = document.getElementById('sel-dr'); dr0.classList.remove('split'); dr0.classList.remove('on'); document.getElementById('sel-ov').classList.remove('on'); render(); };
   window.selSposta = function(d){ var l = filtrati(), i = l.map(function(c){ return c.cod; }).indexOf(S.cur); if(!l.length) return; i = (i + d + l.length) % l.length; S.cur = l[i].cod; renderDr(); };
   window.selDtab = function(t){ S.dtab = t; renderDr(); };
+  try{ S.split = localStorage.getItem('sel_affianca') === '1'; }catch(e){}
+  window.selCtrl = async function(on){ var cod = S.cur, v = V(cod);
+    if(on && aperti(v) && !await xConferma('Questo candidato ha ancora ' + aperti(v) + ' casi da verificare aperti.\n\nSegnare comunque la valutazione come controllata?')) return;
+    modifica(cod, function(r){ if(on) r.ctrl = { by:_imzUtente(), ts:new Date().toISOString() }; else delete r.ctrl; }, on ? 'Valutazione segnata come controllata' : 'Tolto «controllata»'); };
+  window.selAutoH = function(t){ if(!t) return; t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; };
+  window.selAffianca = function(on){ S.split = !!on; try{ localStorage.setItem('sel_affianca', on ? '1' : '0'); }catch(e){} renderDr(); };
+  var _CV = { url:{}, cur:'' };
+  async function cvCarica(c){
+    var pane = document.getElementById('sx-cv'); if(!pane) return; var b = pane.querySelector('.sx-cv-b'), n = pane.querySelector('.sx-cv-n');
+    if(_CV.cur === c.cod && b.querySelector('iframe')) return;
+    _CV.cur = c.cod; if(n) n.textContent = c.nome;
+    if(!_CV.url[c.cod]){
+      b.innerHTML = '<div class="sx-cv-w">⏳ Apro il PDF dal NAS…</div>';
+      try{ var r = await fetch(NAS_URL + '/api/file/' + encodeURIComponent(c.pdf.cartella) + '/' + encodeURIComponent(c.pdf.id)); if(!r.ok) throw new Error(r.status === 401 ? 'accesso scaduto, rientra nel gestionale' : 'PDF non trovato sul NAS (' + r.status + ')');
+        var bl = await r.blob(); _CV.url[c.cod] = URL.createObjectURL(new Blob([bl], { type:'application/pdf' })); }
+      catch(e){ if(_CV.cur === c.cod) b.innerHTML = '<div class="sx-cv-w">⚠️ ' + E(e.message) + '</div>'; return; }
+    }
+    if(_CV.cur !== c.cod) return;
+    b.innerHTML = '<iframe title="PDF della domanda" src="' + _CV.url[c.cod] + '#view=FitH"></iframe>';
+  }
+  window.addEventListener('resize', function(){ var dr = document.getElementById('sel-dr'); if(dr && dr.classList.contains('on') && S.split && (window.innerWidth >= 1100) !== dr.classList.contains('split')) renderDr(); });
   function renderDr(){
     var c = S.doc.cands[S.cur]; if(!c){ selChiudi(); return; } var v = V(S.cur);
     var ini = c.nome.split(' ').slice(0, 2).map(function(x){ return x[0] || ''; }).join(''), L = filtrati(), pos = L.map(function(x){ return x.cod; }).indexOf(c.cod) + 1;
     var com = (c.raw && c.raw.ComuneResidenza) ? String(c.raw.ComuneResidenza).trim() : String(c.res || '').replace(/^.*\d{5}\s*/, '').replace(/\s*\(.*$/, '');
     var bdg = [c.gmo === 'SÌ' ? '<span class="sx-bdg g">GMO</span>' : '', c.altro === 'SÌ' ? '<span class="sx-bdg">disponibile altro progetto</span>' : '', c.stesso === 'SÌ' ? '<span class="sx-bdg">subentro stesso progetto</span>' : ''].join('');
-    document.getElementById('sel-dr').innerHTML = '<div class="sel-dh sx-dh">' + (c.foto ? '<button class="sel-av sx-av foto" onclick="selFotoVedi()" title="Ingrandisci la foto"><img src="' + c.foto + '" alt=""></button>' : (puoMod() ? '<button class="sel-av sx-av" onclick="selFotoScegli()" title="Aggiungi la foto dal curriculum">' + E(ini) + '<i class="sx-av-cam">📷</i></button>' : '<div class="sel-av">' + E(ini) + '</div>')) + '<div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
-      + '<div class="sel-dact sx-act"><span class="sel-muted">' + (pos || '–') + ' / ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')" title="Apri la domanda con il CV">📄 PDF</button>' : '') + '<button class="btn btn-outline btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])" title="Stampa la scheda di questo candidato">🖨</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
+    var dr = document.getElementById('sel-dr'), main = document.getElementById('sel-dr-main');
+    if(!main){ dr.innerHTML = '<div id="sel-dr-main"></div><div id="sx-cv"><div class="sx-cv-h"><b>📄 Domanda e curriculum</b><span class="sx-cv-n"></span><button class="sel-x" onclick="selAffianca(false)" title="Chiudi il CV affiancato">✕</button></div><div class="sx-cv-b"></div></div>'; main = document.getElementById('sel-dr-main'); }
+    var largo = window.innerWidth >= 1100, split = !!(S.split && largo && c.pdf && S.dtab === 'val');
+    dr.classList.toggle('split', split);
+    if(split) cvCarica(c);
+    main.innerHTML = '<div class="sel-dh sx-dh">' + (c.foto ? '<button class="sel-av sx-av foto" onclick="selFotoVedi()" title="Ingrandisci la foto"><img src="' + c.foto + '" alt=""></button>' : (puoMod() ? '<button class="sel-av sx-av" onclick="selFotoScegli()" title="Aggiungi la foto dal curriculum">' + E(ini) + '<i class="sx-av-cam">📷</i></button>' : '<div class="sel-av">' + E(ini) + '</div>')) + '<div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
+      + '<div class="sel-dact sx-act"><span class="sel-muted">' + (pos || '–') + ' / ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? (largo && S.dtab === 'val' ? '<button class="btn btn-sm ' + (split ? 'btn-teal' : 'btn-outline') + '" onclick="selAffianca(' + (split ? 'false' : 'true') + ')" title="' + (split ? 'Chiudi il CV affiancato' : 'Apri il CV accanto alla valutazione') + '">📄 ' + (split ? 'CV affiancato' : 'Affianca CV') + '</button>' : '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')" title="Apri la domanda con il CV">📄 PDF</button>') : '') + '<button class="btn btn-outline btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])" title="Stampa la scheda di questo candidato">🖨</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
       + '<div class="sel-segw"><div class="sel-seg">' + [['val','📊 Valutazione'],['dom','📝 Domanda'],['pdf','📄 PDF domanda e CV'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.dtab === t[0] ? 'on' : '') + '" onclick="selDtab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div></div>'
       + '<div class="sel-db">' + (S.dtab === 'val' ? drVal(c, v) : S.dtab === 'dom' ? drDom(c) : S.dtab === 'pdf' ? drPdf(c) : drLog(c)) + '</div>';
+    requestAnimationFrame(function(){ main.querySelectorAll('textarea.sx-ta').forEach(selAutoH); });
   }
   function manNote(v, k, calc){ return isMan(v, k) ? '<div class="sel-man">✎ Valore inserito a mano dalla tabella: <b>' + fmt(MN(v, k)) + '</b> · il dettaglio qui sotto darebbe ' + fmt(calc) + (puoMod() ? ' <button class="btn btn-outline btn-sm" onclick="selTogliMan(\'' + k + '\')">Torna al calcolo</button>' : '') + '</div>' : ''; }
   function drVal(c, v){
@@ -93593,7 +93620,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var lopt = '<option value="">— nessun titolo valutabile</option>' + LIV.map(function(l){ return '<option value="' + l[0] + '"' + (v.liv === l[0] ? ' selected' : '') + '>' + l[1].replace(/ \(liv.*/, '') + '</option>'; }).join('');
     var sw = function(on, js, si, no){ return '<label class="sx-sw' + (on ? ' on' : '') + '" title="' + (on ? 'Conta nel punteggio' : 'Non conta nel punteggio') + '"><input type="checkbox"' + (on ? ' checked' : '') + dis + ' onchange="' + js + '"><span class="sx-sw-k"></span><b>' + (on ? (si || 'Conta') : (no || 'Non conta')) + '</b></label>'; };
     var del = function(arr, i){ return mod ? '<button class="sx-del" title="Elimina questa riga" onclick="selDel(\'' + arr + '\',' + i + ')">🗑</button>' : ''; };
-    var item = function(arr, i, x){ return '<div class="sx-it' + (x.v ? ' on' : '') + '"><div class="sx-it-t"><input class="sx-in" type="text" placeholder="descrizione…" value="' + E(x.t) + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'t\',this.value)"><input class="sx-in sx-nt" type="text" placeholder="nota o motivo (facoltativa)" value="' + E(x.n || '') + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'n\',this.value)"></div>' + sw(x.v, "selUpd('" + arr + "'," + i + ",'v',this.checked)") + del(arr, i) + '</div>'; };
+    var item = function(arr, i, x){ return '<div class="sx-it' + (x.v ? ' on' : '') + '"><div class="sx-it-t"><textarea class="sx-in sx-ta" rows="1" placeholder="descrizione…"' + dis + ' oninput="selAutoH(this)" onchange="selUpd(\'' + arr + '\',' + i + ',\'t\',this.value)">' + E(x.t) + '</textarea><input class="sx-in sx-nt" type="text" placeholder="nota o motivo (facoltativa)" value="' + E(x.n || '') + '"' + dis + ' onchange="selUpd(\'' + arr + '\',' + i + ',\'n\',this.value)"></div>' + sw(x.v, "selUpd('" + arr + "'," + i + ",'v',this.checked)") + del(arr, i) + '</div>'; };
     var agg = function(arr, t){ return mod ? '<button class="sx-add" onclick="selAdd(\'' + arr + '\')">+ ' + t + '</button>' : ''; };
     var info = function(t){ return '<details class="sx-info"><summary title="Come si valuta">ⓘ</summary><div>' + t + '</div></details>'; };
     var sez = function(n, tit, pts, max, inf, corpo){ return '<section class="sx-sez"><header><span class="sx-n">' + n + '</span><h3>' + tit + '</h3>' + (inf ? info(inf) : '') + '<span class="sx-pts' + (pts === '–' ? ' vuoto' : '') + '">' + pts + '<small> / ' + max + '</small></span></header>' + corpo + '</section>'; };
@@ -93601,7 +93628,10 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var hc = hasColl(v);
     // punteggi
     var h = '<div class="sx-score">' + barra('Titoli', pTitoli(v), 20) + barra('Esperienze', pEsp(v), 30) + barra('Colloquio', hc ? pColl(v) : null, 50) + barra(hc ? 'Totale' : 'Curriculum', hc ? pTot(v) : pCV(v), hc ? 100 : 50, true) + '</div>';
-    if(hc && pColl(v) < 30) h += '<div class="sel-avv">Colloquio sotto i 30 punti: secondo il sistema di selezione il candidato risulta non idoneo.</div>';
+    var collOk = ['scu','enti','prog','mot','disp','cap'].every(function(k){ var x = col(v)[k]; return x !== undefined && x !== '' && x !== null; }) || isMan(v, 'quest');
+    if(hc && collOk && pColl(v) < 30) h += '<div class="sel-avv">Colloquio sotto i 30 punti: secondo il sistema di selezione il candidato risulta non idoneo.</div>';
+    h += v.ctrl ? '<div class="sx-ctrl on"><span>✓ Valutazione controllata' + (v.ctrl.by ? ' da <b>' + E(v.ctrl.by) + '</b>' : '') + (v.ctrl.ts ? ' · ' + E(new Date(v.ctrl.ts).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })) : '') + '</span>' + (mod ? '<button onclick="selCtrl(false)">Annulla</button>' : '') + '</div>'
+      : (mod ? '<button class="sx-ctrl" onclick="selCtrl(true)"><span>☐ Segna la valutazione come <b>controllata</b></span><small>quando la commissione ha verificato titoli, esperienze e casi</small></button>' : '');
     // casi da verificare
     var ap = [], ch = [];
     v.dubbi.forEach(function(d, i){ (d.ok ? ch : ap).push([d, i]); });
@@ -93610,7 +93640,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     else h += '<div class="sx-dub ok"><div class="sx-dub-h">✓ Nessun caso da verificare' + (ch.length ? ' <small>(' + ch.length + ' risolti)</small>' : '') + '</div>' + (ch.length ? '<details class="sx-dub-ok"><summary>Vedi i casi risolti</summary>' + ch.map(function(x){ return '<div class="sx-dub-r ok"><span>' + E(x[0].t) + '</span>' + (mod ? '<button onclick="selDub(\'' + cod + '\',' + x[1] + ',false)">Riapri</button>' : '') + '</div>'; }).join('') + '</details>' : '') + addDub + '</div>';
     // 1 titolo
     h += sez('1', 'Titolo di studio', fmt(pTit(v)), 12, 'Si valuta solo il titolo più favorevole. Titoli attinenti al progetto: ' + E(crit().breve),
-      manNote(v, 'tit', cTit(v)) + '<input class="sx-in sx-big" type="text" placeholder="titolo dichiarato" value="' + E(v.tit) + '"' + dis + ' onchange="selSet(\'tit\',this.value,\'Titolo dichiarato\')">'
+      manNote(v, 'tit', cTit(v)) + '<textarea class="sx-in sx-big sx-ta" rows="1" placeholder="titolo dichiarato"' + dis + ' oninput="selAutoH(this)" onchange="selSet(\'tit\',this.value,\'Titolo dichiarato\')">' + E(v.tit) + '</textarea>'
       + '<div class="sx-row"><select class="form-control sx-sel"' + dis + ' onchange="selSet(\'liv\',this.value,\'Livello del titolo\')">' + lopt + '</select>' + sw(v.att, "selSet('att',this.checked,'Attinenza del titolo')", 'Attinente', 'Non attinente') + '</div>');
     // 2 ulteriori
     h += sez('2', 'Ulteriori titoli', fmt(pUlt(v)), 5, 'Master, specializzazioni, abilitazioni professionali, iscrizione ad albi, inerenti al progetto e conseguiti dopo il diploma. 1 punto ciascuno.',
@@ -93621,17 +93651,27 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
       manNote(v, 'comp', cComp(v)) + pat + v.comp.map(function(x, i){ return item('comp', i, x); }).join('') + agg('comp', 'aggiungi competenza'));
     // 4 esperienze
     var iopt = function(e){ return '<option value="">Non conta</option>' + INDK.map(function(k){ return '<option value="' + k + '"' + (e.ind === k ? ' selected' : '') + '>' + IND[k][0] + ' (' + fmt(IND[k][1]) + ' al mese)</option>'; }).join(''); };
-    var espR = v.esp.map(function(e, i){ var pt = e.ind ? (+e.mesi || 0) * IND[e.ind][1] : 0; return '<div class="sx-it sx-esp' + (e.ind ? ' on' : '') + '"><div class="sx-it-t"><input class="sx-in" type="text" placeholder="ente, periodo, mansione…" value="' + E(e.t) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'t\',this.value)">'
+    var espR = v.esp.map(function(e, i){ var pt = e.ind ? (+e.mesi || 0) * IND[e.ind][1] : 0; return '<div class="sx-it sx-esp' + (e.ind ? ' on' : '') + '"><div class="sx-it-t"><textarea class="sx-in sx-ta" rows="1" placeholder="ente, periodo, mansione…"' + dis + ' oninput="selAutoH(this)" onchange="selUpd(\'esp\',' + i + ',\'t\',this.value)">' + E(e.t) + '</textarea>'
       + '<div class="sx-esp-r"><select class="form-control sx-sel"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'ind\',this.value)">' + iopt(e) + '</select><label class="sx-mesi">mesi <input class="form-control" type="number" min="0" value="' + (e.mesi || 0) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'mesi\',+this.value)"></label>' + '</div>'
       + '<input class="sx-in sx-nt" type="text" placeholder="nota o motivo (facoltativa)" value="' + E(e.n || '') + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'n\',this.value)"></div>' + del('esp', i) + '</div>'; }).join('');
     var riep = INDK.filter(function(k){ return mesi(v, k); }).map(function(k){ return '<span>' + IND[k][0] + ': <b>' + mesi(v, k) + ' mesi → ' + fmt(pInd(v, k)) + ' pt</b></span>'; }).join('');
     h += sez('4', 'Esperienze', fmt(pEsp(v)), 30, 'Ente = l’Istituto in cui si realizza il progetto. Stesso settore = socio-educativo-assistenziale (anche GREST e centri estivi). Per ogni tipo si contano al massimo 12 mesi; una frazione oltre i 15 giorni vale un mese. Tirocini curriculari e stage interni a un corso non contano.',
       INDK.map(function(k){ return manNote(v, k, cInd(v, k)); }).join('') + (espR || '<div class="sx-vuoto">Nessuna esperienza</div>') + agg('esp', 'aggiungi esperienza') + (riep ? '<div class="sx-riep">' + riep + '</div>' : ''));
     // 5 colloquio
-    var cl = col(v), num = function(k, mx, st, lab){ return '<label class="sx-num"><span>' + lab + '</span><div><input class="form-control" type="number" min="0" max="' + mx + '" step="' + st + '" value="' + (cl[k] != null ? cl[k] : '') + '"' + dis + ' onchange="selColl(\'' + k + '\',this.value,' + mx + ')"><small>/ ' + mx + '</small></div></label>'; };
-    h += sez('5', 'Colloquio', hc ? fmt(pColl(v)) : '–', 50, 'Questionari: 0,5 punti per risposta esatta. Motivazione: debole 1–3 · essenziale 4–6 · buona 7–9 · elevata 10–12. Disponibilità: insufficiente 1–3 · parziale 4–6 · adeguata 7–9 · piena 10–12. Capacità pratica: 1–3 · 4–6 · 7–9 · 10–12 · 13–16. Sotto i 30 punti il candidato non è idoneo.',
-      manNote(v, 'quest', cQuest(v)) + '<div class="sx-sub2">Questionario</div><div class="sx-nums">' + num('scu', 3, .5, 'Servizio Civile') + num('enti', 3, .5, 'Enti') + num('prog', 4, .5, 'Progetto') + '</div>'
-      + '<div class="sx-sub2">Colloquio</div><div class="sx-nums">' + num('mot', 12, 1, 'Motivazione') + num('disp', 12, 1, 'Disponibilità') + num('cap', 16, 1, 'Capacità pratica') + '</div>');
+    var cl = col(v);
+    var FASCE = { mot:[[1,3,'debole'],[4,6,'essenziale'],[7,9,'buona'],[10,12,'elevata']], disp:[[1,3,'insufficiente'],[4,6,'parziale'],[7,9,'adeguata'],[10,12,'piena']], cap:[[1,3,'con estrema difficoltà'],[4,6,'con difficoltà'],[7,9,'in autonomia'],[10,12,'azioni complesse'],[13,16,'autonomia e spirito critico']] };
+    var fascia = function(k, n){ var f = (FASCE[k] || []).filter(function(x){ return n >= x[0] && n <= x[1]; })[0]; return f ? f[2] : ''; };
+    var chips = function(k, mx, st, lab){
+      var cur = cl[k] != null && cl[k] !== '' ? +cl[k] : null, h2 = '', nF = (FASCE[k] || []).length;
+      for(var x = (FASCE[k] ? 1 : 0); x <= mx + 1e-9; x = Math.round((x + st) * 10) / 10){
+        var fi = FASCE[k] ? FASCE[k].map(function(f){ return x >= f[0] && x <= f[1]; }).indexOf(true) : -1;
+        h2 += '<button type="button" class="sx-ch' + (cur === x ? ' on' : '') + (fi >= 0 ? ' f' + Math.round(fi * 4 / Math.max(1, nF - 1)) : '') + '"' + (mod ? ' onclick="selColl(\'' + k + '\',' + (cur === x ? '\'\'' : x) + ',' + mx + ')"' : ' disabled') + ' title="' + (cur === x ? 'Tocca di nuovo per togliere' : fmt(x) + (fi >= 0 ? ' · ' + fascia(k, x) : '')) + '">' + fmt(x) + '</button>';
+      }
+      return '<div class="sx-chr"><div class="sx-chr-h"><b>' + lab + '</b><span>' + (cur === null ? '<i>da inserire</i>' : '<b>' + fmt(cur) + '</b> / ' + mx + (FASCE[k] ? ' · ' + fascia(k, cur) : '')) + '</span></div><div class="sx-chs">' + h2 + '</div></div>';
+    };
+    h += sez('5', 'Colloquio', hc ? fmt(pColl(v)) : '–', 50, 'Questionari: 0,5 punti per risposta esatta. Motivazione: debole 1–3 · essenziale 4–6 · buona 7–9 · elevata 10–12. Disponibilità: insufficiente 1–3 · parziale 4–6 · adeguata 7–9 · piena 10–12. Capacità pratica: 1–3 · 4–6 · 7–9 · 10–12 · 13–16. Sotto i 30 punti il candidato non è idoneo. Tocca un numero per sceglierlo, toccalo di nuovo per toglierlo.',
+      manNote(v, 'quest', cQuest(v)) + '<div class="sx-sub2">Questionario (0,5 per risposta esatta)</div>' + chips('scu', 3, .5, 'Servizio Civile') + chips('enti', 3, .5, 'Enti') + chips('prog', 4, .5, 'Progetto')
+      + '<div class="sx-sub2">Colloquio</div>' + chips('mot', 12, 1, 'Motivazione') + chips('disp', 12, 1, 'Disponibilità') + chips('cap', 16, 1, 'Capacità pratica'));
     // note
     h += '<section class="sx-sez"><header><span class="sx-n">✎</span><h3>Note della commissione</h3></header><textarea class="form-control" rows="3"' + dis + ' placeholder="annotazioni libere…" onchange="selSet(\'note\',this.value,\'Note\')" style="width:100%">' + E(v.note || '') + '</textarea>'
       + (v._by ? '<div class="sx-ult">Ultima modifica: ' + E(v._by) + (v._ts ? ' · ' + E(new Date(v._ts).toLocaleString('it-IT')) : '') + '</div>' : '') + '</section>';
@@ -93971,6 +94011,42 @@ html[data-pi-tema="scuro"] .sx-num{background:#0f172a}
 .sx-crop img{width:100%;display:block;pointer-events:none}
 .sx-crop-r{position:absolute;display:none;border:2.5px solid #ea580c;background:rgba(234,88,12,.12);box-shadow:0 0 0 9999px rgba(15,23,42,.35)}
 .sx-fs-f{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+</style>
+<style id="sel-scheda2-2026-11">
+/* (novembre 2026) scheda candidato: CV affiancato, testi interi, colloquio a bottoni, «controllata» */
+#sel-dr-main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+#sx-cv{display:none}
+#sel-dr.split{width:min(1700px,98vw);flex-direction:row}
+#sel-dr.split #sx-cv{display:flex;flex-direction:column;flex:0 0 46%;border-left:1.5px solid var(--border);background:#525659;min-width:0}
+.sx-cv-h{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border-bottom:1.5px solid var(--border)}
+.sx-cv-h b{font-size:14px;white-space:nowrap}
+.sx-cv-n{flex:1;font-size:12.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sx-cv-b{flex:1;min-height:0;display:flex}
+.sx-cv-b iframe{flex:1;border:0;width:100%;height:100%;background:#525659}
+.sx-cv-w{margin:auto;color:#fff;font-size:14px;padding:20px;text-align:center}
+#sel-dr.split .sx-wrap{max-width:none}
+#sel-dr.split .sel-db{padding:14px 16px}
+#sel-dr textarea.sx-ta{resize:none;overflow:hidden;line-height:1.35;display:block;font-family:inherit}
+.sx-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;text-align:left;border:1.5px dashed var(--border);background:var(--card);border-radius:14px;padding:10px 14px;font:inherit;font-size:14px;color:var(--text);cursor:pointer}
+.sx-ctrl:hover{border-color:#16a34a;background:#f0fdf4}
+.sx-ctrl small{font-size:12px;color:var(--text-muted);flex:1 1 100%}
+.sx-ctrl.on{border-style:solid;border-color:#86efac;background:#f0fdf4;color:#15803d;cursor:default}
+.sx-ctrl.on span{flex:1}
+.sx-ctrl.on button{border:1.5px solid var(--border);background:var(--card);border-radius:999px;font:inherit;font-size:12.5px;font-weight:700;color:var(--text-muted);padding:4px 12px;cursor:pointer}
+.sx-tk{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#16a34a;color:#fff;font-size:11px;font-weight:800;margin-right:3px;vertical-align:1px}
+.sx-chr{border:1.5px solid var(--border);background:var(--bg,#f8fafc);border-radius:12px;padding:8px 10px;margin-bottom:8px}
+.sx-chr-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;font-size:13px}
+.sx-chr-h > b{font-weight:800}
+.sx-chr-h span{color:var(--text-muted)}
+.sx-chr-h span b{color:var(--teal);font-size:15px}
+.sx-chs{display:flex;flex-wrap:wrap;gap:5px}
+.sx-ch{min-width:38px;height:36px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);font:inherit;font-size:13.5px;font-weight:700;color:var(--text);cursor:pointer;padding:0 6px}
+.sx-ch:hover:not([disabled]){border-color:var(--teal)}
+.sx-ch.f0{border-bottom:3px solid #f87171}.sx-ch.f1{border-bottom:3px solid #fb923c}.sx-ch.f2{border-bottom:3px solid #facc15}.sx-ch.f3{border-bottom:3px solid #4ade80}.sx-ch.f4{border-bottom:3px solid #16a34a}
+.sx-ch.on{background:var(--teal);border-color:var(--teal);color:#fff}
+html[data-pi-tema="scuro"] .sx-chr{background:#0f172a}
+html[data-pi-tema="scuro"] .sx-ctrl.on, html[data-pi-tema="scuro"] .sx-ctrl:hover{background:rgba(22,163,74,.12)}
+@media (max-width:640px){ .sx-ch{min-width:34px;height:38px} }
 </style>
 </body>
 </html>
