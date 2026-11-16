@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 14/11/2026 13:07</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57423,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 14/11/2026 13:07 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93110,6 +93110,8 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var nm = (SCU_PROGRAMMI[S.prog] || {}).nome || S.prog || '';
     return { pronto:false, progetto:NOMI_PROG[S.prog] || 'Servizio Civile', testo:'attinenze non ancora caricate', breve:'Criteri del programma ' + nm + ' non ancora caricati.', att:function(){ return false; } };
   };
+  // settore delle esperienze: dal file dei criteri del programma (campo "settoreTesto"); se manca resta quello di prima
+  var settoreTxt = function(){ var c = S.doc && S.doc.criteri; return (c && c.settoreTesto) ? String(c.settoreTesto) : 'settore socio-educativo-assistenziale (comprese le attività educative con minori come GREST e centri estivi)'; };
   var clone = function(o){ return JSON.parse(JSON.stringify(o)); };
   var fmt = function(n){ if(n === '' || n == null) return ''; n = Math.round(n * 100) / 100; return String(n).replace('.', ','); };
   var fz = function(n){ return !n ? '' : fmt(n); };
@@ -93358,7 +93360,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     if(p.programma && p.programma !== S.prog){ await xConferma('Questo file è dei criteri del programma «' + ((SCU_PROGRAMMI[p.programma] || {}).nome || p.programma) + '», ma sei nelle selezioni «' + nm + '».\n\nApri le selezioni giuste e caricalo lì.'); return; }
     var A = p.attinenze, n = ['lauree', 'diplomi', 'altri'].map(function(k){ return (A[k] || []).length; });
     if(!await xConferma('Caricare i criteri per «' + nm + '»?\n\nProgetto: ' + (p.progetto || '—') + '\nParole per le lauree: ' + n[0] + ' · diplomi: ' + n[1] + ' · corsi/altri titoli: ' + n[2] + (S.doc.criteri ? '\n\nSostituiscono quelli caricati prima.' : ''))) return;
-    var C = { tipo:p.tipo, programma:S.prog, progetto:p.progetto || '', testo:p.testo || '', breve:p.breve || '', attinenze:{ lauree:A.lauree || [], diplomi:A.diplomi || [], altri:A.altri || [] }, nomeFile:f.name, il:new Date().toISOString(), da:_imzUtente() };
+    var C = { tipo:p.tipo, programma:S.prog, progetto:p.progetto || '', testo:p.testo || '', breve:p.breve || '', settore:p.settore || '', settoreTesto:p.settoreTesto || '', attinenze:{ lauree:A.lauree || [], diplomi:A.diplomi || [], altri:A.altri || [] }, nomeFile:f.name, il:new Date().toISOString(), da:_imzUtente() };
     var ok = await scriviTutto(function(base){ base.criteri = C; }, 'Caricati i criteri del programma da ' + f.name);
     if(!ok) return;
     showToast('✅ Criteri caricati', 'success');
@@ -93698,7 +93700,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
       + '<div class="sx-esp-r"><select class="form-control sx-sel"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'ind\',this.value)">' + iopt(e) + '</select><label class="sx-mesi">mesi <input class="form-control" type="number" min="0" value="' + (e.mesi || 0) + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'mesi\',+this.value)"></label>' + '</div>'
       + '<input class="sx-in sx-nt" type="text" placeholder="nota o motivo (facoltativa)" value="' + E(e.n || '') + '"' + dis + ' onchange="selUpd(\'esp\',' + i + ',\'n\',this.value)"></div>' + del('esp', i) + '</div>'; }).join('');
     var riep = INDK.filter(function(k){ return mesi(v, k); }).map(function(k){ return '<span>' + IND[k][0] + ': <b>' + mesi(v, k) + ' mesi → ' + fmt(pInd(v, k)) + ' pt</b></span>'; }).join('');
-    h += sez('4', 'Esperienze', fmt(pEsp(v)), 30, 'Ente = l’Istituto in cui si realizza il progetto. Stesso settore = socio-educativo-assistenziale (anche GREST e centri estivi). Per ogni tipo si contano al massimo 12 mesi; una frazione oltre i 15 giorni vale un mese. Tirocini curriculari e stage interni a un corso non contano.',
+    h += sez('4', 'Esperienze', fmt(pEsp(v)), 30, 'Ente = l’Istituto in cui si realizza il progetto. Stesso settore = ' + settoreTxt() + '. Per ogni tipo si contano al massimo 12 mesi; una frazione oltre i 15 giorni vale un mese. Tirocini curriculari e stage interni a un corso non contano.',
       INDK.map(function(k){ return manNote(v, k, cInd(v, k)); }).join('') + (espR || '<div class="sx-vuoto">Nessuna esperienza</div>') + agg('esp', 'aggiungi esperienza') + (riep ? '<div class="sx-riep">' + riep + '</div>' : ''));
     // 5 colloquio
     var cl = col(v);
@@ -93759,7 +93761,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
       + '<h2>2. Ulteriori titoli inerenti al progetto – max 5 punti</h2><p>1 punto per ogni titolo: master, specializzazioni, abilitazioni professionali, iscrizione ad albi professionali, inerenti al progetto e conseguiti dopo il diploma.</p>'
       + '<h2>3. Competenze certificate – max 3 punti</h2><p>1 punto per ciascuna: certificazioni e attestati informatici (es. corsi di informatica con attestato, EIPASS, ICDL, CISCO), certificazioni linguistiche, certificazioni di salute e sicurezza da corsi di almeno 8 ore, patente posseduta da almeno 3 anni o di categoria superiore. Le certificazioni sono valutate solo se riportano una data successiva al diploma.</p>'
       + '<h2>4. Precedenti esperienze – max 30 punti</h2><table><tr><th>Esperienza</th><th>Punti per mese</th><th>Max</th></tr>' + INDK.map(function(k){ return '<tr><td>' + IND[k][0] + '</td><td class="c">' + fmt(IND[k][1]) + '</td><td class="c">' + IND[k][2] + '</td></tr>'; }).join('') + '</table>'
-      + '<p>Per “Ente” si intende l’Istituto presso cui si realizza il progetto; per “stesso settore” il settore socio-educativo-assistenziale (comprese le attività educative con minori come GREST e centri estivi). Per ogni voce si valutano fino a 12 mesi; la frazione di mese superiore a 15 giorni vale un mese intero. Le esperienze devono indicare almeno periodo, ente e mansioni. Tirocini curriculari e stage svolti all’interno di un corso non sono valutati come esperienze.</p>'
+      + '<p>Per “Ente” si intende l’Istituto presso cui si realizza il progetto; per “stesso settore” il ' + E(settoreTxt()) + '. Per ogni voce si valutano fino a 12 mesi; la frazione di mese superiore a 15 giorni vale un mese intero. Le esperienze devono indicare almeno periodo, ente e mansioni. Tirocini curriculari e stage svolti all’interno di un corso non sono valutati come esperienze.</p>'
       + '<h2>5. Colloquio di selezione – max 50 punti</h2><table><tr><th>Voce</th><th>Criterio</th><th>Max</th></tr>'
       + '<tr><td>Questionario – Servizio Civile Universale</td><td>6 domande a risposta multipla, 0,5 punti per risposta esatta</td><td class="c">3</td></tr><tr><td>Questionario – Enti titolare e di accoglienza</td><td>6 domande, 0,5 punti per risposta esatta</td><td class="c">3</td></tr><tr><td>Questionario – Progetto</td><td>8 domande, 0,5 punti per risposta esatta</td><td class="c">4</td></tr>'
       + '<tr><td>Motivazioni generali</td><td>debole 1–3 · essenziale 4–6 · buona 7–9 · elevata e consapevole 10–12</td><td class="c">12</td></tr><tr><td>Disponibilità al servizio</td><td>insufficiente 1–3 · parziale 4–6 · adeguata 7–9 · piena e consapevole 10–12</td><td class="c">12</td></tr>'
@@ -93807,7 +93809,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
       + '<tr><td><b>Ulteriori titoli</b></td><td>1 punto per master, specializzazioni, abilitazioni professionali, iscrizione ad albi, inerenti al progetto e conseguiti dopo il diploma. Quelli non inerenti o non conseguiti sono indicati “(no pt.)”</td><td class="c">max 5</td></tr>'
       + '<tr><td><b>Patente T. / Data</b></td><td>Tipo e data di rilascio: 1 punto se posseduta da almeno 3 anni o di categoria superiore (rientra nel massimo delle competenze)</td><td class="c">1</td></tr>'
       + '<tr><td><b>Competenze</b></td><td>1 punto per certificazioni e attestati informatici, linguistici, di sicurezza (min. 8 ore), con data successiva al diploma. Senza data (s.d.) o precedenti al diploma: indicati senza punteggio</td><td class="c">max 3</td></tr>'
-      + INDK.map(function(k){ return '<tr><td><b>' + SIG[k] + '</b></td><td>' + IND[k][0] + ': ' + fmt(IND[k][1]) + ' punti per mese (fino a 12 mesi; frazione oltre 15 giorni = 1 mese). E = ente, S = settore, s = stesso, d = diverso. Stesso settore = socio-educativo-assistenziale</td><td class="c">max ' + IND[k][2] + '</td></tr>'; }).join('')
+      + INDK.map(function(k){ return '<tr><td><b>' + SIG[k] + '</b></td><td>' + IND[k][0] + ': ' + fmt(IND[k][1]) + ' punti per mese (fino a 12 mesi; frazione oltre 15 giorni = 1 mese). E = ente, S = settore, s = stesso, d = diverso. Stesso settore = ' + E(settoreTxt()) + '</td><td class="c">max ' + IND[k][2] + '</td></tr>'; }).join('')
       + '<tr><td><b>Quest.</b></td><td>Questionario di 20 domande, 0,5 punti per risposta esatta (SCU 3, enti 3, progetto 4)</td><td class="c">max 10</td></tr><tr><td><b>Mot. / Disp.</b></td><td>Motivazioni generali / Disponibilità al servizio: 1–3 · 4–6 · 7–9 · 10–12</td><td class="c">max 12</td></tr>'
       + '<tr><td><b>Cap.</b></td><td>Capacità pratica e problem solving: 1–3 · 4–6 · 7–9 · 10–12 · 13–16</td><td class="c">max 16</td></tr><tr><td><b>Tot. / Totale</b></td><td>Totale colloquio (sotto 30 punti: non idoneo) / Totale complessivo: titoli + esperienze + colloquio</td><td class="c">50 / 100</td></tr></table>';
   }
