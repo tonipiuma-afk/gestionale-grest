@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 17/11/2026 01:21</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57423,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 17/11/2026 01:21 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -73572,7 +73572,7 @@ html[data-pi-tema="scuro"] .tt-distr{color:#fdba74}
     'servizio-civile':'Servizio Civile', 'dashboard':'Dashboard', 'impostazioni':'Impostazioni', 'impostazioni-utenti':'Utenti', 'anagrafica':'Anagrafica', 'animatori':'Animatori',
     'presenze':'Presenze', 'squadre':'Squadre', 'database':'Database', 'calendario':'Calendario', 'contabilita':'Contabilità', 'mensa':'Mensa', 'merenda':'Merenda',
     'momento-formativo':'Momento formativo', 'corso-formazione':'Corso di formazione', 'organizzazione':'Organizzazione', 'classifica':'Classifica', 'campionati':'Tornei', 'preiscritti':'Pre-iscrizioni', 'diario-bordo':'Diario di bordo', 'sondaggi-animatori':'Sondaggi', 'assenze-animatori':'Assenze animatori', 'squadre-animatori':'Squadre animatori', 'organizzazione':'Organizzazione', 'ricevute':'Ricevute', 'spese':'Spese', 'gite':'Gite', 'pullman':'Pullman', 'mare':'Mare', 'maglie':'Maglie', 'comunicazioni':'Comunicazioni', 'elenchi':'Elenchi squadre', 'smarriti':'Oggetti smarriti', 'iscritto-nuovo':'Nuovo iscritto', 'animatore-nuovo':'Nuovo animatore' };
-  var SCU_TAB = { operatori:'Volontari', orari:'Orari', presenze:'Presenze', riepilogo:'Riepilogo', fogli:'Fogli firma', impostazioni:'Impostazioni' };
+  var SCU_TAB = { operatori:'Volontari', orari:'Orari', presenze:'Presenze', riepilogo:'Riepilogo', fogli:'Fogli firma', impostazioni:'Impostazioni', selezioni:'Selezioni', recupero:'Recupero' };
   var AREA_NOME = { ist:'Istituto San Giuseppe', grest:'Grest', scu:'Servizio Civile', hub:'Gestionale San Giuseppe' };
   function pulisci(s){ return String(s || '').replace(new RegExp(RE.source.slice(1), 'gu'), ' ').replace(/\s+/g,' ').trim(); }
   function cap(s){ s = pulisci(s); if(s && s === s.toUpperCase()) s = s.charAt(0) + s.slice(1).toLowerCase(); return s; }
@@ -83392,6 +83392,7 @@ body[data-area] #area-bar{border-bottom:3px solid color-mix(in srgb,var(--gv-acc
     }finally{ setTimeout(function(){ tornando = false; }, 50); }
   };
   window.navHome = function(){ navigate(homePrincipale()); };
+  window._niStoria = function(){ return STORIA.length; }; window._niHome = homePrincipale; window._niVista = vista;
   /* ogni cambio di pagina viene ricordato */
   var oNav = window.navigate;
   if(typeof oNav === 'function' && !oNav._ni){
@@ -83422,6 +83423,52 @@ body[data-area] #area-bar{border-bottom:3px solid color-mix(in srgb,var(--gv-acc
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', monta); else monta();
   setTimeout(monta, 1500); setTimeout(monta, 5000);
+})();
+</script>
+<script id="nav-indietro-telefono">
+/* ═════════════════════════════════════════════════════════════════════
+   INDIETRO DEL TELEFONO (novembre 2026)
+   Il tasto indietro di Android e lo swipe indietro fanno la stessa cosa della freccia ‹ in alto:
+   • se c'è qualcosa aperto sopra la pagina (finestra, popup, scheda del candidato, menu) lo chiude;
+   • altrimenti torna alla pagina precedente;
+   • sulla home principale il primo "indietro" avvisa, il secondo esce.
+   Solo su telefono e tablet: sul computer il tasto indietro del browser resta com'era.
+   ═════════════════════════════════════════════════════════════════════ */
+(function(){
+  if(!window.history || !history.pushState) return;
+  function tel(){ try{ return matchMedia('(pointer:coarse)').matches || window.innerWidth <= 768; }catch(e){ return false; } }
+  function dentro(){ try{ return !!(AUTH && AUTH.currentUser); }catch(e){ return false; } }
+  function armato(){ return !!(history.state && history.state.piumaNav); }
+  function arma(){ if(!tel() || !dentro() || armato()) return; try{ history.pushState({ piumaNav:1 }, ''); }catch(e){} }
+  function vis(el){ if(!el) return false; var c = getComputedStyle(el); return c.display !== 'none' && c.visibility !== 'hidden'; }
+  function chiudiSopra(){
+    if(document.getElementById('xd-velo')){ document.dispatchEvent(new KeyboardEvent('keydown', { key:'Escape', bubbles:true })); return true; }
+    var fo = document.getElementById('sx-foto-ov'); if(fo && fo.classList.contains('on') && window.selFotoChiudi){ selFotoChiudi(); return true; }
+    var ck = document.getElementById('sx-ck-ov'); if(ck && ck.classList.contains('on')){ ck.classList.remove('on'); return true; }
+    var po = document.getElementById('sel-pop'); if(po && po.style.display === 'block' && window.selPopChiudi){ selPopChiudi(); return true; }
+    var mn = document.querySelector('details.sel-menu[open]'); if(mn){ mn.open = false; return true; }
+    var dr = document.getElementById('sel-dr'); if(dr && dr.classList.contains('on') && window.selChiudi){ selChiudi(); return true; }
+    var mo = document.querySelectorAll('.modal-overlay.open'); if(mo.length){ var u = mo[mo.length - 1]; if(u.id && typeof closeModal === 'function') closeModal(u.id); else u.classList.remove('open'); return true; }
+    var cm = document.getElementById('custom-modal'); if(cm && vis(cm)){ cm.style.display = 'none'; return true; }
+    var mp = document.getElementById('mobile-nav-panel'); if(mp && mp.classList.contains('open') && typeof closeMobilePanel === 'function'){ closeMobilePanel(); return true; }
+    var ms = document.getElementById('mob-search-sheet'); if(ms && vis(ms) && typeof closeMobileSearch === 'function'){ closeMobileSearch(); return true; }
+    return false;
+  }
+  window.addEventListener('popstate', function(){
+    if(!tel() || !dentro()) return;
+    try{
+      if(chiudiSopra()){ arma(); return; }
+      var v = window._niVista ? _niVista() : '', home = window._niHome ? _niHome() : '';
+      if(v && v === home){ if(typeof showToast === 'function') showToast('Premi di nuovo indietro per uscire', 'info'); return; }
+      if(typeof navIndietro === 'function') navIndietro();
+    }catch(e){ console.warn('[indietro]', e); }
+    arma();
+  });
+  /* il browser tiene conto dell'indietro solo dopo un tocco: si prepara al primo tocco e dopo ogni cambio di pagina */
+  document.addEventListener('click', arma, true);
+  document.addEventListener('touchend', arma, true);
+  var oNav = window.navigate;
+  if(typeof oNav === 'function' && !oNav._tb){ var fN = function(){ var r = oNav.apply(this, arguments); setTimeout(arma, 0); return r; }; fN._tb = true; window.navigate = fN; }
 })();
 </script>
 <style id="stile-istituzionale">
