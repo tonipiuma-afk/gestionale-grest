@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 17/11/2026 01:38</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57423,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 17/11/2026 01:38 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -83445,6 +83445,7 @@ body[data-area] #area-bar{border-bottom:3px solid color-mix(in srgb,var(--gv-acc
     if(document.getElementById('xd-velo')){ document.dispatchEvent(new KeyboardEvent('keydown', { key:'Escape', bubbles:true })); return true; }
     var fo = document.getElementById('sx-foto-ov'); if(fo && fo.classList.contains('on') && window.selFotoChiudi){ selFotoChiudi(); return true; }
     var ck = document.getElementById('sx-ck-ov'); if(ck && ck.classList.contains('on')){ ck.classList.remove('on'); return true; }
+    var mo2 = document.getElementById('sx-mod-ov'); if(mo2 && mo2.classList.contains('on')){ mo2.classList.remove('on'); return true; }
     var po = document.getElementById('sel-pop'); if(po && po.style.display === 'block' && window.selPopChiudi){ selPopChiudi(); return true; }
     var mn = document.querySelector('details.sel-menu[open]'); if(mn){ mn.open = false; return true; }
     var dr = document.getElementById('sel-dr'); if(dr && dr.classList.contains('on') && window.selChiudi){ selChiudi(); return true; }
@@ -93347,6 +93348,108 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     else Object.keys(fatti).forEach(function(k){ _iosFileCestina(fatti[k], 'Selezioni: foto non collegata'); });
     render();
   };
+  /* ── risposte del modulo Google pre-colloquio (novembre 2026) ──
+     Si carica il CSV scaricato dal foglio delle risposte (File › Scarica › .csv). Ogni risposta viene abbinata al candidato
+     con il codice della domanda oppure con nome e data di nascita; sul NAS va in cands[cod].mod = { ts, il, r:[[domanda, risposta]…] }.
+     I punteggi NON cambiano: le risposte servono alla commissione per chiudere i casi e preparare il colloquio. */
+  function csvGen(txt){
+    txt = String(txt || '').replace(/^﻿/, '');
+    var prima = txt.split('\n')[0] || '', sep = (prima.split(';').length > prima.split(',').length) ? ';' : ',';
+    var rows = [], row = [], f = '', q = false, i = 0, c;
+    for(; i < txt.length; i++){
+      c = txt[i];
+      if(q){ if(c === '"'){ if(txt[i+1] === '"'){ f += '"'; i++; } else q = false; } else f += c; }
+      else if(c === '"') q = true;
+      else if(c === sep){ row.push(f); f = ''; }
+      else if(c === '\n'){ row.push(f); rows.push(row); row = []; f = ''; }
+      else if(c !== '\r') f += c;
+    }
+    if(f || row.length){ row.push(f); rows.push(row); }
+    return rows.filter(function(r){ return r.some(function(x){ return String(x).trim(); }); });
+  }
+  function nomeK(t){ return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' '); }
+  function dataK(t){ var m = String(t || '').match(/(\d{1,4})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(!m) return ''; var a = m[1], b = m[2], c = m[3]; if(a.length === 4) return a + '-' + ('0' + b).slice(-2) + '-' + ('0' + c).slice(-2); if(c.length === 2) c = (+c > 30 ? '19' : '20') + c; return c + '-' + ('0' + b).slice(-2) + '-' + ('0' + a).slice(-2); }
+  function trovaCol(h, re){ for(var i = 0; i < h.length; i++) if(re.test(h[i])) return i; return -1; }
+  function abbina(o){
+    var cod = String(o.cod || '').replace(/\D/g, ''); if(cod && S.doc.cands[cod]) return cod;
+    var nk = nomeK(o.nome), dk = dataK(o.nato), L = lista();
+    var pari = L.filter(function(c){ return nomeK(c.nome) === nk; });
+    if(pari.length > 1 && dk) pari = pari.filter(function(c){ return dataK(c.nato) === dk; });
+    if(pari.length === 1) return pari[0].cod;
+    if(dk){ var w = nk.split(' '); var sim = L.filter(function(c){ if(dataK(c.nato) !== dk) return false; var cw = nomeK(c.nome).split(' '); var com = cw.filter(function(x){ return w.indexOf(x) >= 0; }).length; return com >= Math.min(2, cw.length); }); if(sim.length === 1) return sim[0].cod; }
+    return '';
+  }
+  var MOD_IN = null;
+  window.selModuloScegli = function(){ var i = document.getElementById('sel-in-mod'); if(!i){ i = document.createElement('input'); i.type = 'file'; i.id = 'sel-in-mod'; i.accept = '.csv,.CSV,text/csv'; i.style.display = 'none'; i.onchange = function(){ selModuloImporta(i); }; document.body.appendChild(i); } i.click(); };
+  window.selModuloImporta = async function(inp){
+    var f = inp.files && inp.files[0]; inp.value = ''; if(!f) return;
+    var rows = csvGen(await leggiTesto(f)); if(rows.length < 2){ showToast('⚠️ Il file non contiene risposte', 'warning'); return; }
+    var h = rows.shift().map(function(x){ return String(x).trim(); });
+    var iN = trovaCol(h, /^nome e cognome/i), iC = trovaCol(h, /^codice della domanda/i), iD = trovaCol(h, /^data di nascita/i), iT = trovaCol(h, /^(informazioni cronologiche|timestamp|data e ora)/i);
+    if(iN < 0){ showToast('⚠️ Non sembra il CSV del modulo pre-colloquio (manca «Nome e cognome»)', 'warning'); return; }
+    var ok = {}, no = [];
+    rows.forEach(function(r){
+      var o = { nome:r[iN] || '', cod:iC >= 0 ? r[iC] : '', nato:iD >= 0 ? r[iD] : '', ts:iT >= 0 ? r[iT] : '', r:[] };
+      h.forEach(function(k, j){ var x = String(r[j] == null ? '' : r[j]).trim(); if(k && x && j !== iT) o.r.push([k, x]); });
+      var cod = abbina(o); if(cod) ok[cod] = o; else no.push(o);   // a parità di candidato vince la risposta più recente (le righe sono in ordine di arrivo)
+    });
+    MOD_IN = { ok:ok, no:no, file:f.name };
+    if(no.length) return modAbbinaUi();
+    modSalva();
+  };
+  function modAbbinaUi(){
+    var ov = document.getElementById('sx-mod-ov'); if(!ov){ ov = document.createElement('div'); ov.id = 'sx-mod-ov'; ov.onclick = function(e){ if(e.target === ov) ov.classList.remove('on'); }; document.body.appendChild(ov); }
+    var L = lista().slice().sort(function(a, b){ return (a.mod ? 1 : 0) - (b.mod ? 1 : 0) || a.nome.localeCompare(b.nome); });
+    var opz = '<option value="">— non abbinare —</option>' + L.map(function(c){ return '<option value="' + c.cod + '">' + E(c.nome) + ' · ' + c.cod + (c.mod ? ' (ha già risposto)' : '') + '</option>'; }).join('');
+    ov.innerHTML = '<div class="sx-ck"><div class="sx-ck-h"><div><b>Risposte da abbinare</b><div class="sel-muted">' + Object.keys(MOD_IN.ok).length + ' risposte abbinate da sole · ' + MOD_IN.no.length + ' da abbinare a mano</div></div><button class="sel-x" onclick="document.getElementById(\'sx-mod-ov\').classList.remove(\'on\')">✕</button></div>'
+      + '<div class="sx-ck-b">' + MOD_IN.no.map(function(o, i){ return '<div class="sx-ck-c sx-mod-r"><div><b>' + E(o.nome || '(senza nome)') + '</b><div class="sel-muted">' + (o.cod ? 'codice ' + E(o.cod) + ' · ' : '') + (o.nato ? 'nato/a ' + E(o.nato) + ' · ' : '') + (o.ts ? 'inviato ' + E(o.ts) : '') + '</div></div><select class="form-control" id="sx-mod-s' + i + '">' + opz + '</select></div>'; }).join('') + '</div>'
+      + '<div class="sx-ck-f"><button class="btn btn-outline btn-sm" onclick="document.getElementById(\'sx-mod-ov\').classList.remove(\'on\')">Annulla</button><button class="btn btn-sm" onclick="selModuloConferma()">Salva le risposte</button></div></div>';
+    ov.classList.add('on');
+  }
+  window.selModuloConferma = function(){ MOD_IN.no.forEach(function(o, i){ var s = document.getElementById('sx-mod-s' + i); if(s && s.value) MOD_IN.ok[s.value] = o; }); var ov = document.getElementById('sx-mod-ov'); if(ov) ov.classList.remove('on'); modSalva(); };
+  async function modSalva(){
+    var ks = Object.keys(MOD_IN.ok); if(!ks.length){ showToast('Nessuna risposta abbinata', 'info'); return; }
+    var nuovi = ks.filter(function(k){ return !(S.doc.cands[k] && S.doc.cands[k].mod); }).length, ora = new Date().toISOString();
+    var ok = await scriviTutto(function(b){ ks.forEach(function(k){ var o = MOD_IN.ok[k]; if(b.cands[k]) b.cands[k].mod = { ts:o.ts, il:ora, r:o.r }; }); },
+      'Risposte del modulo pre-colloquio da ' + MOD_IN.file + ': ' + ks.length + ' candidati (' + nuovi + ' nuovi, ' + (ks.length - nuovi) + ' aggiornati)');
+    if(ok) showToast('✅ Risposte salvate: ' + nuovi + ' nuove, ' + (ks.length - nuovi) + ' aggiornate', 'success');
+    MOD_IN = null; render(); if(S.cur) renderDr();
+  }
+  /* scheda «Modulo»: risposte divise per sezione */
+  var MOD_SEZ = [
+    ['dati', 'I suoi dati', /^(nome e cognome|codice della domanda|data di nascita|numero di telefono|comune in cui vivi|indirizzo email|email)/i],
+    ['tit', 'Titolo di studio', /^(titolo più alto|nome esatto del titolo|lo hai già conseguito|data in cui lo hai conseguito|voto finale|se stai frequentando)/i],
+    ['att', 'Corsi, certificazioni e attestati', /^(attestato \d|altri attestati)/i],
+    ['esp', 'Esperienze', /^(esperienza \d|altre esperienze)/i],
+    ['pat', 'Patente e spostamenti', /^(che patenti|data di rilascio della patente|hai un mezzo)/i],
+    ['con', 'Conoscerlo meglio', /^(perché hai scelto|cosa ti aspetti|tre parole|racconta un|quanto ti senti a tuo agio|quanto ti piace lavorare in gruppo|in che momenti|hai altri impegni|interessi e passioni|profili social|c'è qualcosa|c’è qualcosa)/i],
+    ['fin', 'Conferma', /^(dichiarazione|documenti)$/i]
+  ];
+  function modSez(k){ for(var i = 0; i < MOD_SEZ.length; i++) if(MOD_SEZ[i][2].test(k)) return MOD_SEZ[i][0]; return 'prog'; }
+  function linkTxt(t){ return E(t).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+  function modRighe(L){
+    var out = [], grid = {};
+    L.forEach(function(x){ var m = x[0].match(/^(.*?)\s*\[(.+)\]$/); if(m){ if(!grid[m[1]]){ grid[m[1]] = []; out.push(['§g', m[1]]); } grid[m[1]].push([m[2], x[1]]); } else out.push(x); });
+    return out.map(function(x){
+      if(x[0] === '§g') return '<dt>' + E(x[1]) + '</dt><dd><div class="sx-mod-g">' + grid[x[1]].map(function(g){ return '<span><i>' + E(g[0]) + '</i> ' + E(g[1]) + '</span>'; }).join('') + '</div></dd>';
+      return '<dt>' + E(x[0]) + '</dt><dd>' + linkTxt(x[1]) + '</dd>';
+    }).join('');
+  }
+  function drMod(c, v){
+    var dis = puoMod() ? '' : ' disabled';
+    var app = '<div class="sel-card"><h3>📌 Appunti per il colloquio</h3><textarea class="form-control sx-ta" rows="3"' + dis + ' placeholder="domande da fare, cose da approfondire…" onchange="selSet(\'app\',this.value,\'Appunti per il colloquio\')" style="width:100%">' + E(v.app || '') + '</textarea></div>';
+    var aperti0 = v.dubbi.filter(function(d){ return !d.ok; });
+    var casi = aperti0.length ? '<div class="sel-card sx-mod-casi"><h3>⚠️ Casi ancora aperti</h3>' + aperti0.map(function(d){ return '<div>• ' + E(d.t) + '</div>'; }).join('') + '<div class="sel-muted" style="margin-top:6px">Controlla nelle risposte qui sotto se il candidato li ha chiariti, poi spunta il caso nella Valutazione.</div></div>' : '';
+    if(!c.mod) return '<div class="sx-wrap">' + app + casi + '<div class="sel-card"><h3>🗒 Modulo pre-colloquio</h3><p class="sel-muted" style="margin:0">Il candidato non ha ancora risposto al modulo (o le risposte non sono state caricate).' + (puoMod() ? ' Per caricarle: menu ⋯ › «Importa risposte del modulo».' : '') + '</p></div></div>';
+    var G = {}; c.mod.r.forEach(function(x){ var k = modSez(x[0]); (G[k] = G[k] || []).push(x); });
+    var blocchi = function(L, re, nome){ var B = {}, ord = [], resto = []; L.forEach(function(x){ var m = x[0].match(re); if(m){ if(!B[m[1]]){ B[m[1]] = []; ord.push(m[1]); } B[m[1]].push([x[0].replace(re, '').replace(/^\s*·\s*/, ''), x[1]]); } else resto.push(x); });
+      return ord.map(function(n){ return '<div class="sx-mod-b"><b>' + nome + ' ' + n + '</b><dl class="sel-dom">' + modRighe(B[n]) + '</dl></div>'; }).join('') + (resto.length ? '<dl class="sel-dom">' + modRighe(resto) + '</dl>' : ''); };
+    var card = function(k, tit){ var L = G[k]; if(!L || !L.length) return ''; var corpo = k === 'att' ? blocchi(L, /^Attestato (\d+)/i, 'Attestato') : k === 'esp' ? blocchi(L, /^Esperienza (\d+)/i, 'Esperienza') : '<dl class="sel-dom">' + modRighe(L) + '</dl>'; return '<div class="sel-card"><h3>' + tit + '</h3>' + corpo + '</div>'; };
+    var h = '<p class="sel-muted">Risposte al modulo pre-colloquio' + (c.mod.ts ? ' inviate il ' + E(c.mod.ts) : '') + (c.mod.il ? ' · caricate il ' + E(new Date(c.mod.il).toLocaleString('it-IT')) : '') + '. Non cambiano il punteggio: servono a chiudere i casi aperti e a preparare il colloquio.</p>';
+    h += app + casi + card('tit', '🎓 Titolo di studio') + card('att', '📜 Corsi, certificazioni e attestati') + card('esp', '💼 Esperienze') + card('pat', '🚗 Patente e spostamenti')
+      + card('prog', S.prog === 'agricolo' ? '🌱 Esperienza e competenze in campagna' : '💻 Competenze digitali') + card('con', '🙂 Conoscerlo meglio') + card('dati', '👤 Dati e recapiti') + card('fin', '✅ Conferma');
+    return '<div class="sx-wrap">' + h + '</div>';
+  }
   /* ── storico: niente doppioni ── */
   function chiaveLog(l){ return [l.ts || '', l.cod || '', l.desc || ''].join('|'); }
   function doppiLog(){ var vis = {}, n = 0; (S.doc.log || []).forEach(function(l){ var k = chiaveLog(l); if(vis[k]) n++; else vis[k] = 1; }); return n; }
@@ -93570,6 +93673,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var h = '<div class="sel-head"><div class="sel-head-t"><div class="sel-h1">' + cfg.ico + ' Selezioni · ' + E(cfg.nome) + '</div><div class="sel-muted">' + E(crit().progetto) + ' · scadenza bando ' + SCADENZA + '</div></div>'
       + '<details class="sel-menu"><summary class="sel-mbtn" title="Altre azioni">⋯</summary><div class="sel-mpop">'
       + (mod ? '<button onclick="selMenuChiudi();document.getElementById(\'sel-in-json\').click()">⬆ Importa valutazioni o foto da file</button>' : '')
+      + (mod ? '<button onclick="selMenuChiudi();selModuloScegli()">🗒 Importa risposte del modulo (CSV)</button>' : '')
       + (mod && fotoVecchie().length ? '<button onclick="selMenuChiudi();selFotoSposta()">📷 Sposta le foto sul NAS (' + fotoVecchie().length + ')</button>' : '')
       + (mod && doppiLog() ? '<button onclick="selMenuChiudi();selPulisciStorico()">🧹 Togli i doppioni dallo storico (' + doppiLog() + ')</button>' : '')
       + '<button onclick="selMenuChiudi();selEsporta()">⬇ Salva una copia (backup)</button><button onclick="selMenuChiudi();selRicarica()">↻ Ricarica dal NAS</button>'
@@ -93619,7 +93723,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var all = lista();
     var rows = L.map(function(c){ var v = V(c.cod), od = aperti(v), cod = c.cod;
       var ult = v.ult.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; '), comp = v.comp.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; ');
-      return '<tr><td>' + (all.indexOf(c) + 1) + '</td><td class="nm" onclick="selApri(\'' + cod + '\')" title="Apri dettaglio, domanda e PDF">' + E(c.nome) + ' ' + (v.ctrl ? '<span class="sx-tk" title="Valutazione controllata">✓</span>' : '') + (od ? '<span class="sel-bd" title="Casi da verificare aperti">' + od + '</span>' : '') + (c.pdf ? '' : ' <span title="PDF non caricato" style="opacity:.5">📄✗</span>') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td class="ed' + (c.gmoMan ? ' mn' : '') + '" onclick="selGmo(event,\'' + cod + '\')" title="' + E(TT['GMO'] + (c.gmoMan ? '\nModificato a mano (nella domanda: ' + gmoDom(c) + ')' : '') + '\n(clicca per cambiare SÌ / NO)') + '">' + c.gmo + '</td><td>' + c.altro + '</td>'
+      return '<tr><td>' + (all.indexOf(c) + 1) + '</td><td class="nm" onclick="selApri(\'' + cod + '\')" title="Apri dettaglio, domanda e PDF">' + E(c.nome) + ' ' + (c.mod ? '<span class="sx-modi" title="Ha risposto al modulo pre-colloquio">🗒</span>' : '') + (v.ctrl ? '<span class="sx-tk" title="Valutazione controllata">✓</span>' : '') + (od ? '<span class="sel-bd" title="Casi da verificare aperti">' + od + '</span>' : '') + (c.pdf ? '' : ' <span title="PDF non caricato" style="opacity:.5">📄✗</span>') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td class="ed' + (c.gmoMan ? ' mn' : '') + '" onclick="selGmo(event,\'' + cod + '\')" title="' + E(TT['GMO'] + (c.gmoMan ? '\nModificato a mano (nella domanda: ' + gmoDom(c) + ')' : '') + '\n(clicca per cambiare SÌ / NO)') + '">' + c.gmo + '</td><td>' + c.altro + '</td>'
         + COLT.map(function(t, i){ return ec(cod, 'tit:' + t[1] + ':' + (t[2] ? 1 : 0), fz(titCell(v, t)), isMan(v, 'tit') && titCell(v, t) !== '', !i); }).join('')
         + '<td class="txt gs" onclick="selApri(\'' + cod + '\')" title="' + E(ult) + '"><div>' + E(ult) + '</div></td>' + ec(cod, 'ult', fz(pUlt(v)), isMan(v, 'ult'))
         + '<td class="gs" onclick="selApri(\'' + cod + '\')">' + E(v.pat.tipo) + '</td><td onclick="selApri(\'' + cod + '\')">' + E(v.pat.data) + '</td><td class="txt gs" onclick="selApri(\'' + cod + '\')" title="' + E(comp) + '"><div>' + E(comp) + '</div></td>' + ec(cod, 'comp', fz(pComp(v)), isMan(v, 'comp'))
@@ -93633,7 +93737,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   }
   function vistaDub(){
     var tot = 0, h = lista().filter(function(c){ return V(c.cod).dubbi.length; }).map(function(c){ var v = V(c.cod); tot += aperti(v);
-      return '<div class="sel-card"><h3><span>' + E(c.nome) + ' <span class="sel-muted">· ' + c.cod + '</span></span><button class="btn btn-outline btn-sm" onclick="selApri(\'' + c.cod + '\')">Apri</button></h3>'
+      return '<div class="sel-card"><h3><span>' + E(c.nome) + ' <span class="sel-muted">· ' + c.cod + '</span>' + (c.mod && aperti(v) ? ' <button class="sx-modb" onclick="selApri(\'' + c.cod + '\');selDtab(\'mod\')" title="Apri le risposte al modulo">🗒 ha risposto al modulo: controlla</button>' : '') + '</span><button class="btn btn-outline btn-sm" onclick="selApri(\'' + c.cod + '\')">Apri</button></h3>'
         + v.dubbi.map(function(d, i){ return '<div class="sel-dub' + (d.ok ? ' ok' : '') + '"><input type="checkbox"' + (d.ok ? ' checked' : '') + (puoMod() ? '' : ' disabled') + ' onchange="selDub(\'' + c.cod + '\',' + i + ',this.checked)"><span>' + E(d.t) + '</span></div>'; }).join('') + '</div>'; }).join('');
     return '<div class="sel-bar"><b>' + tot + ' casi ancora aperti</b><span class="sel-muted">Spunta un caso quando la commissione ha deciso. Se cambi un punteggio, fallo dalla tabella o dal dettaglio.</span></div>' + (h || '<div class="sel-card">Nessun caso da verificare.</div>');
   }
@@ -93774,8 +93878,8 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     if(split) cvCarica(c);
     main.innerHTML = '<div class="sel-dh sx-dh">' + (fotoSrc(c) ? '<button class="sel-av sx-av foto" onclick="selFotoVedi()" title="Ingrandisci la foto"><img src="' + fotoSrc(c) + '" alt=""></button>' : (puoMod() ? '<button class="sel-av sx-av" onclick="selFotoScegli()" title="Aggiungi la foto dal curriculum">' + E(ini) + '<i class="sx-av-cam">📷</i></button>' : '<div class="sel-av">' + E(ini) + '</div>')) + '<div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
       + '<div class="sel-dact sx-act"><span class="sel-muted">' + (pos || '–') + ' / ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? (largo && S.dtab === 'val' ? '<button class="btn btn-sm ' + (split ? 'btn-teal' : 'btn-outline') + '" onclick="selAffianca(' + (split ? 'false' : 'true') + ')" title="' + (split ? 'Chiudi il CV affiancato' : 'Apri il CV accanto alla valutazione') + '">📄 ' + (split ? 'CV affiancato' : 'Affianca CV') + '</button>' : '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')" title="Apri la domanda con il CV">📄 PDF</button>') : '') + '<button class="btn btn-outline btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])" title="Stampa la scheda di questo candidato">🖨</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
-      + '<div class="sel-segw"><div class="sel-seg">' + [['val','📊 Valutazione'],['dom','📝 Domanda'],['pdf','📄 PDF domanda e CV'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.dtab === t[0] ? 'on' : '') + '" onclick="selDtab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div></div>'
-      + '<div class="sel-db">' + (S.dtab === 'val' ? drVal(c, v) : S.dtab === 'dom' ? drDom(c) : S.dtab === 'pdf' ? drPdf(c) : drLog(c)) + '</div>';
+      + '<div class="sel-segw"><div class="sel-seg">' + [['val','📊 Valutazione'],['mod','🗒 Modulo' + (c.mod ? ' ✓' : '')],['dom','📝 Domanda'],['pdf','📄 PDF domanda e CV'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.dtab === t[0] ? 'on' : '') + '" onclick="selDtab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div></div>'
+      + '<div class="sel-db">' + (S.dtab === 'val' ? drVal(c, v) : S.dtab === 'mod' ? drMod(c, v) : S.dtab === 'dom' ? drDom(c) : S.dtab === 'pdf' ? drPdf(c) : drLog(c)) + '</div>';
     requestAnimationFrame(function(){ main.querySelectorAll('textarea.sx-ta').forEach(selAutoH); });
   }
   function manNote(v, k, calc){ return isMan(v, k) ? '<div class="sel-man">✎ Valore inserito a mano dalla tabella: <b>' + fmt(MN(v, k)) + '</b> · il dettaglio qui sotto darebbe ' + fmt(calc) + (puoMod() ? ' <button class="btn btn-outline btn-sm" onclick="selTogliMan(\'' + k + '\')">Torna al calcolo</button>' : '') + '</div>' : ''; }
@@ -93837,6 +93941,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
       manNote(v, 'quest', cQuest(v)) + '<div class="sx-sub2">Questionario (0,5 per risposta esatta)</div>' + chips('scu', 3, .5, 'Servizio Civile') + chips('enti', 3, .5, 'Enti') + chips('prog', 4, .5, 'Progetto')
       + '<div class="sx-sub2">Colloquio</div>' + chips('mot', 12, 1, 'Motivazione') + chips('disp', 12, 1, 'Disponibilità') + chips('cap', 16, 1, 'Capacità pratica'));
     // note
+    h += '<section class="sx-sez"><header><span class="sx-n">📌</span><h3>Appunti per il colloquio</h3></header><textarea class="form-control" rows="2"' + dis + ' placeholder="domande da fare, cose da approfondire…" onchange="selSet(\'app\',this.value,\'Appunti per il colloquio\')" style="width:100%">' + E(v.app || '') + '</textarea>' + (c.mod ? '<div class="sx-ult">🗒 Ha risposto al modulo pre-colloquio: <a href="#" onclick="selDtab(\'mod\');return false">vedi le risposte</a></div>' : '') + '</section>';
     h += '<section class="sx-sez"><header><span class="sx-n">✎</span><h3>Note della commissione</h3></header><textarea class="form-control" rows="3"' + dis + ' placeholder="annotazioni libere…" onchange="selSet(\'note\',this.value,\'Note\')" style="width:100%">' + E(v.note || '') + '</textarea>'
       + (v._by ? '<div class="sx-ult">Ultima modifica: ' + E(v._by) + (v._ts ? ' · ' + E(new Date(v._ts).toLocaleString('it-IT')) : '') + '</div>' : '') + '</section>';
     return '<div class="sx-wrap">' + h + '</div>';
@@ -94029,7 +94134,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
 html[data-pi-tema="scuro"] .sel-passo.ora{background:rgba(234,88,12,.12)}
 html[data-pi-tema="scuro"] .sel-seg, html[data-pi-tema="scuro"] .sel-pn{background:#0b1220}
 @media (max-width:900px){ .sel-passi{grid-template-columns:repeat(3,minmax(0,1fr))} }
-@media (max-width:560px){ .sel-passi{grid-template-columns:repeat(2,minmax(0,1fr))} .sel-fbar .sel-q{flex:1 1 100%} .sel-fbar .form-control{height:auto;min-height:40px;font-size:16px} .sel-fbar .sel-fsel{flex:1 1 40%} .sel-seg{flex:1 1 100%} .sel-seg button{flex:1;padding:7px 6px} .sel-mpop{min-width:240px;max-width:calc(100vw - 24px)} .sel-mpop button{white-space:normal} .sel-avv .btn{display:block;width:100%;margin:8px 0 2px;min-height:40px} }
+@media (max-width:560px){ .sel-passi{grid-template-columns:repeat(2,minmax(0,1fr))} .sel-fbar .sel-q{flex:1 1 100%} .sel-fbar .form-control{height:auto;min-height:40px;font-size:16px} .sel-fbar .sel-fsel{flex:1 1 40%} .sel-seg{flex:1 1 100%} .sel-seg button{flex:1;padding:7px 6px} .sel-mpop{min-width:240px;max-width:calc(100vw - 24px)} .sx-mod-r{flex-direction:column;align-items:stretch} .sel-mpop button{white-space:normal} .sel-avv .btn{display:block;width:100%;margin:8px 0 2px;min-height:40px} }
 </style>
 <style id="sel-scheda-2026-11">
 /* (novembre 2026) Selezioni: scheda del candidato più semplice e ordinata */
@@ -94211,6 +94316,23 @@ html[data-pi-tema="scuro"] .sx-num{background:#0f172a}
 html[data-pi-tema="scuro"] .sx-chr{background:#0f172a}
 html[data-pi-tema="scuro"] .sx-ctrl.on, html[data-pi-tema="scuro"] .sx-ctrl:hover{background:rgba(22,163,74,.12)}
 @media (max-width:640px){ .sx-ch{min-width:34px;height:38px} }
+</style>
+<style id="sel-modulo-2026-11">
+/* (novembre 2026) Selezioni: risposte del modulo Google pre-colloquio */
+#sx-mod-ov{position:fixed;inset:0;z-index:100040;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px}
+#sx-mod-ov.on{display:flex}
+.sx-mod-r{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.sx-mod-r select{max-width:320px;flex:0 0 auto}
+.sx-ck-f{display:flex;justify-content:flex-end;gap:8px;padding:10px 18px;border-top:1.5px solid var(--border)}
+.sx-mod-b{border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:8px}
+.sx-mod-b > b{display:block;font-size:12.5px;color:var(--teal);margin-bottom:4px}
+.sx-mod-g{display:flex;flex-wrap:wrap;gap:4px 8px}
+.sx-mod-g span{background:var(--teal-light);border-radius:8px;padding:2px 8px;font-size:12px}
+.sx-mod-g i{font-style:normal;color:var(--text-muted)}
+.sx-mod-casi{border-color:#f5c27a;background:var(--warning-light)}
+.sx-modi{font-size:12px;margin-right:2px}
+.sx-modb{border:1px solid var(--teal);background:var(--teal-light);color:var(--teal);border-radius:999px;font-size:11.5px;font-weight:700;padding:2px 9px;cursor:pointer;margin-left:6px}
+@media (max-width:560px){ .sx-mod-r select{max-width:none;width:100%} }
 </style>
 <style id="sel-controlla-2026-11">
 /* (novembre 2026) Selezioni: controllo automatico delle valutazioni */
