@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 18/11/2026 10:28</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57423,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 18/11/2026 10:28 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -95571,6 +95571,8 @@ window.uploadUtentiCloud=async function(){
 .avv-form .r > *{flex:1;min-width:120px}
 .avv-ck{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
 .avv-ck label{display:flex;align-items:center;gap:5px;margin:0;font-weight:600;color:inherit}
+.avv-portali{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+@media (max-width:560px){ .avv-portali{grid-template-columns:1fr} }
 .avv-ut{max-height:130px;overflow:auto;border:1.5px solid var(--border,#e5e7eb);border-radius:10px;padding:6px 8px}
 @media (max-width:560px){ .avv-i{flex-wrap:wrap} .avv-a{width:100%;justify-content:flex-end} #avv-ov{padding:0;align-items:flex-end} .avv-box{border-radius:20px 20px 0 0;max-height:92vh} }
 </style>
@@ -95578,7 +95580,8 @@ window.uploadUtentiCloud=async function(){
 /* ═════════════════════════════════════════════════════════════════════
    AVVISI (novembre 2026) — serve il server 2.17
    Note che compaiono all'apertura del gestionale: «venerdì Fabio esce alle 12», «portare il panino a Enrico alle 14».
-   • Li creano responsabili e OLP; ognuno riceve solo quelli destinati a lui (tutti, certi ruoli o persone).
+   • Li creano responsabili e OLP; si mandano ai portali (amministratori, segreteria, OLP, educatori, animatori,
+     volontari SCU, genitori) o a persone scelte; ognuno riceve solo quelli destinati a lui.
    • All'apertura compare il riquadro se ci sono avvisi nuovi per oggi o i prossimi 2 giorni.
    • Pulsante 📌 nella barra in alto: elenco completo; «Fatto» vale per tutti, «Ho visto» per chi lo preme.
    • Notifica sul telefono: subito e/o X minuti prima (la manda il server, anche a gestionale chiuso).
@@ -95596,7 +95599,8 @@ window.uploadUtentiCloud=async function(){
   var gDi = function(ds){ var p = ds.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).getDay(); };
   var etichetta = function(ds){ var o = oggi(); if(ds === o) return 'Oggi'; if(ds === piu(o, 1)) return 'Domani'; var p = ds.split('-'); return GG[gDi(ds)] + ' ' + (+p[2]) + '/' + (+p[1]); };
   var AREE = { ist:'🏛️ Istituto', grest:'☀️ GREST', scu:'🤝 Servizio Civile' };
-  var RUOLI = ['Responsabile GREST','Responsabile Mini GREST','Segretario','OLP','Educatore','Caposquadra','Animatore','Animatore Laboratorio','Personalizzato'];
+  var PORTALI = [['admin','👑 Amministratori'],['segreteria','🗂️ Responsabili e segreteria'],['olp','🤝 OLP'],['educatori','🏛️ Educatori'],['animatori','☀️ Animatori e caposquadra'],['volontari','🎓 Volontari Servizio Civile'],['genitori','👪 Genitori']];
+  var NOMEP = {}; PORTALI.forEach(function(x){ NOMEP[x[0]] = x[1].replace(/^\S+\s/, ''); });
   var NOT_PRIMA = [['', 'nessuna'], ['0', 'all\'ora'], ['15', '15 minuti prima'], ['30', '30 minuti prima'], ['60', '1 ora prima'], ['120', '2 ore prima'], ['1440', 'il giorno prima']];
 
   function capita(a, ds){
@@ -95612,7 +95616,7 @@ window.uploadUtentiCloud=async function(){
   function prossima(a, da, giorni){ for(var i = 0; i <= giorni; i++){ var ds = piu(da, i); if(capita(a, ds)) return ds; } return null; }
   function nuovo(a){ return a.perMe && (!a.visto || a.visto < (a.mod || a.il || '')); }
   function ripTxt(a){ return a.rip === 'giorno' ? 'ogni giorno' : a.rip === 'feriali' ? 'dal lunedì al venerdì' : a.rip === 'settimana' ? 'ogni ' + GGL[gDi(a.data)] : ''; }
-  function destTxt(a){ var d = a.a || {}; if(d.tutti) return 'tutti'; return [].concat(d.ruoli || [], (d.utenti || []).map(function(u){ return u.toLowerCase(); })).join(', ') || 'solo chi l\'ha scritto'; }
+  function destTxt(a){ var d = a.a || {}; if(d.tutti) return 'tutto lo staff'; return [].concat((d.portali || []).map(function(p){ return NOMEP[p] || p; }), d.ruoli || [], (d.utenti || []).map(function(u){ return u.toLowerCase(); })).join(', ') || 'solo chi l\'ha scritto'; }
 
   async function chiama(metodo, corpo){
     var r = await nasFetch(NAS_URL + '/api/avvisi', metodo === 'GET' ? {} : { method:'POST', headers:{ 'Content-Type':'application/json; charset=utf-8' }, body:JSON.stringify(corpo) });
@@ -95621,7 +95625,7 @@ window.uploadUtentiCloud=async function(){
     return j;
   }
   async function carica(){
-    var u = io(); if(!u || u.ruolo === 'Genitore' || u.ruolo === 'Totem') return false;
+    var u = io(); if(!u || u.ruolo === 'Totem') return false;
     try{ var j = await chiama('GET'); A.lista = j.avvisi || []; A.puoCreare = !!j.puoCreare; A.io = j.io || ''; A.ok = true; A.ultimo = Date.now(); }
     catch(e){ return false; }
     bottone(); return true;
@@ -95710,7 +95714,7 @@ window.uploadUtentiCloud=async function(){
   /* ── nuovo / modifica ── */
   window.avvisiForm = function(id){
     var a = id ? A.lista.filter(function(x){ return x.id === id; })[0] : null;
-    a = a || { testo:'', data:oggi(), ora:'', rip:'', fino:'', area:'', a:{ tutti:true, ruoli:[], utenti:[] }, notifica:{ subito:false, prima:null } };
+    a = a || { testo:'', data:oggi(), ora:'', rip:'', fino:'', area:'', a:{ portali:[], utenti:[] }, notifica:{ subito:false, prima:null } };
     var d = a.a || {}, n = a.notifica || {};
     var utenti = ((typeof APP !== 'undefined' && APP.utenti) || []).filter(function(u){ return u && u.username && !u._eliminato && ['Genitore','Totem'].indexOf(u.ruolo) < 0; })
       .sort(function(x, y){ return String(x.nome || x.username).localeCompare(String(y.nome || y.username)); });
@@ -95720,9 +95724,9 @@ window.uploadUtentiCloud=async function(){
       + '<div class="r"><div><label>Si ripete</label><select id="avv-f-rip" class="form-control">' + [['', 'no, solo quel giorno'], ['giorno', 'ogni giorno'], ['feriali', 'dal lunedì al venerdì'], ['settimana', 'ogni settimana, stesso giorno']].map(function(x){ return '<option value="' + x[0] + '"' + (a.rip === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>'
       + '<div><label>Fino al (se si ripete)</label><input id="avv-f-fino" type="date" class="form-control" value="' + E(a.fino) + '"></div></div>'
       + '<label>Area</label><select id="avv-f-area" class="form-control">' + [['', 'generale']].concat(Object.keys(AREE).map(function(k){ return [k, AREE[k]]; })).map(function(x){ return '<option value="' + x[0] + '"' + (a.area === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>'
-      + '<label>Chi lo vede</label><div class="avv-ck"><label><input type="checkbox" id="avv-f-tutti"' + (d.tutti ? ' checked' : '') + ' onchange="document.getElementById(\'avv-f-scelta\').style.display=this.checked?\'none\':\'\'"> tutti</label></div>'
-      + '<div id="avv-f-scelta"' + (d.tutti ? ' style="display:none"' : '') + '><div class="avv-ck" style="margin:6px 0">' + RUOLI.map(function(r){ return '<label><input type="checkbox" class="avv-f-ruolo" value="' + E(r) + '"' + ((d.ruoli || []).indexOf(r) >= 0 ? ' checked' : '') + '> ' + E(r) + '</label>'; }).join('') + '</div>'
-      + '<div class="avv-ut avv-ck">' + utenti.map(function(u){ var U = String(u.username).toUpperCase(); return '<label><input type="checkbox" class="avv-f-utente" value="' + E(U) + '"' + ((d.utenti || []).indexOf(U) >= 0 ? ' checked' : '') + '> ' + E(u.nome || u.username) + ' <small style="color:var(--text-muted)">' + E(u.ruolo || '') + '</small></label>'; }).join('') + '</div></div>'
+      + '<label>Chi lo vede</label><div class="avv-ck avv-portali">' + PORTALI.map(function(x){ return '<label><input type="checkbox" class="avv-f-portale" value="' + x[0] + '"' + ((d.portali || []).indexOf(x[0]) >= 0 || (d.tutti && x[0] !== 'genitori') ? ' checked' : '') + '> ' + x[1] + '</label>'; }).join('') + '</div>'
+      + '<details style="margin-top:6px"' + ((d.utenti || []).length ? ' open' : '') + '><summary style="font-size:12.5px;font-weight:800;cursor:pointer">…oppure solo alcune persone (' + (d.utenti || []).length + ')</summary>'
+      + '<div class="avv-ut avv-ck" style="margin-top:6px">' + utenti.map(function(u){ var U = String(u.username).toUpperCase(); return '<label><input type="checkbox" class="avv-f-utente" value="' + E(U) + '"' + ((d.utenti || []).indexOf(U) >= 0 ? ' checked' : '') + '> ' + E(u.nome || u.username) + ' <small style="color:var(--text-muted)">' + E(u.ruolo || '') + '</small></label>'; }).join('') + '</div></details>'
       + '<label>Notifica sul telefono</label><div class="r"><div class="avv-ck"><label><input type="checkbox" id="avv-f-subito"' + (n.subito && !id ? ' checked' : '') + '> mandala subito</label></div>'
       + '<div><select id="avv-f-prima" class="form-control">' + NOT_PRIMA.map(function(x){ return '<option value="' + x[0] + '"' + (String(n.prima == null ? '' : n.prima) === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div></div>'
       + '<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px">La notifica arriva a chi lo vede e ha attivato le notifiche del gestionale. Quella «prima» serve l\'ora dell\'avviso.</div>'
@@ -95733,11 +95737,11 @@ window.uploadUtentiCloud=async function(){
   window.avvisiSalva = async function(id){
     var v = function(i){ var el = document.getElementById(i); return el ? el.value : ''; };
     var av = { testo:v('avv-f-testo').trim(), data:v('avv-f-data'), ora:v('avv-f-ora'), rip:v('avv-f-rip'), fino:v('avv-f-fino'), area:v('avv-f-area'),
-      a:{ tutti:document.getElementById('avv-f-tutti').checked, ruoli:[].map.call(document.querySelectorAll('.avv-f-ruolo:checked'), function(x){ return x.value; }), utenti:[].map.call(document.querySelectorAll('.avv-f-utente:checked'), function(x){ return x.value; }) },
+      a:{ portali:[].map.call(document.querySelectorAll('.avv-f-portale:checked'), function(x){ return x.value; }), utenti:[].map.call(document.querySelectorAll('.avv-f-utente:checked'), function(x){ return x.value; }) },
       notifica:{ subito:document.getElementById('avv-f-subito').checked, prima:v('avv-f-prima') === '' ? null : +v('avv-f-prima') } };
     if(!av.testo){ showToast('Scrivi il testo dell\'avviso', 'warning'); return; }
     if(!av.data){ showToast('Scegli il giorno', 'warning'); return; }
-    if(!av.a.tutti && !av.a.ruoli.length && !av.a.utenti.length){ showToast('Scegli chi deve vederlo (o «tutti»)', 'warning'); return; }
+    if(!av.a.portali.length && !av.a.utenti.length){ showToast('Scegli a quali portali (o persone) mandarlo', 'warning'); return; }
     if(av.notifica.prima != null && !av.ora){ showToast('Per la notifica «prima» serve l\'ora dell\'avviso', 'warning'); return; }
     try{ await chiama('POST', { azione:id ? 'modifica' : 'crea', id:id || '', avviso:av }); await carica(); showToast('✅ Avviso salvato' + (av.notifica.subito ? ' e notificato' : ''), 'success'); avvisiApri(); }
     catch(e){ showToast('⚠️ Non salvato: ' + e.message, 'warning'); }
