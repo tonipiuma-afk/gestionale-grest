@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 17/11/2026 10:42</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57423,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 17/11/2026 10:42 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76334,8 +76334,9 @@ function passNasRender(){
     + '<button type="button" class="btn btn-outline btn-sm" onclick="documentiNasMostra()">📎 Documenti e cestino</button></div>'
     + '<div id="porta-box" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">Stato della porta: …</div>'
     + '<div id="filtro-box" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">Portale famiglie: …</div>'
+    + '<div id="permessi-box" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">Permessi e portali: …</div>'
     + '<div id="pass-nas-reg" style="margin-top:12px"></div>';
-  if(box.offsetParent !== null){ portaRender(); filtroRender(); }
+  if(box.offsetParent !== null){ portaRender(); filtroRender(); if(typeof permessiRender === 'function') permessiRender(); }
 }
 /* ── Portale famiglie: ogni genitore riceve solo i suoi dati (server 2.15) ── */
 async function filtroRender(){
@@ -76361,6 +76362,49 @@ async function filtroImposta(stato){
     else showToast(r.status === 403 ? 'Serve il pass da amministratore: premi "Richiedi il pass ora"' : 'Il NAS non ha accettato il cambio', 'warning');
   }catch(e){ showToast('NAS non raggiungibile', 'warning'); }
   filtroRender();
+}
+/* ── Permessi e portali (server 2.16): ogni account legge e scrive solo ciò che gli spetta ── */
+async function permessiRender(){
+  var box = document.getElementById('permessi-box'); if(!box) return;
+  var st = null; try{ var r = await fetch(NAS_URL + '/api/pass/permessi'); if(r.ok) st = await r.json(); }catch(e){}
+  if(!st || !st.permessi){ box.innerHTML = '<div style="font-size:13px">Permessi e portali: <b style="color:#b45309">server non aggiornato</b> (serve il server 2.16)</div>'; return; }
+  var nomi = { spento:'<b>spento</b>', osserva:'<b style="color:#1d4ed8">👁 osserva</b> (non blocca, annota)', prova:'<b style="color:#1d4ed8">🧪 in prova</b> per: ' + _pnE((st.prova || []).join(', ') || '—') + ' (gli altri: osserva)', acceso:'<b style="color:#15803d">🔒 ACCESO</b>' };
+  var sel = function(id, val, conProva){ return '<select id="' + id + '" class="form-control" style="max-width:150px;font-size:13px;display:inline-block">' + ['spento','osserva'].concat(conProva ? ['prova'] : []).concat(['acceso']).map(function(x){ return '<option value="' + x + '"' + (x === val ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>'; };
+  var reg = st.registro || { eventi:[] }, ev = reg.eventi || [];
+  var cnt = {}; ev.forEach(function(e){ cnt[e.tipo] = (cnt[e.tipo] || 0) + (e.n || 1); });
+  box.innerHTML = '<div style="font-size:13px;margin-bottom:6px">Permessi per area: ' + (nomi[st.permessi] || st.permessi) + ' · Portali: ' + (nomi[st.portali] || st.portali) + (st.il ? ' <small style="color:var(--text-muted)">· dal ' + _pnData(st.il) + (st.da ? ' (' + _pnE(st.da) + ')' : '') + '</small>' : '') + '</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px">Permessi ' + sel('perm-sel-p', st.permessi) + ' Portali ' + sel('perm-sel-o', st.portali, true)
+    + '<input id="perm-prova" class="form-control" style="max-width:220px;font-size:13px" placeholder="account di prova (per «prova»)" value="' + _pnE((st.prova || []).join(', ')) + '">'
+    + '<button type="button" class="btn btn-teal btn-sm" onclick="permessiImposta()">Salva</button></div>'
+    + '<div style="font-size:12px;color:var(--text-muted);margin-top:6px"><b>Permessi</b>: Istituto, Servizio Civile, Selezioni, utenti e copie di sicurezza solo a chi ha il permesso. <b>Portali</b>: animatori senza cassa e Servizio Civile degli altri, volontari solo con i propri turni, timbrature, richieste e firme, OLP senza i dati dei bambini, educatori senza GREST, totem senza cassa. «Osserva» non blocca niente: annota soltanto cosa sarebbe cambiato. Le parti nascoste non si perdono mai: quando un portale salva, il server le rimette al loro posto. Amministratore e Responsabile Generale non hanno limiti.</div>'
+    + '<div style="margin-top:8px;font-size:12.5px">Registro: ' + (ev.length ? Object.keys(cnt).map(function(k){ return '<b>' + cnt[k] + '</b> ' + _pnE(k); }).join(' · ') : 'nessun evento') + ' <button type="button" class="btn btn-outline btn-sm" onclick="permessiRegistro()">Vedi</button> <button type="button" class="btn btn-outline btn-sm" onclick="permessiAzzera()">Azzera</button></div>'
+    + '<div id="perm-reg" style="margin-top:8px"></div>';
+}
+async function permessiImposta(){
+  var p = (document.getElementById('perm-sel-p') || {}).value, o = (document.getElementById('perm-sel-o') || {}).value;
+  var prova = String((document.getElementById('perm-prova') || {}).value || '').split(/[,\s]+/).filter(Boolean);
+  if(o === 'prova' && !prova.length){ showToast('Scrivi almeno un account per la prova', 'warning'); return; }
+  if((p === 'acceso' || o === 'acceso') && !await xConferma('Accendere ' + [p === 'acceso' ? 'i permessi per area' : '', o === 'acceso' ? 'i filtri dei portali' : ''].filter(Boolean).join(' e ') + ' per tutti?\n\nPrima conviene aver lasciato qualche giorno su «osserva» e controllato il registro. Si spegne da qui in qualsiasi momento.')) return;
+  try{
+    var r = await fetch(NAS_URL + '/api/pass/permessi', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ permessi:p, portali:o, prova:prova }) });
+    if(r.ok) showToast('✅ Impostazione salvata sul NAS', 'success');
+    else showToast(r.status === 403 ? 'Serve il pass da amministratore: premi "Richiedi il pass ora"' : 'Il NAS non ha accettato il cambio', 'warning');
+  }catch(e){ showToast('NAS non raggiungibile', 'warning'); }
+  permessiRender();
+}
+async function permessiRegistro(){
+  var el = document.getElementById('perm-reg'); if(!el) return;
+  var st = null; try{ var r = await fetch(NAS_URL + '/api/pass/permessi'); if(r.ok) st = await r.json(); }catch(e){}
+  var ev = (st && st.registro && st.registro.eventi) || [];
+  if(!ev.length){ el.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted)">Nessun evento.</div>'; return; }
+  el.innerHTML = '<div style="max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--bg)"><th style="text-align:left;padding:5px 8px">Quando</th><th style="text-align:left;padding:5px 8px">Account</th><th style="text-align:left;padding:5px 8px">Cosa</th><th style="text-align:left;padding:5px 8px">Archivio</th><th style="text-align:left;padding:5px 8px">Dettaglio</th></tr></thead><tbody>'
+    + ev.slice(0, 150).map(function(e){ return '<tr style="border-top:1px solid var(--border)"><td style="padding:4px 8px;white-space:nowrap">' + _pnData(e.ultimo || e.il) + '</td><td style="padding:4px 8px">' + _pnE(e.u) + ' <small style="color:var(--text-muted)">' + _pnE(e.r) + '</small></td><td style="padding:4px 8px">' + _pnE(e.tipo) + ' · ' + _pnE(e.cosa) + (e.n > 1 ? ' <small>(×' + e.n + ')</small>' : '') + '</td><td style="padding:4px 8px">' + _pnE(e.k) + '</td><td style="padding:4px 8px">' + _pnE(e.dett) + '</td></tr>'; }).join('')
+    + '</tbody></table></div>';
+}
+async function permessiAzzera(){
+  if(!await xConferma('Azzerare il registro dei permessi?')) return;
+  try{ await fetch(NAS_URL + '/api/pass/permessi', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ azzera:true }) }); }catch(e){}
+  permessiRender();
 }
 async function portaRender(){
   var box = document.getElementById('porta-box'); if(!box) return;
@@ -95494,5 +95538,230 @@ window.uploadUtentiCloud=async function(){
 };
 })();
 </script>
+<style id="avvisi-2026-11">
+/* (novembre 2026) Avvisi: note che compaiono all'apertura */
+.avv-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.avv-btn .avv-n{background:#ef4444;color:#fff;border-radius:999px;font-size:10.5px;min-width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+#pi-appbar .avv-btn{margin-left:auto;margin-right:6px;background:var(--teal-light,#e6f4f1);color:var(--teal-dark,#0f766e);border-color:transparent}
+#avv-ov{position:fixed;inset:0;z-index:100050;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:14px}
+#avv-ov.on{display:flex}
+.avv-box{background:var(--card,#fff);border-radius:20px;width:min(560px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.avv-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1.5px solid var(--border,#e5e7eb)}
+.avv-h b{font-size:16px}
+.avv-x{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-muted,#64748b)}
+.avv-b{padding:12px 18px;overflow:auto;flex:1}
+.avv-f{display:flex;justify-content:flex-end;gap:8px;padding:10px 18px;border-top:1.5px solid var(--border,#e5e7eb);flex-wrap:wrap}
+.avv-g{font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted,#64748b);margin:12px 0 6px}
+.avv-g:first-child{margin-top:0}
+.avv-i{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--border,#e5e7eb);border-radius:14px;padding:9px 11px;margin-bottom:7px}
+.avv-i.nuovo{border-color:#f59e0b;background:#fffbeb}
+.avv-i.fatto{opacity:.55}
+.avv-i.fatto .avv-t{text-decoration:line-through}
+.avv-q{flex:0 0 auto;min-width:54px;text-align:center;font-weight:900;font-size:13px;color:var(--teal-dark,#0f766e);line-height:1.15}
+.avv-q small{display:block;font-size:10.5px;font-weight:700;color:var(--text-muted,#64748b)}
+.avv-c{flex:1;min-width:0}
+.avv-t{font-size:14px;font-weight:700;white-space:pre-wrap;word-break:break-word}
+.avv-m{font-size:11.5px;color:var(--text-muted,#64748b);margin-top:2px}
+.avv-a{display:flex;gap:4px;flex:0 0 auto;align-items:center}
+.avv-a button{border:1.5px solid var(--border,#e5e7eb);background:var(--card,#fff);border-radius:10px;padding:4px 8px;font-size:12px;font-weight:800;cursor:pointer}
+.avv-a button.ok{border-color:#16a34a;color:#15803d}
+.avv-chip{display:inline-block;border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:800;margin-right:4px;background:var(--bg,#f1f5f9)}
+.avv-form label{display:block;font-size:12px;font-weight:800;color:var(--text-muted,#64748b);margin:9px 0 3px}
+.avv-form .r{display:flex;gap:8px;flex-wrap:wrap}
+.avv-form .r > *{flex:1;min-width:120px}
+.avv-ck{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
+.avv-ck label{display:flex;align-items:center;gap:5px;margin:0;font-weight:600;color:inherit}
+.avv-ut{max-height:130px;overflow:auto;border:1.5px solid var(--border,#e5e7eb);border-radius:10px;padding:6px 8px}
+@media (max-width:560px){ .avv-i{flex-wrap:wrap} .avv-a{width:100%;justify-content:flex-end} #avv-ov{padding:0;align-items:flex-end} .avv-box{border-radius:20px 20px 0 0;max-height:92vh} }
+</style>
+<script id="avvisi-2026-11-js">
+/* ═════════════════════════════════════════════════════════════════════
+   AVVISI (novembre 2026) — serve il server 2.17
+   Note che compaiono all'apertura del gestionale: «venerdì Fabio esce alle 12», «portare il panino a Enrico alle 14».
+   • Li creano responsabili e OLP; ognuno riceve solo quelli destinati a lui (tutti, certi ruoli o persone).
+   • All'apertura compare il riquadro se ci sono avvisi nuovi per oggi o i prossimi 2 giorni.
+   • Pulsante 📌 nella barra in alto: elenco completo; «Fatto» vale per tutti, «Ho visto» per chi lo preme.
+   • Notifica sul telefono: subito e/o X minuti prima (la manda il server, anche a gestionale chiuso).
+   • I dati stanno sul NAS (/api/avvisi), mai nell'index.
+   ═════════════════════════════════════════════════════════════════════ */
+(function(){
+  if(window._AVV) return;
+  var A = window._AVV = { lista:[], puoCreare:false, io:'', ok:false, mostrato:{}, ultimo:0 };
+  var E = function(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var io = function(){ try{ return (typeof AUTH !== 'undefined' && AUTH.currentUser) || null; }catch(e){ return null; } };
+  var iso = function(d){ return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+  var oggi = function(){ return iso(new Date()); };
+  var piu = function(ds, n){ var p = ds.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return iso(d); };
+  var GG = ['dom','lun','mar','mer','gio','ven','sab'], GGL = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+  var gDi = function(ds){ var p = ds.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).getDay(); };
+  var etichetta = function(ds){ var o = oggi(); if(ds === o) return 'Oggi'; if(ds === piu(o, 1)) return 'Domani'; var p = ds.split('-'); return GG[gDi(ds)] + ' ' + (+p[2]) + '/' + (+p[1]); };
+  var AREE = { ist:'🏛️ Istituto', grest:'☀️ GREST', scu:'🤝 Servizio Civile' };
+  var RUOLI = ['Responsabile GREST','Responsabile Mini GREST','Segretario','OLP','Educatore','Caposquadra','Animatore','Animatore Laboratorio','Personalizzato'];
+  var NOT_PRIMA = [['', 'nessuna'], ['0', 'all\'ora'], ['15', '15 minuti prima'], ['30', '30 minuti prima'], ['60', '1 ora prima'], ['120', '2 ore prima'], ['1440', 'il giorno prima']];
+
+  function capita(a, ds){
+    if(!a || a._del || !a.data || ds < a.data) return false;
+    if(!a.rip) return ds === a.data;
+    if(a.fino && ds > a.fino) return false;
+    var g = gDi(ds);
+    if(a.rip === 'giorno') return true;
+    if(a.rip === 'feriali') return g >= 1 && g <= 5;
+    if(a.rip === 'settimana') return g === gDi(a.data);
+    return false;
+  }
+  function prossima(a, da, giorni){ for(var i = 0; i <= giorni; i++){ var ds = piu(da, i); if(capita(a, ds)) return ds; } return null; }
+  function nuovo(a){ return a.perMe && (!a.visto || a.visto < (a.mod || a.il || '')); }
+  function ripTxt(a){ return a.rip === 'giorno' ? 'ogni giorno' : a.rip === 'feriali' ? 'dal lunedì al venerdì' : a.rip === 'settimana' ? 'ogni ' + GGL[gDi(a.data)] : ''; }
+  function destTxt(a){ var d = a.a || {}; if(d.tutti) return 'tutti'; return [].concat(d.ruoli || [], (d.utenti || []).map(function(u){ return u.toLowerCase(); })).join(', ') || 'solo chi l\'ha scritto'; }
+
+  async function chiama(metodo, corpo){
+    var r = await nasFetch(NAS_URL + '/api/avvisi', metodo === 'GET' ? {} : { method:'POST', headers:{ 'Content-Type':'application/json; charset=utf-8' }, body:JSON.stringify(corpo) });
+    var j = null; try{ j = await r.json(); }catch(e){}
+    if(!r.ok) throw new Error((j && j.error) || ('NAS ' + r.status));
+    return j;
+  }
+  async function carica(){
+    var u = io(); if(!u || u.ruolo === 'Genitore' || u.ruolo === 'Totem') return false;
+    try{ var j = await chiama('GET'); A.lista = j.avvisi || []; A.puoCreare = !!j.puoCreare; A.io = j.io || ''; A.ok = true; A.ultimo = Date.now(); }
+    catch(e){ return false; }
+    bottone(); return true;
+  }
+  window.avvisiCarica = carica;
+
+  /* ── pulsante nella barra in alto (computer e telefono) ── */
+  function daVedere(){ var o = oggi(); return A.lista.filter(function(a){ var ds = prossima(a, o, 2); return ds && nuovo(a) && !(a.fatto && a.fatto[ds]); }); }
+  function bottone(){
+    if(!A.ok) return;
+    var n = daVedere().length, html = '📌 Avvisi' + (n ? ' <span class="avv-n">' + n + '</span>' : '');
+    var htmlMob = '📌' + (n ? ' <span class="avv-n">' + n + '</span>' : '');
+    [['header-status-row1', 'avv-btn-pc', html], ['pi-appbar', 'avv-btn-mob', htmlMob]].forEach(function(x){
+      var cont = document.getElementById(x[0]); if(!cont) return;
+      var b = document.getElementById(x[1]);
+      if(!b){ b = document.createElement('button'); b.type = 'button'; b.id = x[1]; b.className = 'avv-btn'; b.title = 'Avvisi'; b.onclick = function(e){ e.stopPropagation(); avvisiApri(); }; cont.appendChild(b); }
+      b.innerHTML = x[2];
+    });
+  }
+
+  /* ── riquadro ── */
+  function ov(){ var o = document.getElementById('avv-ov'); if(!o){ o = document.createElement('div'); o.id = 'avv-ov'; o.onclick = function(e){ if(e.target === o) avvisiChiudi(); }; document.body.appendChild(o); } return o; }
+  window.avvisiChiudi = function(){ var o = document.getElementById('avv-ov'); if(o) o.classList.remove('on'); };
+  function riga(a, ds, conAzioni){
+    var fatto = !!(a.fatto && a.fatto[ds]), mio = A.puoCreare && (a.da === A.io || ['Admin','Responsabile Generale'].indexOf((io() || {}).ruolo) >= 0);
+    var meta = [];
+    if(a.area && AREE[a.area]) meta.push('<span class="avv-chip">' + AREE[a.area] + '</span>');
+    if(a.rip) meta.push('🔁 ' + ripTxt(a) + (a.fino ? ' fino al ' + a.fino.split('-').reverse().join('/') : ''));
+    if(A.puoCreare) meta.push('per: ' + E(destTxt(a)));
+    if(a.notifica && a.notifica.prima != null) meta.push('🔔 ' + (NOT_PRIMA.filter(function(x){ return x[0] === String(a.notifica.prima); })[0] || ['', a.notifica.prima + ' min prima'])[1]);
+    if(fatto) meta.push('✓ fatto da ' + E(String(a.fatto[ds].da || '').toLowerCase()));
+    return '<div class="avv-i' + (fatto ? ' fatto' : (nuovo(a) ? ' nuovo' : '')) + '"><div class="avv-q">' + E(etichetta(ds)) + (a.ora ? '<small>' + E(a.ora) + '</small>' : '') + '</div>'
+      + '<div class="avv-c"><div class="avv-t">' + E(a.testo) + '</div>' + (meta.length ? '<div class="avv-m">' + meta.join(' · ') + '</div>' : '') + '</div>'
+      + (conAzioni ? '<div class="avv-a"><button class="' + (fatto ? '' : 'ok') + '" onclick="avvisiFatto(\'' + a.id + '\',\'' + ds + '\',' + (fatto ? 'true' : 'false') + ')">' + (fatto ? '↺' : '✓ Fatto') + '</button>'
+        + (mio ? '<button title="Modifica" onclick="avvisiForm(\'' + a.id + '\')">✏️</button><button title="Elimina" onclick="avvisiElimina(\'' + a.id + '\')">🗑</button>' : '') + '</div>' : '')
+      + '</div>';
+  }
+  function mostra(titolo, corpo, piede){
+    var o = ov();
+    o.innerHTML = '<div class="avv-box"><div class="avv-h"><b>' + titolo + '</b><button class="avv-x" onclick="avvisiChiudi()">✕</button></div><div class="avv-b">' + corpo + '</div><div class="avv-f">' + piede + '</div></div>';
+    o.classList.add('on');
+  }
+  /* elenco completo */
+  window.avvisiApri = async function(){
+    if(!A.ok || Date.now() - A.ultimo > 30000) await carica();
+    var o = oggi(), gruppi = { oggi:[], domani:[], sett:[], rip:[], passati:[] };
+    A.lista.forEach(function(a){
+      var ds = prossima(a, o, 6);
+      if(ds === o) gruppi.oggi.push([a, ds]); else if(ds === piu(o, 1)) gruppi.domani.push([a, ds]); else if(ds) gruppi.sett.push([a, ds]);
+      else if(a.rip && (!a.fino || a.fino >= o)) gruppi.rip.push([a, prossima(a, o, 60) || a.data]);
+      else if(!a.rip && a.data < o && a.data >= piu(o, -7)) gruppi.passati.push([a, a.data]);
+    });
+    var ord = function(L){ return L.sort(function(x, y){ return (x[1] + (x[0].ora || '99')).localeCompare(y[1] + (y[0].ora || '99')); }); };
+    var sez = function(t, L){ return L.length ? '<div class="avv-g">' + t + '</div>' + ord(L).map(function(x){ return riga(x[0], x[1], true); }).join('') : ''; };
+    var corpo = sez('Oggi', gruppi.oggi) + sez('Domani', gruppi.domani) + sez('Prossimi giorni', gruppi.sett) + sez('Si ripetono più avanti', gruppi.rip) + sez('Ultimi 7 giorni', gruppi.passati.reverse());
+    if(!corpo) corpo = '<p style="color:var(--text-muted);margin:6px 0">Nessun avviso.' + (A.puoCreare ? ' Premi «Nuovo avviso» per scriverne uno.' : '') + '</p>';
+    mostra('📌 Avvisi', corpo, (A.puoCreare ? '<button class="btn btn-teal btn-sm" onclick="avvisiForm()">＋ Nuovo avviso</button>' : '') + '<button class="btn btn-outline btn-sm" onclick="avvisiVistiTutti();avvisiChiudi()">Chiudi</button>');
+  };
+  /* all'apertura: solo se ci sono avvisi nuovi per oggi o i prossimi 2 giorni */
+  function apertura(){
+    var L = daVedere(); if(!L.length) return;
+    var chiave = L.map(function(a){ return a.id + (a.mod || ''); }).join(',');
+    if(A.mostrato[chiave]) return; A.mostrato[chiave] = 1;
+    if(document.getElementById('avv-ov') && document.getElementById('avv-ov').classList.contains('on')) return;
+    var o = oggi();
+    var corpo = L.map(function(a){ return [a, prossima(a, o, 2)]; }).sort(function(x, y){ return (x[1] + (x[0].ora || '99')).localeCompare(y[1] + (y[0].ora || '99')); }).map(function(x){ return riga(x[0], x[1], true); }).join('');
+    mostra('📌 ' + (L.length === 1 ? 'C\'è un avviso' : 'Ci sono ' + L.length + ' avvisi'), corpo, '<button class="btn btn-outline btn-sm" onclick="avvisiChiudi();avvisiApri()">Vedi tutti</button><button class="btn btn-teal btn-sm" onclick="avvisiVistiTutti();avvisiChiudi()">Ho visto</button>');
+  }
+  window.avvisiVistiTutti = async function(){
+    var L = daVedere(); if(!L.length) return;
+    for(var i = 0; i < L.length; i++){ try{ await chiama('POST', { azione:'visto', id:L[i].id }); L[i].visto = new Date().toISOString(); }catch(e){} }
+    bottone();
+  };
+  window.avvisiFatto = async function(id, ds, annulla){
+    try{ var j = await chiama('POST', { azione:'fatto', id:id, ds:ds, annulla:!!annulla }); A.lista = j.avvisi || A.lista; try{ await chiama('POST', { azione:'visto', id:id }); }catch(e){} await carica(); }
+    catch(e){ showToast('⚠️ ' + e.message, 'warning'); return; }
+    var o = document.getElementById('avv-ov'); if(o && o.classList.contains('on')) avvisiApri();
+  };
+  window.avvisiElimina = async function(id){
+    var a = A.lista.filter(function(x){ return x.id === id; })[0]; if(!a) return;
+    if(!await xConferma('Eliminare l\'avviso «' + a.testo.slice(0, 60) + '»?')) return;
+    try{ await chiama('POST', { azione:'elimina', id:id }); await carica(); showToast('Avviso eliminato', 'info'); }catch(e){ showToast('⚠️ ' + e.message, 'warning'); }
+    avvisiApri();
+  };
+
+  /* ── nuovo / modifica ── */
+  window.avvisiForm = function(id){
+    var a = id ? A.lista.filter(function(x){ return x.id === id; })[0] : null;
+    a = a || { testo:'', data:oggi(), ora:'', rip:'', fino:'', area:'', a:{ tutti:true, ruoli:[], utenti:[] }, notifica:{ subito:false, prima:null } };
+    var d = a.a || {}, n = a.notifica || {};
+    var utenti = ((typeof APP !== 'undefined' && APP.utenti) || []).filter(function(u){ return u && u.username && !u._eliminato && ['Genitore','Totem'].indexOf(u.ruolo) < 0; })
+      .sort(function(x, y){ return String(x.nome || x.username).localeCompare(String(y.nome || y.username)); });
+    var corpo = '<div class="avv-form">'
+      + '<label>Avviso</label><textarea id="avv-f-testo" class="form-control" rows="2" maxlength="500" placeholder="es. Fabio esce alle 12" style="width:100%">' + E(a.testo) + '</textarea>'
+      + '<div class="r"><div><label>Giorno</label><input id="avv-f-data" type="date" class="form-control" value="' + E(a.data) + '"></div><div><label>Ora (facoltativa)</label><input id="avv-f-ora" type="time" class="form-control" value="' + E(a.ora) + '"></div></div>'
+      + '<div class="r"><div><label>Si ripete</label><select id="avv-f-rip" class="form-control">' + [['', 'no, solo quel giorno'], ['giorno', 'ogni giorno'], ['feriali', 'dal lunedì al venerdì'], ['settimana', 'ogni settimana, stesso giorno']].map(function(x){ return '<option value="' + x[0] + '"' + (a.rip === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>'
+      + '<div><label>Fino al (se si ripete)</label><input id="avv-f-fino" type="date" class="form-control" value="' + E(a.fino) + '"></div></div>'
+      + '<label>Area</label><select id="avv-f-area" class="form-control">' + [['', 'generale']].concat(Object.keys(AREE).map(function(k){ return [k, AREE[k]]; })).map(function(x){ return '<option value="' + x[0] + '"' + (a.area === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>'
+      + '<label>Chi lo vede</label><div class="avv-ck"><label><input type="checkbox" id="avv-f-tutti"' + (d.tutti ? ' checked' : '') + ' onchange="document.getElementById(\'avv-f-scelta\').style.display=this.checked?\'none\':\'\'"> tutti</label></div>'
+      + '<div id="avv-f-scelta"' + (d.tutti ? ' style="display:none"' : '') + '><div class="avv-ck" style="margin:6px 0">' + RUOLI.map(function(r){ return '<label><input type="checkbox" class="avv-f-ruolo" value="' + E(r) + '"' + ((d.ruoli || []).indexOf(r) >= 0 ? ' checked' : '') + '> ' + E(r) + '</label>'; }).join('') + '</div>'
+      + '<div class="avv-ut avv-ck">' + utenti.map(function(u){ var U = String(u.username).toUpperCase(); return '<label><input type="checkbox" class="avv-f-utente" value="' + E(U) + '"' + ((d.utenti || []).indexOf(U) >= 0 ? ' checked' : '') + '> ' + E(u.nome || u.username) + ' <small style="color:var(--text-muted)">' + E(u.ruolo || '') + '</small></label>'; }).join('') + '</div></div>'
+      + '<label>Notifica sul telefono</label><div class="r"><div class="avv-ck"><label><input type="checkbox" id="avv-f-subito"' + (n.subito && !id ? ' checked' : '') + '> mandala subito</label></div>'
+      + '<div><select id="avv-f-prima" class="form-control">' + NOT_PRIMA.map(function(x){ return '<option value="' + x[0] + '"' + (String(n.prima == null ? '' : n.prima) === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div></div>'
+      + '<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px">La notifica arriva a chi lo vede e ha attivato le notifiche del gestionale. Quella «prima» serve l\'ora dell\'avviso.</div>'
+      + '</div>';
+    mostra(id ? '✏️ Modifica avviso' : '＋ Nuovo avviso', corpo, '<button class="btn btn-outline btn-sm" onclick="avvisiApri()">Annulla</button><button class="btn btn-teal btn-sm" onclick="avvisiSalva(' + (id ? '\'' + id + '\'' : '') + ')">Salva</button>');
+    setTimeout(function(){ var t = document.getElementById('avv-f-testo'); if(t) t.focus(); }, 50);
+  };
+  window.avvisiSalva = async function(id){
+    var v = function(i){ var el = document.getElementById(i); return el ? el.value : ''; };
+    var av = { testo:v('avv-f-testo').trim(), data:v('avv-f-data'), ora:v('avv-f-ora'), rip:v('avv-f-rip'), fino:v('avv-f-fino'), area:v('avv-f-area'),
+      a:{ tutti:document.getElementById('avv-f-tutti').checked, ruoli:[].map.call(document.querySelectorAll('.avv-f-ruolo:checked'), function(x){ return x.value; }), utenti:[].map.call(document.querySelectorAll('.avv-f-utente:checked'), function(x){ return x.value; }) },
+      notifica:{ subito:document.getElementById('avv-f-subito').checked, prima:v('avv-f-prima') === '' ? null : +v('avv-f-prima') } };
+    if(!av.testo){ showToast('Scrivi il testo dell\'avviso', 'warning'); return; }
+    if(!av.data){ showToast('Scegli il giorno', 'warning'); return; }
+    if(!av.a.tutti && !av.a.ruoli.length && !av.a.utenti.length){ showToast('Scegli chi deve vederlo (o «tutti»)', 'warning'); return; }
+    if(av.notifica.prima != null && !av.ora){ showToast('Per la notifica «prima» serve l\'ora dell\'avviso', 'warning'); return; }
+    try{ await chiama('POST', { azione:id ? 'modifica' : 'crea', id:id || '', avviso:av }); await carica(); showToast('✅ Avviso salvato' + (av.notifica.subito ? ' e notificato' : ''), 'success'); avvisiApri(); }
+    catch(e){ showToast('⚠️ Non salvato: ' + e.message, 'warning'); }
+  };
+
+  /* ── quando caricare: dopo l'accesso, ogni 2 minuti, al ritorno sulla pagina, quando un altro dispositivo cambia gli avvisi ── */
+  var giro = async function(){ if(!io()) return; var prima = A.ok; if(await carica() && document.visibilityState !== 'hidden') apertura(); if(!prima && A.ok) vaiDaNotifica(); };
+  function vaiDaNotifica(){ try{ if(sessionStorage.getItem('nf_vai') === 'avvisi'){ sessionStorage.removeItem('nf_vai'); avvisiApri(); } }catch(e){} }
+  var avvio = setInterval(function(){ if(io()){ clearInterval(avvio); setTimeout(giro, 1500); setInterval(giro, 120000); } }, 1000);
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible' && Date.now() - A.ultimo > 30000) giro(); });
+  if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', function(e){ if(e.data && e.data.tipo === 'notifica-vai' && e.data.vai === 'avvisi'){ try{ sessionStorage.removeItem('nf_vai'); }catch(x){} setTimeout(avvisiApri, 300); } });
+  try{ var q = new URLSearchParams(location.search).get('vai'); if(q === 'avvisi') sessionStorage.setItem('nf_vai', 'avvisi'); }catch(e){}
+  /* aggiornamento in tempo reale: il server avvisa via WebSocket ("db_aggiornato" con dbName "_avvisi") */
+  (function aggancia(){
+    var o = window._regGestisciWs;
+    if(typeof o !== 'function'){ return setTimeout(aggancia, 3000); }
+    if(o._avv) return;
+    var f = function(nome){ if(nome === '_avvisi'){ setTimeout(giro, 300 + Math.random() * 1200); return true; } return o.apply(this, arguments); };
+    f._avv = true; window._regGestisciWs = f;
+  })();
+  /* la barra del telefono viene creata dopo: ricontrollo il pulsante */
+  setInterval(function(){ if(A.ok && document.getElementById('pi-appbar') && !document.getElementById('avv-btn-mob')) bottone(); }, 4000);
+})();
+</script>
+
 </body>
 </html>
