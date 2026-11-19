@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 19/11/2026 09:41</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -13178,14 +13178,22 @@ table tbody tr:hover{
 
       <!-- Anticipo massimo all'entrata -->
       <div class="card" id="sc-imp-anticipo-card" style="border-left:4px solid #f59e0b">
-        <div class="section-title">⏰ Anticipo all'entrata</div>
-        <p class="text-muted mb-3">Al totem il volontario può timbrare l'entrata al massimo con questo anticipo rispetto all'inizio del turno. Se oggi non ha turni in calendario, il totem non lo fa timbrare. L'uscita non viene mai bloccata; le timbrature a mano dal gestionale restano sempre possibili.</p>
+        <div class="section-title">⏰ Orari di timbratura al totem</div>
+        <p class="text-muted mb-3">Al totem il volontario può timbrare l'entrata al massimo con questo anticipo rispetto all'inizio del turno. Se oggi non ha turni in calendario, il totem non lo fa timbrare. Le timbrature a mano dal gestionale restano sempre possibili.</p>
         <label class="form-label">Anticipo massimo</label>
         <div style="display:flex;align-items:center;gap:8px">
           <input type="number" id="sc-imp-anticipo" min="0" max="120" step="5" class="form-control" style="max-width:80px;font-weight:900;font-size:16px;text-align:center;color:#b45309"
             onchange="scSalvaImpostazione('anticipoMax',this.value,15)">
           <span class="text-muted" style="font-size:12px">minuti prima dell'inizio del turno</span>
         </div>
+        <label class="form-label" style="margin-top:14px">Uscita dopo la fine del turno</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="text-muted" style="font-size:12px">conta al massimo</span>
+          <input type="number" id="sc-imp-uscita" min="0" max="240" step="5" class="form-control" placeholder="—" style="max-width:80px;font-weight:900;font-size:16px;text-align:center;color:#b45309"
+            onchange="scSalvaImpostazione('uscitaOltreMax',this.value,-1)">
+          <span class="text-muted" style="font-size:12px">minuti dopo la fine del turno</span>
+        </div>
+        <p class="text-muted" style="font-size:11.5px;margin-top:6px">Se il volontario timbra l'uscita più tardi, la timbratura viene segnata alla fine del turno più questi minuti (con <b>0</b> esattamente alla fine del turno). L'orario reale resta salvato. Lascia vuoto per contare sempre l'orario reale. Vale solo al totem: a mano dal gestionale metti l'orario che vuoi, per esempio quando l'OLP lo ha trattenuto davvero.</p>
       </div>
 
       <!-- Permessi ordinari -->
@@ -43629,6 +43637,8 @@ function scRenderImpostazioni(){
   if(elMPS) elMPS.value = scGetMaxPermStr();
   const elWPS = document.getElementById('sc-imp-warn-pstr');
   if(elWPS) elWPS.value = scGetWarnPermStr();
+  const elUsc = document.getElementById('sc-imp-uscita');
+  if(elUsc && document.activeElement !== elUsc){ const vu = imp.uscitaOltreMax; elUsc.value = (vu === undefined || vu === null || isNaN(+vu) || +vu < 0) ? '' : vu; }
   scRenderCausali();
 }
 
@@ -46109,6 +46119,26 @@ function scExportRiepilogo(){
   showToast('✅ PDF SCU generato','success');
 }
 
+/* Uscita al totem oltre la fine del turno: se c'è un limite in impostazioni (uscitaOltreMax, minuti),
+   l'orario segnato non va oltre fine turno + limite. Ritorna { ts, tsReale } (tsReale solo se l'orario è stato tagliato). */
+function scTsUscitaTotem(opId, adesso, entrataTs){
+  var d = adesso || new Date(), reale = d.toISOString();
+  try{
+    var v = scGetImp().uscitaOltreMax;
+    if(v === undefined || v === null || v === '' || isNaN(+v) || +v < 0) return { ts: reale };
+    var mg = +v, sc = scGetDb() || {}, ds = scDataLocale(d);
+    var orario = (sc.orariCal || {})[ds + '_' + opId] || '';
+    var mm = function(x){ var m = /^(\d{1,2})[:.](\d{2})/.exec(String(x || '').trim()); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+    var bl = orario.split('+').map(function(p){ var x = p.split('-'); var a = mm(x[0]), b = mm(x[1]); return (a === null || b === null) ? null : { s:a, e:b }; }).filter(Boolean).sort(function(a, b){ return a.s - b.s; });
+    var ora = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+    var b = bl.filter(function(x){ return x.s <= ora; }).pop();     // ultimo turno iniziato
+    if(!b || ora < b.e + mg) return { ts: reale };                 // dentro il turno o nella tolleranza
+    var lim = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, b.e + mg, 0, 0);
+    if(entrataTs){ var en = new Date(entrataTs); if(!isNaN(en) && en > lim) return { ts: reale }; }  // rientrato dopo il turno
+    return { ts: lim.toISOString(), tsReale: reale };
+  }catch(e){ return { ts: reale }; }
+}
+
 function scRegistraTimbraturaNFC(rfidOrId){
   // Registro protetto attivo: la timbratura va nel registro separato, solo dal Totem
   if(typeof _regAttivo==='function' && _regAttivo()) return _regTimbraTotem(rfidOrId);
@@ -46122,7 +46152,9 @@ function scRegistraTimbraturaNFC(rfidOrId){
   const oggiLocale = scDataLocale(new Date());
   const timb_oggi = sc.timbrature[op.id].filter(t => t.ts.startsWith(oggiLocale));
   const tipo = (timb_oggi.length>0 && timb_oggi[timb_oggi.length-1].tipo==='entrata') ? 'uscita' : 'entrata';
-  sc.timbrature[op.id].push({ id:_scNuovoIdTimb(), ts, tipo });
+  const _riga = { id:_scNuovoIdTimb(), ts, tipo };
+  if(tipo === 'uscita'){ const _u = scTsUscitaTotem(op.id, new Date(ts), timb_oggi[timb_oggi.length-1].ts); if(_u.tsReale){ _riga.ts = _u.ts; _riga.tsReale = _u.tsReale; } }
+  sc.timbrature[op.id].push(_riga);
   saveStorage();
   // LOCK operazione critica: impedisce che il messaggio WebSocket `db_aggiornato`
   // (rimbalzato dal NAS dopo il nostro upload) riscarichi il db sovrascrivendo
@@ -46145,7 +46177,7 @@ function scRegistraTimbraturaNFC(rfidOrId){
     }, 1500);
   });
   auditLog('MODIFICA', `SCU timbratura ${tipo}: ${op.cognome} ${op.nome}`, {sezione:'Servizio Civile', soggetto:`${op.cognome} ${op.nome}`});
-  return { op, tipo, ts, _uploadPromise };
+  return { op, tipo, ts:_riga.ts, tsReale:_riga.tsReale, _uploadPromise };
 }
 
 // ── PORTALE ANIMATORE: tab SC ──
@@ -57424,7 +57456,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 19/11/2026 09:41 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -65685,7 +65717,7 @@ function _regTimbraTotem(rfidOrId){
   var lista = (sc.timbrature[op.id] || []).slice().sort(function(a, b){ return String(a.ts).localeCompare(String(b.ts)); });
   var ultima = lista[lista.length - 1];
   if (ultima) {
-    var diff = Date.now() - Date.parse(ultima.ts);
+    var diff = Date.now() - Date.parse(ultima.tsReale || ultima.ts);
     // Doppio passaggio del badge entro un minuto: non registro una seconda riga
     if (diff >= 0 && diff < 60000) return { op: op, tipo: ultima.tipo, ts: ultima.ts, ripetuta: true, _uploadPromise: Promise.resolve(true) };
   }
@@ -65695,6 +65727,7 @@ function _regTimbraTotem(rfidOrId){
   var tipo = (oggi.length > 0 && oggi[oggi.length - 1].tipo === 'entrata') ? 'uscita' : 'entrata';
   var chi = _regUtente();
   var riga = { id: _scNuovoIdTimb(), op: op.id, ts: ts, tipo: tipo, fonte: 'totem', by: chi, at: ts };
+  if (tipo === 'uscita') { var _u = scTsUscitaTotem(op.id, new Date(ts), oggi[oggi.length - 1].ts); if (_u.tsReale) { riga.ts = _u.ts; riga.tsReale = _u.tsReale; } }
   var coda = _scuLS('scureg_coda', []).slice();
   coda.push({ uid: _regUid(), azione: 'aggiungi', riga: riga, quando: ts, by: chi });
   _scuLSset('scureg_coda', coda);
@@ -65703,7 +65736,7 @@ function _regTimbraTotem(rfidOrId){
   try { auditLog('MODIFICA', 'SCU timbratura ' + tipo + ': ' + op.cognome + ' ' + op.nome, { sezione: 'Servizio Civile', soggetto: op.cognome + ' ' + op.nome }); } catch(e){}
   var p = _regElaboraCoda();
   _regAggiornaBadge();
-  return { op: op, tipo: tipo, ts: ts, _uploadPromise: p };
+  return { op: op, tipo: tipo, ts: riga.ts, tsReale: riga.tsReale, _uploadPromise: p };
 }
 /* Badge/QR da un utente che non è il Totem: non registro nulla */
 function _regBloccaTimbratura(){
@@ -86315,7 +86348,8 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
         if(op && !(typeof _regAttivo === 'function' && _regAttivo() && typeof _regSonoTotem === 'function' && !_regSonoTotem())){
           var ultima = null;
           try{ var l = ((scGetDb().timbrature || {})[op.id] || []).slice().sort(function(a, b){ return String(a.ts).localeCompare(String(b.ts)); }); ultima = l[l.length - 1]; }catch(e){}
-          var doppio = ultima && (Date.now() - Date.parse(ultima.ts)) >= 0 && (Date.now() - Date.parse(ultima.ts)) < 60000;
+          var _tu = ultima ? Date.parse(ultima.tsReale || ultima.ts) : 0;
+          var doppio = ultima && (Date.now() - _tu) >= 0 && (Date.now() - _tu) < 60000;
           if(!doppio && prossimoTipo(op) === 'entrata'){
             var esito = window._scuControllaAnticipo(op);
             if(esito){ ultimoBlocco = { t:Date.now(), id:op.id }; mostra(op, esito); return false; }
