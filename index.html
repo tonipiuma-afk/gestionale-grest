@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 19/11/2026 11:57</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -17917,7 +17917,7 @@ function iosForm(id, semi){
   if(!o) return;
   var F = function(k, pieno){ var f = IOS_CAMPI.filter(function(x){ return x[0] === k; })[0]; return _imzCampo('ios-'+f[0], f[1], o[f[0]], f[2] === 'sel' ? null : (f[2] || 'text'), f[2] === 'sel' ? f[3] : null, pieno); };
   var Fs = function(k){ var f = IOS_SEMI_CAMPI.filter(function(x){ return x[0] === k; })[0]; return _imzCampo('ios-'+f[0], f[1], o[f[0]], f[2] || 'text'); };
-  var scOpt = '<div class="imz-f"><label>Scuola</label><select id="ios-scuolaId" class="form-control"><option value=""></option>' + _iesScuole().map(function(s){ return '<option value="'+s.id+'"'+(s.id === o.scuolaId ? ' selected' : '')+'>'+_imzE(s.nome)+'</option>'; }).join('') + '</select></div>';
+  var scOpt = '<div class="imz-f"><label>Scuola</label><select id="ios-scuolaId" class="form-control"><option value=""></option>' + _iesScuole().map(function(s){ return '<option value="'+s.id+'"'+(s.id === o.scuolaId ? ' selected' : '')+'>'+_imzE(_iesEtichetta(s))+'</option>'; }).join('') + '</select></div>';
   var c = semi ? '<div class="imz-grid">' + _imzSez('Dati principali') + F('cognome') + F('nome') + F('sesso') + F('nascita') + _iosCittaCampo('luogoNascita','Luogo di nascita',o) + F('cf') + _cfRigaForm() + F('cittadinanza')
     + _imzSez('Famiglia e residenza') + Fs('madre') + Fs('telMadre') + Fs('padre') + Fs('telPadre') + F('residenzaVia', true) + _iosCittaCampo('residenzaCitta','Città di residenza',o) + _iosCampoComuneSS(o)
     + _imzSez('Scuola') + scOpt + _imzCampo('ios-classe','Classe',o.classe) + _imzCampo('ios-sezione','Sezione',o.sezione)
@@ -18097,7 +18097,9 @@ var IES_CAMPI = [
   ['email','Email','email'],['referente','Referente / segreteria'],['orarioEntrata','Orario di entrata'],['orarioUscita','Orario di uscita'],
   ['calendario','Calendario scolastico (inizio, fine, vacanze)','area'],['note','Note','area']
 ];
-function _iesScuole(){ var s = (_IOS.doc && _IOS.doc.scuole) || {}; return Object.keys(s).map(function(k){ return s[k]; }).filter(function(r){ return r && !r._del; }).sort(function(a,b){ return String(a.nome).localeCompare(String(b.nome)); }); }
+function _iesScuole(){ var s = (_IOS.doc && _IOS.doc.scuole) || {}; return Object.keys(s).map(function(k){ return s[k]; }).filter(function(r){ return r && !r._del; }).sort(function(a,b){ return String(a.nome).localeCompare(String(b.nome)) || (IES_ORDINI.indexOf(a.ordine) - IES_ORDINI.indexOf(b.ordine)) || String(a.plesso || '').localeCompare(String(b.plesso || '')); }); }
+/* Nome per i menu a tendina: con grado e plesso, così le scuole con lo stesso nome si distinguono */
+function _iesEtichetta(s){ return s ? s.nome + ' · ' + (s.ordine || 'grado non indicato') + (s.plesso ? ' – ' + s.plesso : '') : ''; }
 function _iesScuola(id){ var s = _IOS.doc && _IOS.doc.scuole && _IOS.doc.scuole[id]; return s && !s._del ? s : null; }
 function _iesNomePlesso(o){ var s = _iesScuola(o.scuolaId); return s ? s.nome + (s.plesso ? ' – ' + s.plesso : '') : (o.scuola || ''); }
 function _iesRighe(o, riga){ var s = _iesScuola(o.scuolaId) || {}; return riga('Scuola / istituto', s.nome || o.scuola) + riga('Plesso', s.plesso) + riga('Ordine', s.ordine) + riga('Classe e sezione', [o.classe, o.sezione].filter(Boolean).join(' ')) + riga('Indirizzo di studio', o.indirizzoStudio) + riga('Anno scolastico', o.annoScolastico) + riga('Referente scuola', o.coordinatore); }
@@ -18127,7 +18129,7 @@ function _iesRender(){
     }).join('') + '</div>' : '<div class="card" style="padding:28px;text-align:center"><div style="font-size:40px">🏫</div><div style="font-weight:900;margin-top:6px">Nessuna scuola inserita</div>' + (edit ? '<button type="button" class="btn btn-teal" style="margin-top:12px" onclick="iesForm()">➕ Inserisci la prima scuola</button>' : '') + '</div>';
   } else {
     var c = _IOS.sCom || '', sid = _IOS.sScuola || '';
-    var opt = '<option value="">Tutte le scuole</option>' + _iesScuole().map(function(s){ return '<option value="'+s.id+'"'+(s.id === sid ? ' selected' : '')+'>'+_imzE(s.nome)+'</option>'; }).join('');
+    var opt = '<option value="">Tutte le scuole</option>' + _iesScuole().map(function(s){ return '<option value="'+s.id+'"'+(s.id === sid ? ' selected' : '')+'>'+_imzE(_iesEtichetta(s))+'</option>'; }).join('');
     var cm = '<option value="">Tutte le comunità</option>' + IOS_COMUNITA.concat(['Semiconvitto']).map(function(x){ return '<option'+(x === c ? ' selected' : '')+'>'+x+'</option>'; }).join('');
     var lista = pres.filter(function(o){ return (!c || (c === 'Semiconvitto' ? o.semi : o.comunita === c)) && (!sid || o.scuolaId === sid); });
     h += '<div class="imz-filtri"><select class="form-control" style="max-width:210px" onchange="_IOS.sCom=this.value;_iesRender()">'+cm+'</select><select class="form-control" style="max-width:260px" onchange="_IOS.sScuola=this.value;_iesRender()">'+opt+'</select></div>';
@@ -18182,7 +18184,7 @@ var IES_RCAMPI = [['annoScolastico','Anno scolastico'],['classe','Classe'],['sez
 function iesRagazzo(id){
   var o = _IOS.doc.ospiti[id]; if(!o || o._del) return;
   var edit = _iosOk('ist_ospiti_edit');
-  var opt = '<option value=""></option>' + _iesScuole().map(function(s){ return '<option value="'+s.id+'"'+(s.id === o.scuolaId ? ' selected' : '')+'>'+_imzE(s.nome)+'</option>'; }).join('');
+  var opt = '<option value=""></option>' + _iesScuole().map(function(s){ return '<option value="'+s.id+'"'+(s.id === o.scuolaId ? ' selected' : '')+'>'+_imzE(_iesEtichetta(s))+'</option>'; }).join('');
   var c = '<div class="imz-grid"><div class="imz-f pieno"><label>Scuola'+(!o.scuolaId && o.scuola ? ' (indicata finora: '+_imzE(o.scuola)+')' : '')+'</label><select id="ies-r-scuolaId" class="form-control">'+opt+'</select></div>'
     + IES_RCAMPI.map(function(f){ var v = o[f[0]]; if(f[0] === 'annoScolastico' && !v) v = _iesAnno(); return _imzCampo('ies-r-'+f[0], f[1], v, f[2] === 'sel' ? null : (f[2] || 'text'), f[2] === 'sel' ? f[3] : null, f[2] === 'area'); }).join('') + '</div>';
   var col = (o.colloqui || []).slice().sort(function(a,b){ return String(b.data).localeCompare(String(a.data)); });
@@ -57456,7 +57458,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 19/11/2026 11:57 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76320,7 +76322,7 @@ window._iesRender = function(){
 function iesAssegnaRapida(){
   if(!_iosOk('ist_ospiti_edit')) return;
   var senza = _iosOspiti('Presente', true).filter(function(o){ return !o.scuolaId; }), sc = _iesScuole();
-  var opt = '<option value=""></option>' + sc.map(function(s){ return '<option value="' + s.id + '">' + _imzE(s.nome + (s.plesso ? ' · ' + s.plesso : '')) + '</option>'; }).join('');
+  var opt = '<option value=""></option>' + sc.map(function(s){ return '<option value="' + s.id + '">' + _imzE(_iesEtichetta(s)) + '</option>'; }).join('');
   var c = '<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">Scegli la scuola, la classe e la sezione: salvo solo le righe compilate.</div>'
     + senza.map(function(o){ return '<div class="ies-ass-r" data-id="' + o.id + '"><b>' + _imzE(_iosNome(o)) + (o.scuola ? '<div style="font-size:11px;font-weight:600;color:var(--text-muted)">indicata: ' + _imzE(o.scuola) + '</div>' : '') + '</b><select class="form-control ies-a-s">' + opt + '</select><input class="form-control ies-a-c" placeholder="Classe" value="' + _imzE(o.classe || '') + '"><input class="form-control ies-a-z" placeholder="Sez." value="' + _imzE(o.sezione || '') + '"></div>'; }).join('');
   _imzModal('🏫 Assegna le scuole', c, '<button type="button" class="btn btn-gray btn-sm" onclick="_imzChiudi()">Annulla</button><button type="button" class="btn btn-teal btn-sm" id="ies-a-ok" onclick="iesAssegnaSalva()">💾 Salva</button>');
