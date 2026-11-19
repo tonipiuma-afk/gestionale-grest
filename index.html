@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 18/11/2026 13:40</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57423,7 +57423,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 18/11/2026 13:40 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -77057,8 +77057,10 @@ function _icHomeHtml(){
   // prossimi impegni: da oggi fino a 30 giorni, senza turni né promemoria automatici, in ordine di data e ora
   var adessoHM = ('0' + ora.getHours()).slice(-2) + ':' + ('0' + ora.getMinutes()).slice(-2), fra30 = _icPiu(oggi, 30);
   var prossimi = _icVoci(oggi, fra30, gEv).filter(function(x){ return x.fonte !== 'turno' && x.fonte !== 'scad' && !(x.ds === oggi && x.fatto); }).slice(0, 6);
-  if(!prossimi.length && !turni.length && !_icGoogleOn()) return '<div class="ho-box ich" id="ich-box"><div class="ich-h"><b data-no-sobrio>📆 In comunità</b><button type="button" onclick="navigate(\'ist-cal\')">Calendario ›</button></div><div class="ich-vuoto">Nessun impegno nei prossimi 30 giorni. ' + (_icEdit() ? '<button type="button" class="ich-link" onclick="navigate(\'ist-cal\');setTimeout(function(){icForm(\'\',\'' + oggi + '\')},500)">➕ Aggiungi un impegno</button>' : '') + '</div></div>';
-  var h = '<div class="ho-box ich" id="ich-box"><div class="ich-h"><b data-no-sobrio>📆 In comunità</b><button type="button" onclick="navigate(\'ist-cal\')">Calendario ›</button></div><div class="ich-col">';
+  var avv = (typeof window.avvisiHomeHtml === 'function') ? window.avvisiHomeHtml() : '';   // colonna Avvisi (novembre 2026)
+  if(!prossimi.length && !turni.length && !_icGoogleOn() && !avv) return '<div class="ho-box ich" id="ich-box"><div class="ich-h"><b data-no-sobrio>📆 In comunità</b><button type="button" onclick="navigate(\'ist-cal\')">Calendario ›</button></div><div class="ich-vuoto">Nessun impegno nei prossimi 30 giorni. ' + (_icEdit() ? '<button type="button" class="ich-link" onclick="navigate(\'ist-cal\');setTimeout(function(){icForm(\'\',\'' + oggi + '\')},500)">➕ Aggiungi un impegno</button>' : '') + '</div></div>';
+  var conTurni = _icGoogleOn() && (_icImp().gTurni || []).length;
+  var h = '<div class="ho-box ich" id="ich-box"><div class="ich-h"><b data-no-sobrio>📆 In comunità</b><button type="button" onclick="navigate(\'ist-cal\')">Calendario ›</button></div><div class="ich-col' + (avv ? (conTurni ? ' ich-col3' : ' ich-col2a') : '') + '">';
   // di turno
   if(_icGoogleOn() && (_icImp().gTurni || []).length){
     var hmT = function(x){ var f = function(d){ return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }; return x.ini && x.fin ? f(x.ini) + '–' + f(x.fin) + (_icIso(x.fin) !== _icIso(x.ini) ? ' (' + (_icIso(x.fin) === _icPiu(_icOggi(), 1) ? 'domani' : (_icIso(x.ini) < _icOggi() ? 'da ieri' : _imzFmt(_icIso(x.fin)))) + ')' : '') : x.ora + '–' + x.oraFine; };
@@ -77075,6 +77077,7 @@ function _icHomeHtml(){
   var ultimo = '';
   h += '<div class="ich-sez ich-imp"><div class="ich-t" data-no-sobrio>Prossimi impegni</div>' + (prossimi.length ? prossimi.map(function(x){ var g = x.ds !== ultimo ? '<div class="ich-t" style="margin:' + (ultimo ? '10px' : '2px') + ' 0 4px;opacity:.85" data-no-sobrio>' + _icE(etich(x.ds)) + '</div>' : ''; ultimo = x.ds; return g + riga(x); }).join('')
       : '<div class="ich-vuoto">Nessun impegno nei prossimi 30 giorni</div>') + '</div>';
+  h += avv;
   return h + '</div>' + (_ICAL.gErr && _icGoogleOn() ? '<div class="ich-err">⚠️ Google Calendar non risponde: i turni potrebbero non essere aggiornati.</div>' : '') + '</div>';
 }
 function _icAggiornaHome(){
@@ -93420,6 +93423,11 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var pari = L.filter(function(c){ return nomeK(c.nome) === nk; });
     if(pari.length > 1 && dk) pari = pari.filter(function(c){ return dataK(c.nato) === dk; });
     if(pari.length === 1) return pari[0].cod;
+    // nomi scritti attaccati o con spazi diversi («AnnaClara» = «ANNA CLARA»): confronto le lettere, in qualsiasi ordine delle parole
+    var lett = function(t){ return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, ''); };
+    var perm = function(w){ if(w.length <= 1) return [w.join('')]; if(w.length > 5) return [w.join('')]; var out = []; w.forEach(function(x, i){ perm(w.slice(0, i).concat(w.slice(i + 1))).forEach(function(r){ out.push(x + r); }); }); return out; };
+    var rl = lett(o.nome);
+    if(rl){ var att = L.filter(function(c){ var w = nomeK(c.nome).split(' ').filter(Boolean); return perm(w).indexOf(rl) >= 0; }); if(att.length === 1) return att[0].cod; }
     if(dk){ var w = nk.split(' '); var sim = L.filter(function(c){ if(dataK(c.nato) !== dk) return false; var cw = nomeK(c.nome).split(' '); var com = cw.filter(function(x){ return w.indexOf(x) >= 0; }).length; return com >= Math.min(2, cw.length); }); if(sim.length === 1) return sim[0].cod; }
     return '';
   }
@@ -95673,6 +95681,24 @@ window.uploadUtentiCloud=async function(){
 .avv-ck label{display:flex;align-items:center;gap:5px;margin:0;font-weight:600;color:inherit}
 .avv-portali{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
 @media (max-width:560px){ .avv-portali{grid-template-columns:1fr} }
+.ich-col.ich-col3{grid-template-columns:minmax(0,250px) minmax(0,1fr) minmax(0,320px)}
+.ich-col.ich-col2a{grid-template-columns:minmax(0,1fr) minmax(0,320px)}
+.ich-avv{background:#fffbeb;border:1px solid #fde3a7;border-radius:12px;padding:8px 10px 10px;align-self:start}
+.ich-avh{display:flex;justify-content:space-between;align-items:center}
+.ich-avh .ich-t{color:#92400e;margin:2px 0 6px}
+.ich-avh em{font-style:normal;background:#ef4444;color:#fff;border-radius:999px;font-size:10.5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:4px}
+.ich-avi{display:flex;gap:10px;align-items:flex-start;background:var(--card,#fff);border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:7px 9px;margin-bottom:6px}
+.ich-avi.nuovo{border:1.5px solid #f59e0b}
+.ich-avi.fatto{opacity:.6}.ich-avi.fatto b{text-decoration:line-through}
+.ich-avq{flex:0 0 44px;text-align:center;font-weight:800;font-size:12.5px;color:#b45309;line-height:1.2}
+.ich-avq small{display:block;font-size:11px;font-weight:700;color:var(--text-muted)}
+.ich-avc{flex:1;min-width:0}
+.ich-avc b{display:block;font-size:13px;line-height:1.3;word-break:break-word}
+.ich-avc small{display:block;font-size:11px;color:var(--text-muted);margin-top:1px}
+.ich-avok{flex:0 0 auto;border:1.5px solid #16a34a;color:#15803d;background:var(--card,#fff);border-radius:8px;font-size:11.5px;font-weight:700;padding:5px 8px;cursor:pointer}
+.ich-avnew{width:100%;border:1.5px dashed #f2c46d;background:transparent;color:#92400e;border-radius:10px;font-size:12px;font-weight:700;padding:7px;cursor:pointer;margin-top:2px}
+@media (max-width:1100px){ .ich-col.ich-col3{grid-template-columns:minmax(0,250px) minmax(0,1fr)} .ich-col.ich-col3 > .ich-avv{grid-column:1/-1;order:-1} }
+@media (max-width:716px){ .ich-col.ich-col3,.ich-col.ich-col2a{grid-template-columns:1fr} .ich-col > .ich-avv{grid-column:auto;order:-1} }
 .avv-ut{max-height:130px;overflow:auto;border:1.5px solid var(--border,#e5e7eb);border-radius:10px;padding:6px 8px}
 @media (max-width:560px){ .avv-i{flex-wrap:wrap} .avv-a{width:100%;justify-content:flex-end} #avv-ov{padding:0;align-items:flex-end} .avv-box{border-radius:20px 20px 0 0;max-height:92vh} }
 </style>
@@ -95728,9 +95754,29 @@ window.uploadUtentiCloud=async function(){
     var u = io(); if(!u || u.ruolo === 'Totem') return false;
     try{ var j = await chiama('GET'); A.lista = j.avvisi || []; A.puoCreare = !!j.puoCreare; A.io = j.io || ''; A.ok = true; A.ultimo = Date.now(); }
     catch(e){ return false; }
-    bottone(); return true;
+    bottone(); aggiornaHome(); return true;
   }
   window.avvisiCarica = carica;
+  /* colonna «Avvisi» nel riquadro «In comunità» della home */
+  window.avvisiHomeHtml = function(){
+    if(!A.ok) return '';
+    var o = oggi(), L = [];
+    A.lista.forEach(function(a){ if(!a.perMe) return; var ds = prossima(a, o, 6); if(ds) L.push([a, ds]); });
+    L.sort(function(x, y){ var fx = x[0].fatto && x[0].fatto[x[1]] ? 1 : 0, fy = y[0].fatto && y[0].fatto[y[1]] ? 1 : 0; return fx - fy || (x[1] + (x[0].ora || '99')).localeCompare(y[1] + (y[0].ora || '99')); });
+    var nuovi = L.filter(function(x){ return nuovo(x[0]) && !(x[0].fatto && x[0].fatto[x[1]]); }).length, tot = L.length;
+    L = L.slice(0, 5);
+    var h = '<div class="ich-sez ich-avv"><div class="ich-avh"><span class="ich-t" data-no-sobrio>📌 Avvisi' + (nuovi ? ' <em>' + nuovi + (nuovi === 1 ? ' nuovo' : ' nuovi') + '</em>' : '') + '</span><button type="button" class="ich-link" onclick="avvisiApri()">Tutti' + (tot > 5 ? ' (' + tot + ')' : '') + ' ›</button></div>';
+    if(!L.length) h += '<div class="ich-vuoto">Nessun avviso nei prossimi giorni</div>';
+    h += L.map(function(x){ var a = x[0], ds = x[1], fatto = !!(a.fatto && a.fatto[ds]);
+      var meta = a.rip ? '🔁 ' + ripTxt(a) : (a.area && AREE[a.area] ? AREE[a.area] : '');
+      if(fatto) meta = '✓ fatto da ' + E(String(a.fatto[ds].da || '').toLowerCase());
+      return '<div class="ich-avi' + (fatto ? ' fatto' : (nuovo(a) ? ' nuovo' : '')) + '"><div class="ich-avq">' + E(etichetta(ds)) + (a.ora ? '<small>' + E(a.ora) + '</small>' : '') + '</div>'
+        + '<div class="ich-avc"><b data-no-sobrio>' + E(a.testo) + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>'
+        + (fatto ? '' : '<button type="button" class="ich-avok" onclick="avvisiFatto(\'' + a.id + '\',\'' + ds + '\',false)">Fatto</button>') + '</div>'; }).join('');
+    if(A.puoCreare) h += '<button type="button" class="ich-avnew" onclick="avvisiForm()">＋ Nuovo avviso</button>';
+    return h + '</div>';
+  };
+  function aggiornaHome(){ try{ if(typeof _icAggiornaHome === 'function') _icAggiornaHome(); }catch(e){} }
 
   /* ── pulsante nella barra in alto (computer e telefono) ── */
   function daVedere(){ var o = oggi(); return A.lista.filter(function(a){ var ds = prossima(a, o, 2); return ds && nuovo(a) && !(a.fatto && a.fatto[ds]); }); }
