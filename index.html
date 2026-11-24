@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 19/11/2026 12:28</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57458,7 +57458,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 19/11/2026 12:28 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -75390,6 +75390,17 @@ function _isaVisiteDi(id){
   return out.sort(function(a, b){ return a.ds.localeCompare(b.ds) || String(a.ora).localeCompare(String(b.ora)); });
 }
 function isaProssimaVisita(id){ var oggi = _icOggi(); return _isaVisiteDi(id).filter(function(v){ return !v.fatta && v.ds >= oggi; })[0] || null; }
+/* Risultati della visita: referti, prescrizioni, certificati caricati con la visita (allegati della scheda sanitaria con ev + evDs) */
+function _isaVisFile(oid, evId, ds){
+  var s = (typeof _isaScheda === 'function' && _isaScheda(oid)) || {}, al = s.allegati || [], h = '';
+  al.forEach(function(a, i){ if(a.ev !== evId || a.evDs !== ds || !a.file) return;
+    h += '<span style="display:inline-flex;align-items:center;gap:4px;margin:4px 6px 0 0;padding:3px 8px;border-radius:8px;background:#ecfdf5;border:1px solid #bbf7d0;font-size:12px">'
+      + '<span>' + (a.tipo === 'prescrizione' ? '💊' : '📄') + ' ' + _imzE(ISA_TIPI_DOC[a.tipo] || a.nome) + '</span>'
+      + '<a href="#" onclick="event.preventDefault();event.stopPropagation();iosFileApri(null,null,false,_isaScheda(\'' + oid + '\').allegati[' + i + '].file)" title="Apri">📎</a>'
+      + '<a href="#" onclick="event.preventDefault();event.stopPropagation();iosFileApri(null,null,true,_isaScheda(\'' + oid + '\').allegati[' + i + '].file)" title="Scarica">⬇️</a></span>';
+  });
+  return h ? '<div>' + h + '</div>' : '';
+}
 function isaVisiteHtml(o){
   var edit = _iosOk('ist_sanita_edit'), id = o.id;
   var h = '<div class="imz-sez" style="display:block">Visite</div><div id="isa-visite-' + id + '">';
@@ -75402,7 +75413,7 @@ function isaVisiteHtml(o){
   var riga = function(v, stato){
     var col = stato === 'fatta' ? '#15803d' : (stato === 'passata' ? '#b45309' : '#2563eb');
     var bott = !edit ? '' : (stato === 'fatta'
-      ? '<button type="button" class="btn btn-outline btn-sm" onclick="_ISA_V=0;isaVisitaFatta(\'' + v.e.id + '\',\'' + v.ds + '\',\'' + id + '\',true)">↺</button>'
+      ? '<button type="button" class="btn btn-outline btn-sm" title="Carica risultati: referto, prescrizione…" onclick="_ISA_V=0;isaVisitaFatta(\'' + v.e.id + '\',\'' + v.ds + '\',\'' + id + '\')">📎</button><button type="button" class="btn btn-outline btn-sm" title="Segna come non fatta" onclick="_ISA_V=0;isaVisitaFatta(\'' + v.e.id + '\',\'' + v.ds + '\',\'' + id + '\',true)">↺</button>'
       : '<button type="button" class="btn btn-teal btn-sm" onclick="_ISA_V=0;isaVisitaFatta(\'' + v.e.id + '\',\'' + v.ds + '\',\'' + id + '\')">✓ Fatta</button>')
       + '<button type="button" class="btn btn-outline btn-sm" onclick="_ISA_V=0;isaVisitaModifica(\'' + v.e.id + '\',\'' + id + '\')" title="Modifica nel calendario">✏️</button>';
     return '<div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border)"><span style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></span>'
@@ -75410,7 +75421,7 @@ function isaVisiteHtml(o){
       + (v.e.specialistica ? '<div style="font-size:12px;font-weight:700">🩺 ' + _imzE(v.e.specialistica) + '</div>' : '')
       + (v.e.luogo ? '<div style="font-size:12px;color:var(--text-muted)">📍 ' + _imzE(v.e.luogo) + (v.e.chi ? ' · accompagna ' + _imzE(v.e.chi) : '') + '</div>' : (v.e.chi ? '<div style="font-size:12px;color:var(--text-muted)">accompagna ' + _imzE(v.e.chi) + '</div>' : ''))
       + (stato === 'passata' ? '<div style="font-size:12px;color:#b45309;font-weight:700">È passata: è stata fatta?</div>' : '')
-      + (v.esito ? '<div style="font-size:12px;white-space:pre-wrap">📝 ' + _imzE(v.esito) + '</div>' : '') + '</div>'
+      + (v.esito ? '<div style="font-size:12px;white-space:pre-wrap">📝 ' + _imzE(v.esito) + '</div>' : '') + (stato === 'fatta' ? _isaVisFile(id, v.e.id, v.ds) : '') + '</div>'
       + '<div style="display:flex;gap:4px;flex-shrink:0">' + bott + '</div></div>';
   };
   if(edit) h += '<button type="button" class="btn btn-outline btn-sm" style="margin-bottom:6px" onclick="_ISA_V=0;isaVisitaNuova(\'' + id + '\')">➕ Programma visita</button>';
@@ -75433,19 +75444,41 @@ async function isaVisitaFatta(evId, ds, id, annulla){
     var x = JSON.parse(JSON.stringify(e)); x.fatti = x.fatti || {}; delete x.fatti[ds];
     _icSalva(x).then(function(ok){ if(ok){ _icAggiornaHome(); _isaRiapri(id); } }); return;
   }
-  var c = '<div style="margin-bottom:8px"><b>' + _imzE(e.titolo) + '</b> · ' + _imzFmt(ds) + '</div>' + _imzCampo('isa-esito', 'Esito / note della visita (facoltativo)', (e.esiti || {})[ds] || '', 'area', null, true);
-  _imzModal('✓ Visita fatta', c, '<button type="button" class="btn btn-gray btn-sm" onclick="_isaRiapri(\'' + id + '\')">Annulla</button><button type="button" class="btn btn-teal btn-sm" id="isa-fatta-ok" onclick="isaVisitaFattaSalva(\'' + evId + '\',\'' + ds + '\',\'' + id + '\')">✓ Segna fatta</button>');
+  var gia = !!(e.fatti || {})[ds], giaFile = _isaVisFile(id, evId, ds);
+  var c = '<div style="margin-bottom:8px"><b>' + _imzE(e.titolo) + '</b> · ' + _imzFmt(ds) + '</div>' + _imzCampo('isa-esito', 'Esito / note della visita (facoltativo)', (e.esiti || {})[ds] || '', 'area', null, true)
+    + '<div style="margin-top:12px;padding:10px 12px;border:1px dashed var(--border);border-radius:10px">'
+    + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">📎 Risultati del medico (facoltativo)</div>'
+    + (giaFile ? '<div style="font-size:12px;color:var(--text-muted)">Già caricati:</div>' + giaFile + '<div style="height:8px"></div>' : '')
+    + '<div class="imz-grid"><div class="imz-f"><label>Che cosa sono</label><select id="isa-vf-tipo" class="form-control">'
+    + ['prescrizione', 'referto', 'certificato', 'altro'].map(function(k){ return '<option value="' + k + '">' + ISA_TIPI_DOC[k] + '</option>'; }).join('') + '</select></div>'
+    + '<div class="imz-f"><label>File (PDF o foto, anche più di uno)</label><input type="file" id="isa-vf-file" class="form-control" multiple accept="application/pdf,image/*,.doc,.docx,.odt,.p7m"></div></div>'
+    + '<div style="font-size:12px;color:var(--text-muted);margin-top:6px">Vanno sul NAS e compaiono sotto la visita e tra i documenti sanitari del ragazzo. Se hai file di tipo diverso (es. ricetta e referto), caricali uno alla volta: salva e poi riapri con 📎.</div></div>';
+  _imzModal(gia ? '📎 Risultati della visita' : '✓ Visita fatta', c, '<button type="button" class="btn btn-gray btn-sm" onclick="_isaRiapri(\'' + id + '\')">Annulla</button><button type="button" class="btn btn-teal btn-sm" id="isa-fatta-ok" onclick="isaVisitaFattaSalva(\'' + evId + '\',\'' + ds + '\',\'' + id + '\')">' + (gia ? '💾 Salva' : '✓ Segna fatta') + '</button>');
 }
 async function isaVisitaFattaSalva(evId, ds, id){
   var e = JSON.parse(JSON.stringify((_ICAL.doc.eventi || {})[evId] || null)); if(!e) return;
   e.fatti = e.fatti || {}; e.fatti[ds] = true;
   e.esiti = e.esiti || {}; var es = _imzV('isa-esito'); if(es) e.esiti[ds] = es; else delete e.esiti[ds];
-  var b = document.getElementById('isa-fatta-ok'); if(b){ b.disabled = true; b.textContent = '⏳ Salvo…'; }
+  var inp = document.getElementById('isa-vf-file'), files = inp && inp.files ? Array.prototype.slice.call(inp.files) : [], tipo = _imzV('isa-vf-tipo') || 'referto';
+  var big = files.filter(function(f){ return f.size > 25 * 1024 * 1024; });
+  if(big.length){ showToast('⚠️ File troppo grande (massimo 25 MB): ' + big[0].name, 'warning'); return; }
+  var b = document.getElementById('isa-fatta-ok'), testo = b ? b.textContent : ''; if(b){ b.disabled = true; b.textContent = '⏳ Salvo…'; }
   var ok = await _icSalva(e);
-  if(b){ b.disabled = false; b.textContent = '✓ Segna fatta'; }
-  if(!ok) return;
+  if(!ok){ if(b){ b.disabled = false; b.textContent = testo; } return; }
   try{ _iosLog('Visita fatta ' + ds + ' · ' + _iosNome(_IOS.doc.ospiti[id])); }catch(err){}
-  _icAggiornaHome(); _isaRiapri(id); showToast('✅ Visita segnata come fatta', 'success');
+  var caricati = 0, errori = [];
+  for(var i = 0; i < files.length; i++){
+    try{
+      if(b) b.textContent = '⏳ Carico ' + (i + 1) + ' di ' + files.length + '…';
+      var meta = await _nasFileCarica(files[i], 'sanita');
+      var nome = (ISA_TIPI_DOC[tipo] || 'Documento') + ' · ' + (e.specialistica || e.titolo || 'visita') + (files.length > 1 ? ' (' + (i + 1) + ')' : '');
+      if(await _isaAttacca(id, tipo, meta, { descr:nome, data:ds, ev:evId, evDs:ds })) caricati++; else errori.push(files[i].name);
+    }catch(err){ errori.push(files[i].name + ' (' + err.message + ')'); }
+  }
+  if(b){ b.disabled = false; b.textContent = testo; }
+  _icAggiornaHome(); _isaRiapri(id);
+  if(errori.length) showToast('⚠️ Visita salvata, ma non caricati: ' + errori.join(', '), 'warning');
+  else showToast(caricati ? '✅ Visita salvata e ' + caricati + (caricati === 1 ? ' file caricato' : ' file caricati') : '✅ Visita segnata come fatta', 'success');
 }
 </script>
 <script id="sanita-menu">
@@ -75464,7 +75497,7 @@ var ISA_VISTE = [
   { k:'allergie',  ico:'⚠️', t:'Allergie e intolleranze' },
   { k:'tabella',   ico:'📋', t:'Tabella completa' }
 ];
-var ISA_TIPI_DOC = { libretto:'Libretto sanitario', esenzione:'Esenzione', l104:'Verbale Legge 104', referto:'Referto', certificato:'Certificato medico', altro:'Altro documento' };
+var ISA_TIPI_DOC = { libretto:'Libretto sanitario', esenzione:'Esenzione', l104:'Verbale Legge 104', referto:'Referto', prescrizione:'Prescrizione / ricetta', certificato:'Certificato medico', altro:'Altro documento' };
 window._ISA_V = 0;
 var _isaTabellaOrig = _isaRender;
 
@@ -75586,12 +75619,12 @@ function _isaVVisite(){
   ];
   var riga = function(v, stato){
     var id = v.o.id, col = stato === 'fatta' ? '#15803d' : (stato === 'passata' ? '#b45309' : '#2563eb');
-    var bott = !edit ? '' : (stato === 'fatta' ? '' : '<button type="button" class="btn btn-teal btn-sm" onclick="event.stopPropagation();_ISA_V=1;isaVisitaFatta(\''+v.e.id+'\',\''+v.ds+'\',\''+id+'\')">✓ Fatta</button>')
+    var bott = !edit ? '' : (stato === 'fatta' ? '<button type="button" class="btn btn-outline btn-sm" title="Carica risultati: referto, prescrizione…" onclick="event.stopPropagation();_ISA_V=1;isaVisitaFatta(\''+v.e.id+'\',\''+v.ds+'\',\''+id+'\')">📎</button>' : '<button type="button" class="btn btn-teal btn-sm" onclick="event.stopPropagation();_ISA_V=1;isaVisitaFatta(\''+v.e.id+'\',\''+v.ds+'\',\''+id+'\')">✓ Fatta</button>')
       + '<button type="button" class="btn btn-outline btn-sm" title="Modifica nel calendario" onclick="event.stopPropagation();_ISA_V=1;isaVisitaModifica(\''+v.e.id+'\',\''+id+'\')">✏️</button>';
     return '<div class="idb-row" onclick="iosScheda(\''+id+'\',\'sanita\')"><span style="width:9px;height:9px;border-radius:50%;background:'+col+';flex-shrink:0"></span>'
       + '<div style="flex:1;min-width:0"><b>'+_imzFmt(v.ds)+(v.ora ? ' · '+_imzE(v.ora) : '')+' — '+_imzE(_iosNome(v.o))+'</b>'
       + '<div style="font-size:12px;color:var(--text-muted)">'+_imzE([v.e.specialistica, v.e.luogo ? '📍 ' + v.e.luogo : '', v.e.chi ? 'accompagna ' + v.e.chi : ''].filter(Boolean).join(' · ') || v.titolo)+'</div>'
-      + (v.esito ? '<div style="font-size:12px;white-space:pre-wrap">📝 '+_imzE(v.esito)+'</div>' : '') + '</div>'
+      + (v.esito ? '<div style="font-size:12px;white-space:pre-wrap">📝 '+_imzE(v.esito)+'</div>' : '') + (stato === 'fatta' ? _isaVisFile(id, v.e.id, v.ds) : '') + '</div>'
       + '<div style="display:flex;gap:4px;flex-shrink:0">'+bott+'</div></div>';
   };
   var h = edit ? '<div style="margin-bottom:12px"><button type="button" class="btn btn-teal btn-sm" onclick="_ISA_V=0;isaVisitaScegli()">➕ Programma visita</button> <span style="font-size:12px;color:var(--text-muted)">Le visite compaiono anche nel calendario dell\'Istituto.</span></div>' : '';
@@ -75760,7 +75793,9 @@ async function _isaAttacca(oid, tipo, meta, extra){
     if(extra.codice) s.esenzione = String(extra.codice).toUpperCase();
     if(extra.scad){ s.validitaEsenz = 'A scadenza'; s.scadEsenz = extra.scad; }
   } else {
-    s.allegati = (s.allegati || []).concat([{ id:_imzId('a'), tipo:tipo, nome:extra.descr || ISA_TIPI_DOC[tipo] || 'Documento', data:extra.data || _imzIso(new Date()), file:meta }]);
+    var _al = { id:_imzId('a'), tipo:tipo, nome:extra.descr || ISA_TIPI_DOC[tipo] || 'Documento', data:extra.data || _imzIso(new Date()), file:meta };
+    if(extra.ev){ _al.ev = extra.ev; _al.evDs = extra.evDs || _al.data; }
+    s.allegati = (s.allegati || []).concat([_al]);
   }
   var ok = await _iosSalvaRec(ISA_KEY, _isaVuoto, 'schede', s);
   if(ok){ if(vecchio && vecchio.id !== meta.id) _iosFileCestina(vecchio, _iosNome(_IOS.doc.ospiti[oid] || {}) + ' · ' + (ISA_TIPI_DOC[tipo] || tipo) + ' (sostituito)'); _iosLog('Caricato ' + (ISA_TIPI_DOC[tipo] || tipo) + ' · ' + _iosNome(_IOS.doc.ospiti[oid] || {})); }
@@ -87677,7 +87712,7 @@ body{ background:var(--g-bg) !important }
         + '<div style="flex:1;min-width:0"><b>' + E(v.e.specialistica || v.titolo) + '</b><span class="isx-st ' + s + '">' + lab + '</span>'
         + (v.e.specialistica && v.titolo ? '<div style="font-size:12px;color:var(--text-muted)">' + E(v.titolo) + '</div>' : '')
         + ((v.e.luogo || v.e.chi) ? '<div style="font-size:12px;color:var(--text-muted)">' + E([v.e.luogo ? '📍 ' + v.e.luogo : '', v.e.chi ? 'accompagna ' + v.e.chi : ''].filter(Boolean).join(' · ')) + '</div>' : '')
-        + (v.esito ? '<div style="font-size:13px;white-space:pre-wrap;margin-top:3px">📝 ' + E(v.esito) + '</div>' : '') + '</div>'
+        + (v.esito ? '<div style="font-size:13px;white-space:pre-wrap;margin-top:3px">📝 ' + E(v.esito) + '</div>' : '') + (v.fatta && typeof _isaVisFile === 'function' ? _isaVisFile(S.id, v.e.id, v.ds) : '') + '</div>'
         + (edit ? '<button type="button" class="btn btn-outline btn-sm" title="Modifica nel calendario" onclick="_ISA_V=0;isaVisitaModifica(\'' + v.e.id + '\',\'' + S.id + '\')">✏️</button>' : '') + '</div>';
     };
     var perAnno = function(arr){ var h = '', anno = ''; arr.forEach(function(v){ var a = v.ds.slice(0, 4); if(a !== anno){ anno = a; h += '<div class="isx-anno">' + a + '</div>'; } h += riga(v); }); return h; };
@@ -92619,7 +92654,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
   function visita(v, stato, o, edit){
     var d = new Date(v.ds + 'T12:00:00'), id = o.id, ev = v.e.id;
     var bott = !edit ? '' : (stato === 'fatta'
-      ? '<button type="button" class="btn btn-outline btn-sm" title="Segna come non fatta" onclick="_ISA_V=0;isaVisitaFatta(\'' + ev + '\',\'' + v.ds + '\',\'' + id + '\',true)">↺</button>'
+      ? '<button type="button" class="btn btn-outline btn-sm" title="Carica risultati: referto, prescrizione…" onclick="_ISA_V=0;isaVisitaFatta(\'' + ev + '\',\'' + v.ds + '\',\'' + id + '\')">📎</button><button type="button" class="btn btn-outline btn-sm" title="Segna come non fatta" onclick="_ISA_V=0;isaVisitaFatta(\'' + ev + '\',\'' + v.ds + '\',\'' + id + '\',true)">↺</button>'
       : '<button type="button" class="btn btn-teal btn-sm" onclick="_ISA_V=0;isaVisitaFatta(\'' + ev + '\',\'' + v.ds + '\',\'' + id + '\')">✓ Fatta</button>')
       + '<button type="button" class="btn btn-outline btn-sm" title="Modifica nel calendario" onclick="_ISA_V=0;isaVisitaModifica(\'' + ev + '\',\'' + id + '\')">✏️</button>';
     if(typeof window.dlNuova === 'function' && _iosOk('ist_sanita') && stato !== 'fatta') bott += '<button type="button" class="btn btn-outline btn-sm" title="Crea la delega per questa visita" onclick="dlNuova({ev:\'' + ev + '\',oid:\'' + id + '\'})">📄</button>';
@@ -92627,7 +92662,7 @@ table.orx td.sab .orx-s .o{font-size:12px}
       + '<div class="isx-vt"><div class="t">' + E(titoloPulito(v.titolo, o) || 'Visita') + '</div>'
       + (v.e.specialistica ? '<div class="s">🩺 ' + E(v.e.specialistica) + '</div>' : '')
       + (v.e.luogo || v.e.chi ? '<div class="p">' + (v.e.luogo ? '📍 ' + E(v.e.luogo) : '') + (v.e.luogo && v.e.chi ? ' · ' : '') + (v.e.chi ? '👤 accompagna ' + E(v.e.chi) : '') + '</div>' : '')
-      + (stato === 'passata' ? '<div class="w">È passata: è stata fatta?</div>' : '') + (v.esito ? '<div class="e">📝 ' + E(v.esito) + '</div>' : '') + '</div>'
+      + (stato === 'passata' ? '<div class="w">È passata: è stata fatta?</div>' : '') + (v.esito ? '<div class="e">📝 ' + E(v.esito) + '</div>' : '') + (stato === 'fatta' && typeof _isaVisFile === 'function' ? _isaVisFile(id, ev, v.ds) : '') + '</div>'
       + (bott ? '<div class="isx-va">' + bott + '</div>' : '') + '</div>';
   }
   function visite(o){
