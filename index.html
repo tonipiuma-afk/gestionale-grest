@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 24/11/2026 11:54</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57458,7 +57458,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 24/11/2026 11:54 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -93306,6 +93306,13 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   function pColl(v){ var c = col(v); return pQuest(v) + (+c.mot || 0) + (+c.disp || 0) + (+c.cap || 0); }
   function pTot(v){ return pCV(v) + pColl(v); }
   function aperti(v){ return (v.dubbi || []).filter(function(d){ return !d.ok; }).length; }
+  /* Presenza al colloquio: v.pres = { s, n, il, da }. Chi ha compilato il modulo senza altro stato vale come conferma implicita */
+  var PRES = { conf:['✅','Conferma','#15803d','#dcfce7'], imp:['🟢','Conferma implicita (modulo)','#0f766e','#ccfbf1'], chi:['🟠','Da chiarire','#c2410c','#ffedd5'], rin:['⛔','Rinuncia','#b91c1c','#fee2e2'], nr:['⚪','Nessuna risposta','#475569','#f1f5f9'] };
+  var PRESK = ['conf','imp','chi','rin','nr'];
+  function presK(c, v){ var k = v && v.pres && v.pres.s; return PRES[k] ? k : (c && c.mod ? 'imp' : 'nr'); }
+  function presAuto(v){ return !(v && v.pres && PRES[v.pres.s]); }
+  function presBdg(c, v, corto){ var k = presK(c, v), p = PRES[k]; if(k === 'nr' && corto) return '';
+    return '<span class="sx-pres-b" style="color:' + p[2] + ';background:' + p[3] + '" title="Presenza al colloquio: ' + E(p[1]) + (v.pres && v.pres.n ? '\n' + E(v.pres.n) : '') + (presAuto(v) && k === 'imp' ? '\n(ha compilato il modulo)' : '') + '">' + p[0] + (corto && k !== 'rin' ? '' : ' ' + (k === 'rin' ? 'RINUNCIA' : E(p[1]))) + '</span>'; }
   function norm(v){ v.ult = v.ult || []; v.comp = v.comp || []; v.esp = v.esp || []; v.dubbi = v.dubbi || []; v.pat = v.pat || { tipo:'', data:'', valida:false }; return v; }
 
   /* ── nomi completi (tooltip) ── */
@@ -93801,7 +93808,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var ok = await scriviTutto(function(base){
       if(p.cands) Object.keys(p.cands).forEach(function(k){ var c = p.cands[k]; if(base.cands[k] && base.cands[k].pdf) c.pdf = base.cands[k].pdf; if(base.cands[k] && base.cands[k].foto && !c.foto && !c.fotoF) c.foto = base.cands[k].foto; if(base.cands[k] && base.cands[k].fotoF && !c.fotoF && !c.foto) c.fotoF = base.cands[k].fotoF; if(base.cands[k] && base.cands[k].mod && (!c.mod || (c.mod.il || '') < (base.cands[k].mod.il || ''))) c.mod = base.cands[k].mod; base.cands[k] = c; });
       if(p.foto) Object.keys(p.foto).forEach(function(k){ if(base.cands[k]) base.cands[k].foto = p.foto[k]; });
-      Object.keys(p.val).forEach(function(k){ var v = norm(p.val[k]); v._ts = new Date().toISOString(); v._by = _imzUtente(); base.val[k] = v; });
+      Object.keys(p.val).forEach(function(k){ var v = norm(p.val[k]); if(!v.pres && base.val[k] && base.val[k].pres) v.pres = base.val[k].pres; v._ts = new Date().toISOString(); v._by = _imzUtente(); base.val[k] = v; });
       if(p.istituto && !base.istituto) base.istituto = p.istituto;
       var gia = {}; base.log.forEach(function(l){ gia[chiaveLog(l)] = 1; });
       (p.log || []).slice().reverse().forEach(function(l){ var e = { ts:l.ts, by:l.by || 'file', cod:l.cod || '', nome:l.nome || '', desc:l.desc }; if(gia[chiaveLog(e)]) return; gia[chiaveLog(e)] = 1; base.log.unshift(e); });
@@ -93820,7 +93827,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   function filtrati(){
     var F = S.F; return lista().filter(function(c){ var v = norm(S.doc.val[c.cod] || {});
       if(F.q && (c.nome + ' ' + c.cod).toLowerCase().indexOf(F.q.toLowerCase()) < 0) return false;
-      if(F.gmo && c.gmo !== F.gmo) return false; if(F.alt && c.altro !== F.alt) return false; if(F.dub && !aperti(v)) return false; if(F.ncol && hasColl(v)) return false; if(F.nctl && v.ctrl) return false; if(F.npor && statoPortale(v) === 'ok') return false; return true; });
+      if(F.gmo && c.gmo !== F.gmo) return false; if(F.alt && c.altro !== F.alt) return false; if(F.dub && !aperti(v)) return false; if(F.ncol && hasColl(v)) return false; if(F.nctl && v.ctrl) return false; if(F.npor && statoPortale(v) === 'ok') return false; if(F.pres){ var pk = presK(c, v); if(F.pres === 'si' ? (pk !== 'conf' && pk !== 'imp') : pk !== F.pres) return false; } return true; });
   }
   function V(cod){ if(!S.doc.val[cod]) S.doc.val[cod] = { liv:'', att:false, tit:'', dubbi:[] }; return norm(S.doc.val[cod]); }
 
@@ -93901,14 +93908,16 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     var bar = '<div class="sel-fbar">'
       + '<input id="sel-q" class="form-control sel-q" type="search" placeholder="🔍 Cerca nome o n. domanda" value="' + E(F.q) + '" oninput="_SEL.F.q=this.value;_SEL.F._f=1;selRender()">'
       + '<div class="sel-seg">' + seg('tutti', 'Tutti') + seg('dub', '⚠️ Da verificare') + seg('ncol', 'Senza colloquio') + seg('nctl', 'Da controllare') + seg('npor', '📋 Da inserire nel portale') + '</div>'
+      + '<select class="form-control sel-fsel" title="Presenza al colloquio" onchange="_SEL.F.pres=this.value;selRender()"><option value="">Presenza: tutti</option>' + [['si','✅ Vengono (conferma o modulo)'],['conf','✅ Conferma'],['imp','🟢 Conferma implicita (modulo)'],['chi','🟠 Da chiarire'],['rin','⛔ Rinuncia'],['nr','⚪ Nessuna risposta']].map(function(o){ return '<option value="' + o[0] + '"' + (F.pres === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>'
       + '<select class="form-control sel-fsel" title="Posti riservati GMO" onchange="_SEL.F.gmo=this.value;selRender()"><option value="">GMO: tutti</option><option value="SÌ"' + (F.gmo === 'SÌ' ? ' selected' : '') + '>GMO: sì</option><option value="NO"' + (F.gmo === 'NO' ? ' selected' : '') + '>GMO: no</option></select>'
       + '<select class="form-control sel-fsel" title="Disponibile ad altro progetto" onchange="_SEL.F.alt=this.value;selRender()"><option value="">Altro progetto: tutti</option><option value="SÌ"' + (F.alt === 'SÌ' ? ' selected' : '') + '>Altro progetto: sì</option><option value="NO"' + (F.alt === 'NO' ? ' selected' : '') + '>Altro progetto: no</option></select>'
-      + '<span class="sp"></span><span class="sel-muted sel-cnt">' + L.length + ' di ' + lista().length + ' · <b style="color:#15803d">' + lista().filter(function(c){ return (S.doc.val[c.cod] || {}).ctrl; }).length + ' controllati</b> · <b style="color:#1d4ed8">' + lista().filter(function(c){ return S.doc.val[c.cod] && statoPortale(norm(S.doc.val[c.cod])) === 'ok'; }).length + ' nel portale</b></span>'
+      + '<span class="sp"></span><span class="sel-muted sel-cnt">' + L.length + ' di ' + lista().length + ' · <b style="color:#15803d">' + lista().filter(function(c){ return (S.doc.val[c.cod] || {}).ctrl; }).length + ' controllati</b> · <b style="color:#1d4ed8">' + lista().filter(function(c){ return S.doc.val[c.cod] && statoPortale(norm(S.doc.val[c.cod])) === 'ok'; }).length + ' nel portale</b>' + (function(){ var r = lista().filter(function(c){ return presK(c, V(c.cod)) === 'rin'; }).length; return r ? ' · <b style="color:#b91c1c">⛔ ' + r + ' rinunce</b>' : ''; })() + '</span>'
       + '<div class="sel-zoom" title="Ingrandisci o rimpicciolisci la tabella (anche Ctrl + rotellina)"><button onclick="selZoom(-.1)" title="Rimpicciolisci">−</button><span id="sel-zl">' + Math.round(S.zoom * 100) + '%</span><button onclick="selZoom(.1)" title="Ingrandisci">+</button><button data-zm="largo" onclick="selZoomFit(\'largo\')" title="Adatta alla larghezza della pagina">↔ Adatta</button><button data-zm="tutto" onclick="selZoomFit(\'tutto\')" title="Tutta la tabella in una schermata">⛶ Tutta</button></div></div>';
     var all = lista();
     var rows = L.map(function(c){ var v = V(c.cod), od = aperti(v), cod = c.cod;
       var ult = v.ult.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; '), comp = v.comp.map(function(x){ return x.t + (x.v ? '' : ' ✗'); }).join('; ');
-      return '<tr><td>' + (all.indexOf(c) + 1) + '</td><td class="nm" onclick="selApri(\'' + cod + '\')" title="Apri dettaglio, domanda e PDF">' + E(c.nome) + ' ' + (c.mod ? '<span class="sx-modi" title="Ha risposto al modulo pre-colloquio">🗒</span>' : '') + ({ ok:'<span class="sx-pori ok" title="Inserita nel portale ufficiale">📋✓</span>', cambiata:'<span class="sx-pori mod" title="Cambiata dopo l\'inserimento nel portale: da reinserire">📋↻</span>' }[statoPortale(v)] || '') + (v.ctrl ? '<span class="sx-tk" title="Valutazione controllata">✓</span>' : '') + (od ? '<span class="sel-bd" title="Casi da verificare aperti">' + od + '</span>' : '') + (c.pdf ? '' : ' <span title="PDF non caricato" style="opacity:.5">📄✗</span>') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td class="ed' + (c.gmoMan ? ' mn' : '') + '" onclick="selGmo(event,\'' + cod + '\')" title="' + E(TT['GMO'] + (c.gmoMan ? '\nModificato a mano (nella domanda: ' + gmoDom(c) + ')' : '') + '\n(clicca per cambiare SÌ / NO)') + '">' + c.gmo + '</td><td>' + c.altro + '</td>'
+      var rin = presK(c, v) === 'rin';
+      return '<tr' + (rin ? ' class="sx-rin"' : '') + '><td>' + (all.indexOf(c) + 1) + '</td><td class="nm" onclick="selApri(\'' + cod + '\')" title="Apri dettaglio, domanda e PDF">' + E(c.nome) + ' ' + presBdg(c, v, true) + ' ' + (c.mod ? '<span class="sx-modi" title="Ha risposto al modulo pre-colloquio">🗒</span>' : '') + ({ ok:'<span class="sx-pori ok" title="Inserita nel portale ufficiale">📋✓</span>', cambiata:'<span class="sx-pori mod" title="Cambiata dopo l\'inserimento nel portale: da reinserire">📋↻</span>' }[statoPortale(v)] || '') + (v.ctrl ? '<span class="sx-tk" title="Valutazione controllata">✓</span>' : '') + (od ? '<span class="sel-bd" title="Casi da verificare aperti">' + od + '</span>' : '') + (c.pdf ? '' : ' <span title="PDF non caricato" style="opacity:.5">📄✗</span>') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td class="ed' + (c.gmoMan ? ' mn' : '') + '" onclick="selGmo(event,\'' + cod + '\')" title="' + E(TT['GMO'] + (c.gmoMan ? '\nModificato a mano (nella domanda: ' + gmoDom(c) + ')' : '') + '\n(clicca per cambiare SÌ / NO)') + '">' + c.gmo + '</td><td>' + c.altro + '</td>'
         + COLT.map(function(t, i){ return ec(cod, 'tit:' + t[1] + ':' + (t[2] ? 1 : 0), fz(titCell(v, t)), isMan(v, 'tit') && titCell(v, t) !== '', !i); }).join('')
         + '<td class="txt gs" onclick="selApri(\'' + cod + '\')" title="' + E(ult) + '"><div>' + E(ult) + '</div></td>' + ec(cod, 'ult', fz(pUlt(v)), isMan(v, 'ult'))
         + '<td class="gs" onclick="selApri(\'' + cod + '\')">' + E(v.pat.tipo) + '</td><td onclick="selApri(\'' + cod + '\')">' + E(v.pat.data) + '</td><td class="txt gs" onclick="selApri(\'' + cod + '\')" title="' + E(comp) + '"><div>' + E(comp) + '</div></td>' + ec(cod, 'comp', fz(pComp(v)), isMan(v, 'comp'))
@@ -94063,10 +94072,23 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     if(split) cvCarica(c);
     main.innerHTML = '<div class="sel-dh sx-dh">' + (fotoSrc(c) ? '<button class="sel-av sx-av foto" onclick="selFotoVedi()" title="Ingrandisci la foto"><img src="' + fotoSrc(c) + '" alt=""></button>' : (puoMod() ? '<button class="sel-av sx-av" onclick="selFotoScegli()" title="Aggiungi la foto dal curriculum">' + E(ini) + '<i class="sx-av-cam">📷</i></button>' : '<div class="sel-av">' + E(ini) + '</div>')) + '<div class="sx-dh-t"><h2>' + E(c.nome) + '</h2><div class="sx-sub">Domanda ' + E(c.cod) + ' · ' + eta(c.nato) + ' anni (' + E(c.nato) + ')' + (com ? ' · ' + E(com) : '') + '</div>' + (bdg ? '<div class="sx-bdgs">' + bdg + '</div>' : '') + '</div>'
       + '<div class="sel-dact sx-act"><span class="sel-muted">' + (pos || '–') + ' / ' + L.length + '</span><button class="btn btn-outline btn-sm" onclick="selSposta(-1)" title="Candidato precedente">‹</button><button class="btn btn-outline btn-sm" onclick="selSposta(1)" title="Candidato successivo">›</button>' + (c.pdf ? (largo && S.dtab === 'val' ? '<button class="btn btn-sm ' + (split ? 'btn-teal' : 'btn-outline') + '" onclick="selAffianca(' + (split ? 'false' : 'true') + ')" title="' + (split ? 'Chiudi il CV affiancato' : 'Apri il CV accanto alla valutazione') + '">📄 ' + (split ? 'CV affiancato' : 'Affianca CV') + '</button>' : '<button class="btn btn-outline btn-sm" onclick="selApriPdf(\'' + c.cod + '\')" title="Apri la domanda con il CV">📄 PDF</button>') : '') + '<button class="btn btn-outline btn-sm" onclick="selStampaSchede([\'' + c.cod + '\'])" title="Stampa la scheda di questo candidato">🖨</button><button class="sel-x" onclick="selChiudi()" title="Chiudi (Esc)">✕</button></div></div>'
+      + presBar(c, v)
       + '<div class="sel-segw"><div class="sel-seg">' + [['val','📊 Valutazione'],['mod','🗒 Modulo' + (c.mod ? ' ✓' : '')],['por','📋 Portale' + ({ ok:' ✓', cambiata:' ↻' }[statoPortale(v)] || '')],['dom','📝 Domanda'],['pdf','📄 PDF domanda e CV'],['log','🕘 Storico']].map(function(t){ return '<button class="' + (S.dtab === t[0] ? 'on' : '') + '" onclick="selDtab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div></div>'
       + '<div class="sel-db">' + (S.dtab === 'val' ? drVal(c, v) : S.dtab === 'mod' ? drMod(c, v) : S.dtab === 'por' ? drPortale(c, v) : S.dtab === 'dom' ? drDom(c) : S.dtab === 'pdf' ? drPdf(c) : drLog(c)) + '</div>';
     requestAnimationFrame(function(){ main.querySelectorAll('textarea.sx-ta').forEach(selAutoH); });
   }
+  function presBar(c, v){
+    var k = presK(c, v), p = PRES[k], mod = puoMod(), n = (v.pres && v.pres.n) || '';
+    return '<div class="sx-pres' + (k === 'rin' ? ' rin' : '') + '" style="border-color:' + p[2] + '"><span class="sx-pres-l">Presenza al colloquio</span>'
+      + (mod ? '<span class="sx-pres-k">' + PRESK.map(function(x){ var q = PRES[x]; return '<button type="button" class="' + (x === k ? 'on' : '') + '" style="' + (x === k ? 'background:' + q[3] + ';color:' + q[2] + ';border-color:' + q[2] : '') + '" onclick="selPres(\'' + x + '\')">' + q[0] + ' ' + (x === 'imp' ? 'Implicita (modulo)' : x === 'rin' ? 'Rinuncia' : E(q[1])) + '</button>'; }).join('') + '</span>'
+        + '<input class="form-control sx-pres-n" type="text" placeholder="Nota (es. 25/11 su WhatsApp: non può più per impegni)" value="' + E(n) + '" onchange="selPresNota(this.value)">'
+        : presBdg(c, v) + (n ? ' <span class="sel-muted">' + E(n) + '</span>' : ''))
+      + (presAuto(v) && k === 'imp' ? '<span class="sel-muted sx-pres-a">automatico: ha compilato il modulo</span>' : '') + '</div>';
+  }
+  window.selPres = function(k){ var cod = S.cur; if(!cod || !PRES[k]) return; var c = S.doc.cands[cod];
+    modifica(cod, function(r){ r.pres = { s:k, n:(r.pres && r.pres.n) || '', il:new Date().toISOString(), da:_imzUtente() }; }, 'Presenza al colloquio: ' + PRES[k][1]); };
+  window.selPresNota = function(t){ var cod = S.cur; if(!cod) return; var c = S.doc.cands[cod], v = V(cod), k = presK(c, v);
+    modifica(cod, function(r){ r.pres = { s:(r.pres && PRES[r.pres.s]) ? r.pres.s : k, n:String(t || '').trim(), il:new Date().toISOString(), da:_imzUtente() }; }, 'Nota presenza: ' + String(t || '').trim()); };
   function manNote(v, k, calc){ return isMan(v, k) ? '<div class="sel-man">✎ Valore inserito a mano dalla tabella: <b>' + fmt(MN(v, k)) + '</b> · il dettaglio qui sotto darebbe ' + fmt(calc) + (puoMod() ? ' <button class="btn btn-outline btn-sm" onclick="selTogliMan(\'' + k + '\')">Torna al calcolo</button>' : '') + '</div>' : ''; }
   function drVal(c, v){
     var mod = puoMod(), dis = mod ? '' : ' disabled', cod = c.cod;
@@ -94185,7 +94207,7 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
   }
 
   /* ── stampe (finestra a parte, come le altre stampe del gestionale) ── */
-  var CSS_P = 'body{font-family:Calibri,Arial,sans-serif;margin:0;color:#000}.pg{page-break-after:always}.pg:last-child{page-break-after:auto}'
+  var CSS_P = 'tr.rin td{background:#fde2e1 !important;color:#991b1b;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rinw{color:#b91c1c;font-size:7.5pt;letter-spacing:.5px}body{font-family:Calibri,Arial,sans-serif;margin:0;color:#000}.pg{page-break-after:always}.pg:last-child{page-break-after:auto}'
     + '.pt{font-size:11pt;margin:0 0 5px}table.g{border-collapse:collapse;width:100%;font-size:8pt;table-layout:fixed}table.g th,table.g td{border:1px solid #000;padding:2px;text-align:center;vertical-align:middle;overflow:hidden}'
     + 'table.g thead tr:first-child th{font-size:9pt}table.g thead tr:nth-child(2) th{font-style:italic;font-weight:400;font-size:7pt}table.g td.nm{text-align:left;font-size:8.5pt}table.g td.tx{font-size:6.5pt}table.g tbody tr{height:15mm}'
     + '.blk{background:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
@@ -94208,8 +94230,8 @@ dl.sel-dom dt{color:var(--text-muted)}dl.sel-dom dd{margin:0;white-space:pre-wra
     for(var p = 0; p < pag; p++){ var rows = '';
       for(var i = p * PER; i < (p + 1) * PER; i++){ var c = L[i];
         if(!c){ rows += '<tr><td><b>' + (i + 1) + '.</b></td>' + '<td></td>'.repeat(35) + '</tr>'; continue; }
-        var v = V(c.cod);
-        rows += '<tr><td><b>' + (all.indexOf(c) + 1) + '.</b></td><td class="nm">' + E(c.nome) + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td>' + c.gmo + '</td><td>' + c.altro + '</td>' + COLT.map(function(t){ return '<td>' + fz(titCell(v, t)) + '</td>'; }).join('')
+        var v = V(c.cod), rinP = presK(c, v) === 'rin';
+        rows += '<tr' + (rinP ? ' class="rin"' : '') + '><td><b>' + (all.indexOf(c) + 1) + '.</b></td><td class="nm">' + E(c.nome) + (rinP ? '<br><b class="rinw">RINUNCIA</b>' : '') + '</td><td>' + eta(c.nato) + '</td><td>' + c.cod + '</td><td>' + c.gmo + '</td><td>' + c.altro + '</td>' + COLT.map(function(t){ return '<td>' + fz(titCell(v, t)) + '</td>'; }).join('')
           + '<td class="tx">' + E(v.ult.map(function(x){ return x.t + (x.v ? '' : ' (no pt.)'); }).join('; ')) + '</td><td>' + fz(pUlt(v)) + '</td><td class="tx">' + E(v.pat.tipo) + '</td><td class="tx">' + E(v.pat.data) + '</td><td class="tx">' + E(v.comp.map(function(x){ return x.t; }).join('; ')) + '</td><td>' + fz(pComp(v)) + '</td>'
           + INDK.map(function(k){ return '<td>' + fz(pInd(v, k)) + '</td>'; }).join('') + '<td>' + (hasColl(v) ? fz(pQuest(v)) : '') + '</td><td>' + fz(col(v).mot) + '</td><td>' + fz(col(v).disp) + '</td><td>' + fz(col(v).cap) + '</td><td>' + (hasColl(v) ? fmt(pColl(v)) : '') + '</td><td><b>' + (hasColl(v) ? fmt(pTot(v)) : '') + '</b></td></tr>'; }
       h += '<div class="pg">' + tit(p + 1) + '<table class="g">' + cg + head + '<tbody>' + rows + '</tbody></table></div>'; }
@@ -94335,6 +94357,16 @@ html[data-pi-tema="scuro"] .sel-seg, html[data-pi-tema="scuro"] .sel-pn{backgrou
 .sx-sub{font-size:13px;color:var(--text-muted)}
 .sx-bdgs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .sx-bdg{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--teal-light);color:var(--teal)}
+.sx-pres-b{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.sel-g tr.sx-rin td{background:#fde2e1 !important;color:#991b1b}
+.sel-g tr.sx-rin td.nm{text-decoration:line-through;text-decoration-color:rgba(185,28,28,.45)}
+.sx-pres{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 10px;padding:8px 10px;border:1.5px solid;border-radius:12px;background:var(--card-bg,#fff)}
+.sx-pres.rin{background:#fef2f2}
+.sx-pres-l{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted)}
+.sx-pres-k{display:flex;flex-wrap:wrap;gap:4px}
+.sx-pres-k button{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}
+.sx-pres-n{flex:1;min-width:200px;max-width:460px;height:30px;font-size:12.5px}
+.sx-pres-a{font-size:11.5px}
 .sx-bdg.g{background:#dcfce7;color:#15803d}
 .sx-act{align-items:center}
 .sx-wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
