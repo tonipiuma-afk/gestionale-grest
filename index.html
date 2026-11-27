@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 27/11/2026 13:07</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57459,7 +57459,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 27/11/2026 13:07 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -86029,6 +86029,50 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
 .pe-avv button{ border:1px solid var(--x-line); background:var(--x-card); color:var(--x-txt); border-radius:999px; padding:6px 11px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap } .pe-avv button.ok{ background:var(--x-acc); border-color:var(--x-acc); color:#fff }
 .pe-rag{ display:flex; gap:12px; align-items:center; width:100%; border:0; background:transparent; font:inherit; color:inherit; text-align:left; padding:10px 0; border-top:1px solid var(--x-line); cursor:pointer } .pe-rag:first-child{ border-top:0 }
 .pe-rag .t{ flex:1; min-width:0 } .pe-rag .t b{ display:block; font-size:15px; font-weight:600 } .pe-rag .t span{ display:block; font-size:13px; color:var(--x-sub); margin-top:1px }
+/* ═══ Portale educatori — stessa impostazione dei portali animatori e Servizio Civile (novembre 2026) ═══ */
+#portale-educatore.pe2{ --e-hero:#1e3a5f; --e-acc:#2f5d9a; --e-acc2:#e6eef8; --e-bg:#f3f5f8; --e-card:#fff; --e-line:#e2e8f0; --e-txt:#1e293b; --e-sub:#64748b; --x-acc:var(--e-acc); --x-acc2:var(--e-acc2); background:var(--e-bg); font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif }
+#portale-educatore.pe2.x-dark{ --e-hero:#0f1f36; --e-acc:#7aa7e6; --e-acc2:#1c2b42; --e-bg:#0b1220; --e-card:#141d2e; --e-line:#25324a; --e-txt:#e5e9f0; --e-sub:#94a3b8 }
+#portale-educatore.pe2 .pe-wrap{ max-width:640px; padding:0 0 calc(96px + env(safe-area-inset-bottom,0px)) }
+.pe2-hero{ position:relative; overflow:hidden; background:var(--e-hero); color:#fff; padding:calc(22px + env(safe-area-inset-top,0px) + var(--pe-sim,0px)) 16px 20px }
+.pe2-hero::before{ content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.07) }
+.pe2-hero::after{ content:''; position:absolute; bottom:-40px; left:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.05) }
+.pe2-lab{ position:relative; z-index:1; font-size:12px; font-weight:500; letter-spacing:.24px; opacity:.9; margin:0 52px 12px 0; display:flex; align-items:center; gap:6px }
+.pe2-esci{ position:absolute; z-index:2; top:calc(14px + env(safe-area-inset-top,0px) + var(--pe-sim,0px)); right:14px; width:44px; height:44px; border-radius:12px; border:0; background:rgba(255,255,255,.12); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer }
+.pe2-esci svg{ width:21px; height:21px }
+.pe2-io{ position:relative; z-index:1; display:flex; align-items:center; gap:14px }
+.pe2-av{ flex:none; width:56px; height:56px; border-radius:50%; border:3px solid rgba(255,255,255,.35); display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:700; color:#fff }
+.pe2-nome{ font-size:20px; font-weight:600; line-height:1.2 }
+.pe2-pill{ display:inline-flex; align-items:center; gap:6px; margin-top:6px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.12); font-size:11px; font-weight:650; letter-spacing:.3px }
+.pe2-pill i{ width:7px; height:7px; border-radius:50%; background:#4ade80 }
+.pe2-box{ position:relative; z-index:1; margin-top:14px; padding:11px 14px; border-radius:12px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16) }
+.pe2-box small{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; opacity:.85 } .pe2-box small svg{ width:16px; height:16px }
+.pe2-box b{ display:block; margin-top:3px; font-size:18px; font-weight:700 } .pe2-box span{ display:block; margin-top:1px; font-size:13px; opacity:.85 }
+.pe2-tit{ position:relative; z-index:1; font-size:24px; font-weight:700; line-height:1.15 } .pe2-sot{ position:relative; z-index:1; font-size:13.5px; opacity:.8; margin-top:4px }
+.pe2-body{ padding:2px 16px 0 }
+.pe2-card{ background:var(--e-card); border:1px solid var(--e-line); border-radius:16px; margin-top:14px; overflow:hidden; color:var(--e-txt) }
+.pe2-ch{ display:flex; align-items:center; gap:12px; padding:14px 16px 12px; border-bottom:1px solid var(--e-line) }
+.pe2-ci{ flex:none; width:36px; height:36px; border-radius:10px; background:var(--e-acc2); color:var(--e-acc); display:flex; align-items:center; justify-content:center } .pe2-ci svg{ width:19px; height:19px }
+.pe2-ct{ flex:1; min-width:0; font-size:16px; font-weight:600 } .pe2-ct small{ display:block; font-size:12.5px; font-weight:500; color:var(--e-sub); margin-top:1px }
+.pe2-cx{ border:0; background:none; font:inherit; font-size:13px; font-weight:700; color:var(--e-acc); cursor:pointer; padding:4px 0 }
+.pe2-cb{ padding:4px 16px 8px } .pe2-cb .pe-ev:first-child, .pe2-cb .pe-avv:first-child, .pe2-cb .pe-rag:first-child, .pe2-cb .pe-tg:first-child{ border-top:0 }
+.pe2-cb .pe-ev{ border-top:1px solid var(--e-line); padding:11px 0 }
+.pe2-vuoto{ padding:22px 16px 24px; text-align:center; color:var(--e-sub); font-size:14px } .pe2-vuoto i{ display:block; font-style:normal; font-size:30px; margin-bottom:6px }
+.pe2-nota{ margin-top:14px; padding:12px 14px; border-radius:14px; background:#fff7e6; border:1px solid #fde3a7; color:#7c4a03; font-size:13.5px; line-height:1.45 }
+.pe2-btn{ display:block; width:100%; margin-top:14px; padding:13px; border:0; border-radius:14px; background:var(--e-acc); color:#fff; font:inherit; font-size:15px; font-weight:700; cursor:pointer }
+.pe2-li{ display:flex; align-items:center; gap:12px; width:100%; border:0; border-top:1px solid var(--e-line); background:none; font:inherit; color:var(--e-txt); text-align:left; padding:13px 0; cursor:pointer } .pe2-li:first-child{ border-top:0 }
+.pe2-li b{ flex:1; font-size:15px; font-weight:600 } .pe2-li span{ font-size:13px; color:var(--e-sub) } .pe2-li .fr{ color:var(--e-sub); font-size:18px }
+.pe2-li.esci b{ color:#dc2626 }
+.pe2-kv{ display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--e-line); font-size:14px } .pe2-kv:first-child{ border-top:0 } .pe2-kv small{ color:var(--e-sub) } .pe2-kv b{ font-weight:600; text-align:right }
+#portale-educatore .pe2-nav{ background:var(--e-card); border-top:1px solid var(--e-line); backdrop-filter:none; padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px)) }
+#portale-educatore .pe2-nav button{ max-width:110px; gap:4px; padding:3px 0; color:var(--e-sub) }
+#portale-educatore .pe2-nav .ico{ width:52px; height:30px; border-radius:99px; display:flex; align-items:center; justify-content:center }
+#portale-educatore .pe2-nav .ico svg{ width:22px; height:22px }
+#portale-educatore .pe2-nav .lbl{ font-size:11px; font-weight:500 }
+#portale-educatore .pe2-nav button.on{ color:var(--e-acc) } #portale-educatore .pe2-nav button.on .ico{ background:var(--e-acc2) } #portale-educatore .pe2-nav button.on .lbl{ font-weight:600 }
+#portale-educatore .pe2-nav .pe-nb{ top:0; left:calc(50% + 8px) }
+.pe2 .pe-chips{ margin:14px 0 0 }
+.pe2 .pe-settnav{ margin:0 }
+.x-foglio .pe-info a{ color:#2f5d9a; font-weight:600; text-decoration:none }
 #pe-vai-edu{ position:fixed; right:14px; bottom:86px; z-index:100001; border:0; border-radius:999px; padding:10px 15px; background:#3B5B8C; color:#fff; font:600 14px/1 Inter,system-ui,sans-serif; box-shadow:0 6px 18px rgba(0,0,0,.25); cursor:pointer; display:none }
 #portale-educatore .pe-ev{ display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-top:1px solid var(--x-line) }
 #portale-educatore .pe-ev:first-child{ border-top:0; padding-top:2px } #portale-educatore .pe-ev:last-child{ padding-bottom:0 }
@@ -86063,14 +86107,14 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
 .pe-tt{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap } .pe-tt + .pe-tt{ margin-top:6px }
 .pe-tc{ font-size:14.5px; font-weight:600; color:var(--x-txt); white-space:pre-wrap; min-width:0 }
 </style>
-<div id="portale-educatore" class="x-tok"><div class="pe-wrap" id="pe-body"></div>
-  <nav class="pe-nav">
-    <button type="button" data-pe="oggi" onclick="peVai('oggi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Oggi</button>
-    <button type="button" data-pe="turni" onclick="peVai('turni')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Turni</button>
-    <button type="button" data-pe="impegni" onclick="peVai('impegni')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Impegni</button>
-    <button type="button" data-pe="scuola" onclick="peVai('scuola')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Scuola</button>
-    <button type="button" data-pe="avvisi" onclick="peVai('avvisi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Avvisi<span class="pe-nb" id="pe-nb-avv"></span></button>
-    <button type="button" data-pe="profilo" onclick="peVai('profilo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-6.5 8-6.5s8 2.3 8 6.5"/></svg>Profilo</button>
+<div id="portale-educatore" class="x-tok pe2"><div class="pe-wrap" id="pe-body"></div>
+  <nav class="pe-nav pe2-nav">
+    <button type="button" data-pe="oggi" onclick="peVai('oggi')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span><span class="lbl">Oggi</span></button>
+    <button type="button" data-pe="turni" onclick="peVai('turni')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="lbl">Orario</span></button>
+    <button type="button" data-pe="impegni" onclick="peVai('impegni')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="lbl">Impegni</span></button>
+    <button type="button" data-pe="scuola" onclick="peVai('scuola')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span><span class="lbl">Scuola</span></button>
+    <button type="button" data-pe="avvisi" onclick="peVai('avvisi')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></span><span class="lbl">Avvisi</span><span class="pe-nb" id="pe-nb-avv"></span></button>
+    <button type="button" data-pe="profilo" onclick="peVai('profilo')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-6.5 8-6.5s8 2.3 8 6.5"/></svg></span><span class="lbl">Profilo</span></button>
   </nav>
 </div>
 <script id="portale-educatore-2026-js">
@@ -86290,7 +86334,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     var ini = x ? ((x.nome || '?').charAt(0) + (x.cognome || '').charAt(0)).toUpperCase() : String(u.nome || '?').split(' ').map(function(p){ return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
     return '<div class="x-top"><div style="min-width:0"><small>' + E(sopra) + '</small><h1>' + E(titolo) + '</h1></div><span class="x-av-wrap"><button type="button" class="x-av" style="background:' + colore(u.nome) + '" onclick="peVai(\'profilo\')" aria-label="Profilo">' + E(ini) + '</button></span></div>';
   }
-  function render(){
+  function renderVecchio(){
     var b = document.getElementById('pe-body'); if(!b || !PE.aperto) return;
     document.querySelectorAll('#portale-educatore .pe-nav button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-pe') === PE.vista); });
     if(!PE.pronto){ b.innerHTML = '<div class="x-skel"><div class="x-skel-top"><div><i style="width:120px;height:14px"></i><i style="width:190px;height:30px;margin-top:8px"></i></div><i style="width:46px;height:46px;border-radius:50%"></i></div><i style="height:160px;border-radius:22px;margin-bottom:14px"></i><i style="height:120px;border-radius:22px"></i></div>'; return; }
@@ -86403,6 +86447,118 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
         + '</div><div class="x-lista"><button type="button" class="x-li esci" onclick="if(typeof _SIMULA!==\'undefined\'&&_SIMULA.attiva){simulaEsci()}else{logout()}">' + (simulo() ? 'Esci dalla simulazione' : 'Esci') + '</button></div>';
     }
     b.innerHTML = h;
+    try{ badgeAvvisi(); }catch(e){}
+  }
+
+  /* ═══ nuova impostazione (novembre 2026): testata colorata, schede con titolo e icona, barra in basso — come gli altri portali ═══ */
+  var SVG = function(d){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>'; };
+  var ICO = { oggi:SVG('<path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'), turni:SVG('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), impegni:SVG('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+    scuola:SVG('<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), avvisi:SVG('<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>'), profilo:SVG('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-6.5 8-6.5s8 2.3 8 6.5"/>'),
+    visita:SVG('<path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/>'), esci:SVG('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>'), tu:SVG('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>') };
+  function carta(ico, titolo, corpo, extra, sotto){ return '<div class="pe2-card"><div class="pe2-ch"><span class="pe2-ci">' + (ICO[ico] || ico) + '</span><div class="pe2-ct">' + titolo + (sotto ? '<small>' + sotto + '</small>' : '') + '</div>' + (extra || '') + '</div><div class="pe2-cb">' + corpo + '</div></div>'; }
+  function vuota(e, t){ return '<div class="pe2-vuoto"><i>' + e + '</i>' + t + '</div>'; }
+  var ESCI = "if(typeof _SIMULA!=='undefined'&&_SIMULA.attiva){simulaEsci()}else{logout()}";
+  function heroOggi(x, u){
+    var nomeC = x ? cap((x.nome || '') + ' ' + (x.cognome || '')) : cap(u.nome || '');
+    var ini = x ? ((x.nome || '?').charAt(0) + (x.cognome || '').charAt(0)).toUpperCase() : String(u.nome || '?').split(' ').map(function(p){ return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    var com = x ? (x.comunita && x.comunita !== 'Entrambe' ? 'Comunità ' + x.comunita : 'Emmanuel e San Giuseppe') : 'Educatore';
+    var gOn = typeof _icGoogleOn === 'function' && _icGoogleOn(), box;
+    if(!gOn) box = '<b>Orario non collegato</b><span>I turni arrivano dal Google Calendar della comunità.</span>';
+    else if(!PE.gEv) box = '<b>Carico il turno…</b>';
+    else {
+      var mieiOggi = turniDi(oggi(), oggi()).filter(function(v){ return eMio(v, x); });
+      if(mieiOggi.length){ var t = mieiOggi[0], a = minuti(t.ora), bb = minuti(t.oraFine), n = new Date(), ad = n.getHours() * 60 + n.getMinutes();
+        box = '<b>Oggi ' + E(t.ora) + ' – ' + E(t.oraFine) + '</b><span>' + (ad < a ? 'Inizia alle ' + E(t.ora) : ad < bb ? 'In turno · finisce alle ' + E(t.oraFine) : 'Turno finito') + (compito(t, x) ? ' · ' + E(compito(t, x).split('\n')[0]) : '') + '</span>'; }
+      else { var pr = mieiTurni(x, 21).filter(function(v){ return v.ds > oggi(); })[0];
+        box = '<b>Oggi a riposo</b><span>' + (pr ? 'Prossimo turno ' + E(dt(pr.ds).toLocaleDateString('it-IT', { weekday:'long', day:'numeric' })) + ' alle ' + E(pr.ora) : 'Nessun turno nei prossimi giorni') + '</span>'; }
+    }
+    return '<div class="pe2-hero"><div class="pe2-lab">🏛️ Portale Educatore</div><button type="button" class="pe2-esci" onclick="' + ESCI + '" aria-label="Esci">' + ICO.esci + '</button>'
+      + '<div class="pe2-io"><span class="pe2-av" style="background:' + colore(nomeC) + '">' + E(ini) + '</span><div style="min-width:0"><div class="pe2-nome">' + E(nomeC) + '</div><span class="pe2-pill"><i></i>' + E(com) + '</span></div></div>'
+      + '<div class="pe2-box"><small>' + ICO.turni + E(new Date().toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })) + '</small>' + box + '</div></div>';
+  }
+  function heroSez(tit, sot){ return '<div class="pe2-hero"><div class="pe2-lab">🏛️ Portale Educatore</div><button type="button" class="pe2-esci" onclick="' + ESCI + '" aria-label="Esci">' + ICO.esci + '</button><div class="pe2-tit">' + E(tit) + '</div>' + (sot ? '<div class="pe2-sot">' + E(sot) + '</div>' : '') + '</div>'; }
+  function render(){
+    var b = document.getElementById('pe-body'); if(!b || !PE.aperto) return;
+    document.querySelectorAll('#portale-educatore .pe-nav button').forEach(function(z){ z.classList.toggle('on', z.getAttribute('data-pe') === PE.vista); });
+    if(!PE.pronto){ b.innerHTML = heroSez('Caricamento…', '') + '<div class="pe2-body"><div class="pe2-card">' + vuota('⏳', 'Carico i dati della comunità…') + '</div></div>'; return; }
+    var x = mia(), u = io() || {}, h = '', c = '';
+    if(PE.vista === 'oggi'){
+      h += heroOggi(x, u);
+      try{ if(typeof window._nfBannerHtml === 'function') c += window._nfBannerHtml(); }catch(e){}
+      if(!x) c += '<div class="pe2-nota">Non trovo la tua scheda da educatore: chiedi alla segreteria di collegarla al tuo account (Istituto → Educatori → Account).</div>';
+      var avO = avvisiDi(0).concat(avvisiDi(-1));
+      c += carta('avvisi', 'Avvisi di oggi', avO.length ? avO.map(rigaAvviso).join('') : vuota('📌', 'Nessun avviso per oggi'), '<button type="button" class="pe2-cx" onclick="peVai(\'avvisi\')">Tutti ›</button>');
+      var vO = impegni(x, oggi(), oggi());
+      c += carta('impegni', 'Impegni di oggi', vO.length ? vO.map(function(v){ return rigaVisita(v, false, x); }).join('') : vuota('✅', 'Nessun impegno oggi'), '<button type="button" class="pe2-cx" onclick="peVai(\'impegni\')">Tutti ›</button>');
+      var acc = mieiAcc(x, 14).filter(function(v){ return v.ds > oggi(); });
+      if(acc.length) c += carta('tu', 'Accompagni tu', acc.map(function(v){ return rigaVisita(v, true, x); }).join(''), '', 'prossimi 14 giorni');
+      var dom = impegni(x, piu(oggi(), 1), piu(oggi(), 1));
+      if(dom.length) c += carta('impegni', 'Domani', dom.map(function(v){ return rigaVisita(v, false, x); }).join(''), '', E(dt(piu(oggi(), 1)).toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })));
+    }
+    else if(PE.vista === 'turni'){
+      var lun = piu(lunedi(oggi()), 7 * PE.sett), dm = piu(lun, 6), d1 = dt(lun), d2 = dt(dm);
+      caricaSett(lun);
+      h += heroSez('Il mio orario', PE.sett === 0 ? 'Questa settimana' : PE.sett === 1 ? 'Settimana prossima' : PE.sett === -1 ? 'Settimana scorsa' : 'Settimana');
+      var nav = '<div class="pe-settnav" style="margin-top:14px"><button type="button" onclick="peSett(-1)" aria-label="Settimana prima">‹</button><b>' + d1.getDate() + (d1.getMonth() !== d2.getMonth() ? ' ' + d1.toLocaleDateString('it-IT', { month:'short' }) : '') + ' – ' + d2.getDate() + ' ' + d2.toLocaleDateString('it-IT', { month:'long' }) + '</b><button type="button" onclick="peSett(1)" aria-label="Settimana dopo">›</button></div>';
+      c += nav;
+      var gOn2 = typeof _icGoogleOn === 'function' && _icGoogleOn();
+      if(!gOn2) c += carta('turni', 'Turni', vuota('🕒', 'Il Google Calendar dei turni della comunità non è ancora collegato.'));
+      else if(!PE.gW[lun] && !(PE.sett === 0 && PE.gEv)) c += carta('turni', 'Turni', vuota('⏳', 'Carico i turni della settimana…'));
+      else {
+        var miei = turniDi(lun, dm).filter(function(v){ return eMio(v, x); }), tot = miei.reduce(function(m, v){ return m + durata(v); }, 0), gg = '';
+        for(var i = 0; i < 7; i++){ var ds = piu(lun, i), d = dt(ds), mT = miei.filter(function(v){ return v.ds === ds; });
+          gg += '<div class="pe-tg' + (ds === oggi() ? ' oggi' : '') + '"><div class="pe-g' + (ds === oggi() ? ' oggi' : '') + '"><small>' + d.toLocaleDateString('it-IT', { weekday:'short' }) + '</small><b>' + d.getDate() + '</b></div><div style="flex:1;min-width:0">'
+            + (mT.length ? mT.map(function(v){ var cc = compito(v, x); return '<div class="pe-tt"><span class="x-ora">' + E(v.ora) + '–' + E(v.oraFine) + '</span>' + (cc ? '<span class="pe-tc">' + E(cc) + '</span>' : '') + '</div>'; }).join('') : '<span class="pe-riposo">Riposo</span>') + '</div></div>'; }
+        c += carta('turni', 'I miei turni', gg, '', fmtOre(tot) + ' · ' + miei.length + (miei.length === 1 ? ' turno' : ' turni'));
+      }
+    }
+    else if(PE.vista === 'impegni' || PE.vista === 'visite'){
+      var fi = PE.fImp || 'tutti';
+      h += heroSez('Impegni', 'Prossimi 30 giorni · ragazzi della tua comunità');
+      c += '<div class="pe-chips">' + [['tutti', 'Tutti'], ['visite', 'Visite'], ['scuola', 'Scuola'], ['miei', 'Accompagno io']].map(function(z){ return '<button type="button" class="' + (fi === z[0] ? 'on' : '') + '" onclick="_PE.fImp=\'' + z[0] + '\';peRender()">' + z[1] + '</button>'; }).join('') + '</div>';
+      var V = impegni(x, oggi(), piu(oggi(), 30)).filter(function(v){ if(fi === 'visite') return !!v.e.sanita; if(fi === 'scuola') return v.e.tipo === 'scuola'; if(fi === 'miei') return x && v.e.chiTipo === 'edu' && v.e.chiId === x.id; return true; });
+      if(!V.length) c += carta('impegni', 'Nessun impegno', vuota('📅', 'Gli impegni e le visite dei ragazzi della tua comunità compaiono qui.'));
+      var pg = {}; V.forEach(function(v){ (pg[v.ds] = pg[v.ds] || []).push(v); });
+      Object.keys(pg).sort().forEach(function(ds){ var d = dt(ds); c += carta(pg[ds].some(function(v){ return v.e.sanita; }) ? 'visita' : 'impegni', (ds === oggi() ? 'Oggi' : ds === piu(oggi(), 1) ? 'Domani' : cap(d.toLocaleDateString('it-IT', { weekday:'long' }))) + ' ' + d.getDate() + ' ' + d.toLocaleDateString('it-IT', { month:'long' }), pg[ds].map(function(v){ return rigaVisita(v, false, x); }).join('')); });
+    }
+    else if(PE.vista === 'scuola'){
+      h += heroSez('Scuola', 'I ragazzi della tua comunità');
+      var RG = ragazzi(x);
+      if(!RG.length) c += carta('scuola', 'Nessun ragazzo', vuota('🎓', 'Non trovo ragazzi presenti nella tua comunità.'));
+      else {
+        var perS = {};
+        RG.forEach(function(o){ var sc = (typeof _iesScuola === 'function') ? _iesScuola(o.scuolaId) : null, k = sc ? sc.nome + (sc.plesso ? ' – ' + sc.plesso : '') : (o.scuola || 'Scuola non indicata'); (perS[k] = perS[k] || { sc:sc, L:[] }).L.push(o); });
+        Object.keys(perS).sort(function(a, b2){ return a === 'Scuola non indicata' ? 1 : b2 === 'Scuola non indicata' ? -1 : a.localeCompare(b2); }).forEach(function(k){
+          var g = perS[k], sc = g.sc || {}, sub = [sc.ordine, sc.orarioEntrata || sc.orarioUscita ? [sc.orarioEntrata, sc.orarioUscita].filter(Boolean).join('–') : '', sc.telefono].filter(Boolean).join(' · ');
+          c += carta('scuola', E(k), g.L.map(function(o){ var cl = [o.classe, o.sezione].filter(Boolean).join(' '), ini = ((o.nome || '?').charAt(0) + (o.cognome || '').charAt(0)).toUpperCase();
+              return '<button type="button" class="pe-rag" onclick="peRagazzo(\'' + o.id + '\')"><span class="x-ini" style="background:' + colore(_iosNome(o)) + '">' + E(ini) + '</span><span class="t"><b>' + E(cap(_iosNome(o))) + '</b><span>' + E([cl ? 'classe ' + cl : '', o.indirizzoStudio, o.coordinatore ? 'rif. ' + o.coordinatore : '', o.pdp && o.pdp !== 'Nessuno' ? o.pdp : ''].filter(Boolean).join(' · ') || 'dati scuola da completare') + '</span></span><span style="color:var(--e-sub);font-size:18px">›</span></button>'; }).join(''), '', E(sub));
+        });
+        var VS = impegni(x, oggi(), piu(oggi(), 30)).filter(function(v){ return v.e.tipo === 'scuola'; });
+        if(VS.length) c += carta('impegni', 'Impegni scolastici', VS.map(function(v){ return rigaVisita(v, true, x); }).join(''), '', 'prossimi 30 giorni');
+      }
+    }
+    else if(PE.vista === 'avvisi'){
+      h += heroSez('Avvisi', 'Per gli educatori');
+      if(typeof avvisiPuoCreare === 'function' && avvisiPuoCreare()) c += '<button type="button" class="pe2-btn" onclick="avvisiForm()">＋ Nuovo avviso</button>';
+      var so = avvisiDi(-1), A0 = avvisiDi(0), A1 = avvisiDi(1), AV = avvisiDi(30);
+      if(!(typeof avvisiPronti === 'function' && avvisiPronti())) c += carta('avvisi', 'Avvisi', vuota('⏳', 'Carico gli avvisi…'));
+      else if(!so.length && !A0.length && !A1.length && !AV.length) c += carta('avvisi', 'Avvisi', vuota('📌', 'Nessun avviso. Quelli per gli educatori compaiono qui.'));
+      [['⚠️ Rimasti in sospeso', so], ['Oggi', A0], ['Domani', A1], ['Prossimi giorni', AV]].forEach(function(gr){ if(gr[1].length) c += carta('avvisi', gr[0], gr[1].map(rigaAvviso).join('')); });
+    }
+    else {
+      var pref = 'auto'; try{ pref = localStorage.getItem('pe_tema') || 'auto'; }catch(e){}
+      var nst = typeof nfStato === 'function' ? nfStato() : 'no';
+      var docs = x ? (x.documenti || []).concat(x.docScad ? [{ tipo:'Documento d\'identità', scadenza:x.docScad }] : []).filter(function(d){ return d.scadenza; }).map(function(d){ return { t:d.tipo || 'Documento', g:_imzGG(d.scadenza), s:d.scadenza }; }).filter(function(d){ return d.g != null && d.g <= 60; }).sort(function(a, b2){ return a.g - b2.g; }) : [];
+      h += heroOggi(x, u).replace(/<div class="pe2-box">[\s\S]*<\/div><\/div>$/, '</div>');
+      if(x) c += carta('profilo', 'I miei dati', [['Qualifica', x.qualifica], ['Comunità', x.comunita], ['Telefono', x.tel], ['Email', x.email], ['In servizio dal', x.assunzione ? _imzFmt(x.assunzione) : ''], ['Nome utente', u.username]].filter(function(r){ return r[1]; }).map(function(r){ return '<div class="pe2-kv"><small>' + r[0] + '</small><b>' + E(r[1]) + '</b></div>'; }).join(''));
+      if(docs.length) c += carta('avvisi', 'Documenti da rinnovare', docs.map(function(d){ return '<div class="pe2-kv"><small>' + E(d.t) + '</small><b style="color:' + (d.g < 0 ? '#dc2626' : '#d97706') + '">' + (d.g < 0 ? 'scaduto il ' : 'scade il ') + _imzFmt(d.s) + '</b></div>'; }).join(''));
+      c += carta('oggi', 'Impostazioni', '<button type="button" class="pe2-li" onclick="xProfNotifiche()"><b>🔔 Notifiche</b><span>' + ({ attive:'Attive', spente:'Spente', bloccate:'Bloccate', 'ios-home':'Da attivare', no:'—' }[nst] || '') + '</span><span class="fr">›</span></button>'
+        + '<button type="button" class="pe2-li" onclick="peAspetto()"><b>🌙 Aspetto</b><span>' + (pref === 'scuro' ? 'Scuro' : pref === 'chiaro' ? 'Chiaro' : 'Automatico') + '</span><span class="fr">›</span></button>'
+        + (doppio() ? '<button type="button" class="pe2-li" onclick="peScegli(\'grest\')"><b>☀️ ' + (ANIM.indexOf(u.ruolo) >= 0 ? 'Portale animatori (GREST)' : 'Gestionale (GREST)') + '</b><span class="fr">›</span></button>' : '')
+        + '<button type="button" class="pe2-li" onclick="peAggiorna()"><b>🔄 Aggiorna i dati</b><span class="fr">›</span></button>'
+        + '<button type="button" class="pe2-li esci" onclick="' + ESCI + '"><b>' + (simulo() ? 'Esci dalla simulazione' : 'Esci') + '</b></button>');
+    }
+    b.innerHTML = h + '<div class="pe2-body">' + c + '</div>';
     try{ badgeAvvisi(); }catch(e){}
   }
   window.peRender = render;
