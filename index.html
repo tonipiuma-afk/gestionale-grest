@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 27/11/2026 12:38</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57458,7 +57458,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 27/11/2026 12:38 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -86107,16 +86107,19 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
 
   /* ── apertura e chiusura ── */
   var ANIM = ['Caposquadra', 'Animatore', 'Animatore Laboratorio'];
+  var NO_DOPPIO = ['Admin', 'Responsabile Generale', 'Educatore', 'OLP', 'Genitore', 'Totem'];
+  function puoDoppio(u){ return !!(u && u.ruolo && NO_DOPPIO.indexOf(u.ruolo) < 0); }
   /* account da animatore collegato a una scheda educatore (Istituto → Educatori → Account): come i volontari del Servizio Civile,
      fuori dal periodo del GREST entra nel portale educatori, durante il GREST nel portale animatori (con un pulsante per passare). */
-  function doppio(){ var u = io(); return !!(u && ANIM.indexOf(u.ruolo) >= 0 && PE.dop === String(u.username || '').toUpperCase()); }
+  function doppio(){ var u = io(); return !!(puoDoppio(u) && PE.dop === String(u.username || '').toUpperCase()); }
   function sceltaDoppio(){ var s = ''; try{ s = sessionStorage.getItem('pe_scelta') || ''; }catch(e){} if(s === 'edu' || s === 'grest') return s; var g = null; try{ g = typeof _grestInCorso === 'function' ? _grestInCorso() : null; }catch(e){} return g === true ? 'grest' : 'edu'; }
   async function controllaDoppio(){
-    var u = io(); if(!u || ANIM.indexOf(u.ruolo) < 0){ PE.dop = ''; return; }
-    var U = String(u.username || '').toUpperCase(); if(PE.dopVisto === U) return; PE.dopVisto = U;
+    var u = io(); if(!puoDoppio(u)){ PE.dop = ''; return; }
+    var U = String(u.username || '').toUpperCase();
+    if(PE.dopVisto === U && Date.now() - (PE.dopT || 0) < 60000) return;   // ricontrollo ogni minuto (account collegato o permessi cambiati dopo l'accesso)
+    PE.dopVisto = U; PE.dopT = Date.now();
     try{
-      if(!(typeof areaHaPermesso === 'function' && areaHaPermesso('ist_ospiti'))){ PE.dop = ''; return; }
-      if(!(window._ED && _ED.doc) && typeof edCarica === 'function') await edCarica();
+      if(typeof edCarica === 'function' && (!(window._ED && _ED.doc) || !mia())) await edCarica();
       PE.dop = mia() ? U : '';
     }catch(e){ PE.dop = ''; }
   }
@@ -86128,8 +86131,8 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   window.peScegli = function(v){ try{ sessionStorage.setItem('pe_scelta', v); }catch(e){} };
   /* pulsante «Portale educatori» sopra il portale animatori, per chi ha entrambi */
   function pulsanteEdu(){
-    var b = document.getElementById('pe-vai-edu'), pa = document.getElementById('portale-animatore');
-    var mostra = doppio() && !PE.aperto && pa && pa.style.display !== 'none';
+    var b = document.getElementById('pe-vai-edu'), l = document.getElementById('login-screen');
+    var mostra = doppio() && !PE.aperto && !!(l && l.classList.contains('hidden'));
     if(!b && mostra){ b = document.createElement('button'); b.type = 'button'; b.id = 'pe-vai-edu'; b.textContent = '🏛️ Portale educatori'; b.onclick = function(){ peScegli('edu'); }; document.body.appendChild(b); }
     if(b) b.style.display = mostra ? 'block' : 'none';
   }
@@ -86148,7 +86151,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   }
   setInterval(function(){
     try{
-      var uu = io(); if(uu && ANIM.indexOf(uu.ruolo) >= 0 && PE.dopVisto !== String(uu.username || '').toUpperCase()) controllaDoppio(); else if(!uu){ PE.dop = ''; PE.dopVisto = ''; }
+      var uu = io(); if(puoDoppio(uu)) controllaDoppio(); else { PE.dop = ''; PE.dopVisto = ''; }
       var d = dovrebbe();
       if(d && !PE.aperto) apri(); else if(!d && PE.aperto) chiudi();
       pulsanteEdu();
@@ -86388,7 +86391,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
         + '<div class="x-lista">'
         + '<button type="button" class="x-li" onclick="xProfNotifiche()"><span class="x-q" style="background:#ef4444">' + I('megafono', 18) + '</span><b>Notifiche</b><span>' + ({ attive:'Attive', spente:'Spente', bloccate:'Bloccate', 'ios-home':'Da attivare', no:'—' }[nst] || '') + '</span><span class="fr">›</span></button>'
         + '<button type="button" class="x-li" onclick="peAspetto()"><span class="x-q" style="background:#1e293b">' + I('luna', 18) + '</span><b>Aspetto</b><span>' + (pref === 'scuro' ? 'Scuro' : pref === 'chiaro' ? 'Chiaro' : 'Automatico') + '</span><span class="fr">›</span></button>'
-        + (doppio() ? '<button type="button" class="x-li" onclick="peScegli(\'grest\')"><span class="x-q" style="background:#f59e0b">' + I('user', 18) + '</span><b>Portale animatori (GREST)</b><span class="fr">›</span></button>' : '')
+        + (doppio() ? '<button type="button" class="x-li" onclick="peScegli(\'grest\')"><span class="x-q" style="background:#f59e0b">' + I('user', 18) + '</span><b>' + (ANIM.indexOf((io() || {}).ruolo) >= 0 ? 'Portale animatori (GREST)' : 'Gestionale (GREST)') + '</b><span class="fr">›</span></button>' : '')
         + '<button type="button" class="x-li" onclick="peAggiorna()"><span class="x-q" style="background:#2f6bff">' + I('week', 18) + '</span><b>Aggiorna i dati</b><span class="fr">›</span></button>'
         + '</div><div class="x-lista"><button type="button" class="x-li esci" onclick="if(typeof _SIMULA!==\'undefined\'&&_SIMULA.attiva){simulaEsci()}else{logout()}">' + (simulo() ? 'Esci dalla simulazione' : 'Esci') + '</button></div>';
     }
