@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 27/11/2026 13:28</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57459,7 +57459,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 27/11/2026 13:28 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -86071,6 +86071,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
 #portale-educatore .pe2-nav button.on{ color:var(--e-acc) } #portale-educatore .pe2-nav button.on .ico{ background:var(--e-acc2) } #portale-educatore .pe2-nav button.on .lbl{ font-weight:600 }
 #portale-educatore .pe2-nav .pe-nb{ top:0; left:calc(50% + 8px) }
 .pe2 .pe-chips{ margin:14px 0 0 }
+.pe2-semi{ font-style:normal; font-size:11px; font-weight:700; color:#b45309; background:#fef3c7; border-radius:999px; padding:2px 7px; margin-left:4px; vertical-align:2px }
 .pe2 .pe-settnav{ margin:0 }
 .x-foglio .pe-info a{ color:#2f5d9a; font-weight:600; text-decoration:none }
 #pe-vai-edu{ position:fixed; right:14px; bottom:86px; z-index:100001; border:0; border-radius:999px; padding:10px 15px; background:#3B5B8C; color:#fff; font:600 14px/1 Inter,system-ui,sans-serif; box-shadow:0 6px 18px rgba(0,0,0,.25); cursor:pointer; display:none }
@@ -86162,16 +86163,22 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     var u = io(); if(!puoDoppio(u)){ PE.dop = ''; return; }
     var U = String(u.username || '').toUpperCase();
     if(PE.dopVisto === U && Date.now() - (PE.dopT || 0) < 60000) return;   // ricontrollo ogni minuto (account collegato o permessi cambiati dopo l'accesso)
+    // entrata immediata: se l'ultima volta questo account era collegato, apro subito il portale e verifico dopo
+    if(PE.dopVisto !== U){ try{ if(localStorage.getItem('pe_dop') === U && !PE.dop){ PE.dop = U; aggiornaAree(); } }catch(e){} }
     PE.dopVisto = U; PE.dopT = Date.now();
     try{
       if(typeof edCarica === 'function' && (!(window._ED && _ED.doc) || !mia())) await edCarica();
-      var prima = PE.dop; PE.dop = mia() ? U : '';
+      var trovato = !!mia(), letto = !!(window._ED && _ED.doc), prima = PE.dop;
+      if(trovato) PE.dop = U;
+      else if(letto) PE.dop = '';
+      else PE.dopT = Date.now() - 55000;   // NAS non ancora pronto: riprovo tra 5 secondi (tengo la scelta dell'ultima volta)
       if(prima !== PE.dop) aggiornaAree();
-      PE.diag = PE.dop ? 'collegato' : (!(window._ED && _ED.doc) ? 'nas' : 'nessuna');
+      try{ if(trovato) localStorage.setItem('pe_dop', U); else if(letto && localStorage.getItem('pe_dop') === U) localStorage.removeItem('pe_dop'); }catch(e){}
+      PE.diag = trovato ? 'collegato' : (!letto ? 'nas' : 'nessuna');
     }catch(e){ PE.dop = ''; PE.diag = 'errore: ' + (e && e.message || e); }
     // in simulazione dico subito perché il portale educatori si apre o no (una volta per utente)
     try{
-      if(simulo() && PE.diagDetto !== U){
+      if(simulo() && PE.diagDetto !== U && PE.diag !== 'nas'){
         PE.diagDetto = U;
         var g = typeof _grestInCorso === 'function' ? _grestInCorso() : null;
         var msg = PE.diag === 'collegato' ? (g === true ? '🏛️ Account collegato a una scheda educatore. Siamo nel periodo GREST: entra nel gestionale, con il pulsante «Portale educatori».' : '🏛️ Account collegato a una scheda educatore: si apre il portale educatori.')
@@ -86536,18 +86543,18 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
       Object.keys(pg).sort().forEach(function(ds){ var d = dt(ds); c += carta(pg[ds].some(function(v){ return v.e.sanita; }) ? 'visita' : 'impegni', (ds === oggi() ? 'Oggi' : ds === piu(oggi(), 1) ? 'Domani' : cap(d.toLocaleDateString('it-IT', { weekday:'long' }))) + ' ' + d.getDate() + ' ' + d.toLocaleDateString('it-IT', { month:'long' }), pg[ds].map(function(v){ return rigaVisita(v, false, x); }).join('')); });
     }
     else if(PE.vista === 'scuola'){
-      h += heroSez('Scuola', 'I ragazzi della tua comunità');
-      var RG = ragazzi(x);
-      if(!RG.length) c += carta('scuola', 'Nessun ragazzo', vuota('🎓', 'Non trovo ragazzi presenti nella tua comunità.'));
+      h += heroSez('Scuola', 'Comunità e semiconvitto');
+      var RG = ragazzi(x).concat(typeof _iosSemi === 'function' ? _iosSemi('Presente') : []);
+      if(!RG.length) c += carta('scuola', 'Nessun ragazzo', vuota('🎓', 'Non trovo ragazzi presenti in comunità o in semiconvitto.'));
       else {
         var perS = {};
         RG.forEach(function(o){ var sc = (typeof _iesScuola === 'function') ? _iesScuola(o.scuolaId) : null, k = sc ? sc.nome + (sc.plesso ? ' – ' + sc.plesso : '') : (o.scuola || 'Scuola non indicata'); (perS[k] = perS[k] || { sc:sc, L:[] }).L.push(o); });
         Object.keys(perS).sort(function(a, b2){ return a === 'Scuola non indicata' ? 1 : b2 === 'Scuola non indicata' ? -1 : a.localeCompare(b2); }).forEach(function(k){
           var g = perS[k], sc = g.sc || {}, sub = [sc.ordine, sc.orarioEntrata || sc.orarioUscita ? [sc.orarioEntrata, sc.orarioUscita].filter(Boolean).join('–') : '', sc.telefono].filter(Boolean).join(' · ');
           c += carta('scuola', E(k), g.L.map(function(o){ var cl = [o.classe, o.sezione].filter(Boolean).join(' '), ini = ((o.nome || '?').charAt(0) + (o.cognome || '').charAt(0)).toUpperCase();
-              return '<button type="button" class="pe-rag" onclick="peRagazzo(\'' + o.id + '\')"><span class="x-ini" style="background:' + colore(_iosNome(o)) + '">' + E(ini) + '</span><span class="t"><b>' + E(cap(_iosNome(o))) + '</b><span>' + E([cl ? 'classe ' + cl : '', o.indirizzoStudio, o.coordinatore ? 'rif. ' + o.coordinatore : '', o.pdp && o.pdp !== 'Nessuno' ? o.pdp : ''].filter(Boolean).join(' · ') || 'dati scuola da completare') + '</span></span><span style="color:var(--e-sub);font-size:18px">›</span></button>'; }).join(''), '', E(sub));
+              return '<button type="button" class="pe-rag" onclick="peRagazzo(\'' + o.id + '\')"><span class="x-ini" style="background:' + colore(_iosNome(o)) + '">' + E(ini) + '</span><span class="t"><b>' + E(cap(_iosNome(o))) + (o.semi ? ' <em class="pe2-semi">Semiconvitto</em>' : '') + '</b><span>' + E([cl ? 'classe ' + cl : '', o.indirizzoStudio, o.coordinatore ? 'rif. ' + o.coordinatore : '', o.pdp && o.pdp !== 'Nessuno' ? o.pdp : ''].filter(Boolean).join(' · ') || 'dati scuola da completare') + '</span></span><span style="color:var(--e-sub);font-size:18px">›</span></button>'; }).join(''), '', E(sub));
         });
-        var VS = impegni(x, oggi(), piu(oggi(), 30)).filter(function(v){ return v.e.tipo === 'scuola'; });
+        var VS = voci(oggi(), piu(oggi(), 30)).filter(function(v){ if(v.fonte !== 'imp' || !v.e || v.e.tipo !== 'scuola') return false; var o = v.e.ospite && _IOS.doc && _IOS.doc.ospiti[v.e.ospite]; return !o || o.semi || impegni(x, v.ds, v.ds).some(function(w){ return w.e === v.e; }); });
         if(VS.length) c += carta('impegni', 'Impegni scolastici', VS.map(function(v){ return rigaVisita(v, true, x); }).join(''), '', 'prossimi 30 giorni');
       }
     }
@@ -86587,8 +86594,8 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     var vis = (typeof _isaVisiteDi === 'function' && window._ICAL && _ICAL.doc) ? _isaVisiteDi(id).filter(function(v){ return !v.fatta && v.ds >= oggi(); }).slice(0, 5) : [];
     var info = function(l, v){ return v ? '<div class="pe-info"><small>' + l + '</small><b>' + v + '</b></div>' : ''; };
     var medico = s.medico ? E(s.medico) + (typeof _isaMedicoContatti === 'function' ? '<div style="font-weight:400;font-size:13.5px;margin-top:2px">' + _isaMedicoContatti(s.medico, true) + '</div>' : '') : '';
-    window._xFoglio('<div class="x-ft">' + E(cap(_iosNome(o))) + '</div><div class="x-fs">' + E([o.comunita, eta != null ? eta + ' anni' : ''].filter(Boolean).join(' · ')) + '</div>'
-      + '<div class="x-card" style="box-shadow:none;background:var(--x-card2)">' + info('Nato/a il', o.nascita ? _imzFmt(o.nascita) : '') + info('Luogo', E(o.luogoNascita || '')) + info('In comunità dal', o.ingresso ? _imzFmt(o.ingresso) : '') + '</div>'
+    window._xFoglio('<div class="x-ft">' + E(cap(_iosNome(o))) + '</div><div class="x-fs">' + E([o.semi ? 'Semiconvitto' : o.comunita, eta != null ? eta + ' anni' : ''].filter(Boolean).join(' · ')) + '</div>'
+      + '<div class="x-card" style="box-shadow:none;background:var(--x-card2)">' + info('Nato/a il', o.nascita ? _imzFmt(o.nascita) : '') + info('Luogo', E(o.luogoNascita || '')) + info(o.semi ? 'Iscritto dal' : 'In comunità dal', o.ingresso ? _imzFmt(o.ingresso) : '') + '</div>'
       + (function(){ var sc = (typeof _iesScuola === 'function') ? (_iesScuola(o.scuolaId) || {}) : {}, nome = sc.nome || o.scuola || '', cl = [o.classe, o.sezione].filter(Boolean).join(' ');
           if(!nome && !cl) return ''; var col = (o.colloqui || []).slice().sort(function(a, b){ return String(b.data).localeCompare(String(a.data)); }).slice(0, 3); return '<div class="x-sez" style="margin-top:6px">Scuola</div><div class="x-card" style="box-shadow:none;background:var(--x-card2)">' + info('Scuola', E(nome + (sc.plesso ? ' – ' + sc.plesso : ''))) + info('Classe', E(cl)) + info('Indirizzo di studio', E(o.indirizzoStudio || '')) + info('Orario', E([sc.orarioEntrata, sc.orarioUscita].filter(Boolean).join(' – '))) + info('Telefono scuola', sc.telefono ? '<a href="tel:' + E(String(sc.telefono).replace(/[^\d+]/g, '')) + '">' + E(sc.telefono) + '</a>' : '') + info('Referente / insegnante', E([o.coordinatore, o.coordinatoreContatto].filter(Boolean).join(' · '))) + info('Trasporto', E(o.trasporto || '')) + info('PDP / PEI', E(o.pdp && o.pdp !== 'Nessuno' ? o.pdp + (o.pdpScadenza ? ' (scade il ' + _imzFmt(o.pdpScadenza) + ')' : '') : '')) + info('Andamento', E(o.noteScuola || '')) + (col.length ? info('Ultimi colloqui', col.map(function(c){ return E(_imzFmt(c.data) + (c.con ? ' · ' + c.con : '') + (c.esito ? ' — ' + c.esito : '')); }).join('<br>')) : '') + (sc.ordine ? info('Ordine', E(sc.ordine)) : '') + '</div>'; })()
       + '<div class="x-sez" style="margin-top:6px">Salute</div><div class="x-card" style="box-shadow:none;background:var(--x-card2)">' + (info('Medico', medico) + info('Allergie', E(s.allergie || '')) || '<div class="pe-info"><b style="color:var(--x-sub);font-weight:500">Nessuna informazione</b></div>') + '</div>'
