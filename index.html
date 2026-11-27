@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 27/11/2026 13:22</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57459,7 +57459,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 27/11/2026 13:22 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -86167,7 +86167,21 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
       if(typeof edCarica === 'function' && (!(window._ED && _ED.doc) || !mia())) await edCarica();
       var prima = PE.dop; PE.dop = mia() ? U : '';
       if(prima !== PE.dop) aggiornaAree();
-    }catch(e){ PE.dop = ''; }
+      PE.diag = PE.dop ? 'collegato' : (!(window._ED && _ED.doc) ? 'nas' : 'nessuna');
+    }catch(e){ PE.dop = ''; PE.diag = 'errore: ' + (e && e.message || e); }
+    // in simulazione dico subito perché il portale educatori si apre o no (una volta per utente)
+    try{
+      if(simulo() && PE.diagDetto !== U){
+        PE.diagDetto = U;
+        var g = typeof _grestInCorso === 'function' ? _grestInCorso() : null;
+        var msg = PE.diag === 'collegato' ? (g === true ? '🏛️ Account collegato a una scheda educatore. Siamo nel periodo GREST: entra nel gestionale, con il pulsante «Portale educatori».' : '🏛️ Account collegato a una scheda educatore: si apre il portale educatori.')
+          : PE.diag === 'nas' ? '⚠️ Portale educatori: non riesco a leggere le schede degli educatori dal NAS.'
+          : PE.diag === 'nessuna' ? 'ℹ️ Portale educatori: nessuna scheda educatore ha come «Account» ' + U + ' (Istituto → Educatori → scheda → Account).'
+          : '⚠️ Portale educatori: ' + PE.diag;
+        if(typeof showToast === 'function') showToast(msg, PE.diag === 'collegato' ? 'success' : 'warning');
+        console.log('[portale educatori]', U, PE.diag, 'GREST in corso:', g);
+      }
+    }catch(e){}
   }
   /* nel gestionale completo l'area Istituto sparisce per chi ha il doppio profilo */
   function aggiornaAree(){
