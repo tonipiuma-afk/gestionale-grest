@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 27/11/2026 10:14</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57458,7 +57458,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 27/11/2026 10:14 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -76652,7 +76652,7 @@ var ICAL_TIPI = [
   { k:'scuola',   l:'Scuola',            c:'#0891b2' },
   { k:'altro',    l:'Altro',             c:'#64748b' }
 ];
-var ICAL_C_TURNI = '#db2777', ICAL_C_GOOGLE = '#0ea5e9', ICAL_C_SCAD = '#dc2626';
+var ICAL_C_TURNI = '#db2777', ICAL_C_GOOGLE = '#0ea5e9', ICAL_C_SCAD = '#dc2626', ICAL_C_AVV = '#d97706';
 var ICAL_GIORNI = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 function _icTipo(k){ return ICAL_TIPI.filter(function(t){ return t.k === k; })[0] || ICAL_TIPI[5]; }
 function _icOk(){ return typeof areaHaPermesso === 'function' && areaHaPermesso('ist_ospiti'); }
@@ -76759,6 +76759,9 @@ function _icVoci(da, al, gEv){
     }
   });
   if(_ICAL.filtri.scad !== false) _icScadenze(da, al).forEach(function(s){ v.push(s); });
+  if(_ICAL.filtri.avv !== false && typeof avvisiOccorrenze === 'function') avvisiOccorrenze(da, al).forEach(function(o){
+    v.push({ fonte:'avv', id:o.a.id, ds:o.ds, ora:o.a.ora || '', oraFine:'', titolo:'📌 ' + o.a.testo, c:ICAL_C_AVV, fatto:o.fatto, vai:'avvisiApri()', rip:!!o.a.rip });
+  });
   return v.filter(function(x){
     var f = _ICAL.filtri;
     if(x.fonte === 'imp') return f.imp !== false; if(x.fonte === 'turno') return f.turni !== false; if(x.fonte === 'google') return f.google !== false && (f.gcal || {})[x.calId] !== false; return true;
@@ -76797,6 +76800,7 @@ async function istCalInit(){
   try{ if(typeof istMezziPrecarica === 'function') istMezziPrecarica(); }catch(e){}
   try{ if(typeof istOspitiPrecarica === 'function') istOspitiPrecarica(); }catch(e){}
   _icRender();
+  try{ if(typeof avvisiPronti === 'function' && !avvisiPronti() && typeof avvisiCarica === 'function') avvisiCarica(); }catch(e){}
   setTimeout(function(){ var v = document.getElementById('view-ist-cal'); if(v && v.classList.contains('active')) _icRender(); }, 2500);
 }
 function _icMeseRange(){
@@ -76831,7 +76835,7 @@ function _icDisegna(root, R, sel, da, al, gEv){
     + '<div class="ic-seg"><button type="button" class="' + (_ICAL.vista === 'mese' ? 'on' : '') + '" onclick="_ICAL.vista=\'mese\';_icRender()">Mese</button><button type="button" class="' + (_ICAL.vista === 'agenda' ? 'on' : '') + '" onclick="_ICAL.vista=\'agenda\';_icRender()">Prossimi 30 giorni</button></div>'
     + '<div class="ic-az">' + (ICAL_GOOGLE ? gStato + '<button type="button" class="btn btn-outline btn-sm" onclick="icGoogleForm()">⚙️ Google</button>' : '') + (edit ? '<button type="button" class="btn btn-teal btn-sm" onclick="icForm(\'\',\'' + sel + '\')">➕ Nuovo impegno</button>' : '') + '</div></div>';
   var chip = function(k, l, c){ var on = F[k] !== false; return '<button type="button" class="ic-f' + (on ? ' on' : '') + '" style="--c:' + c + '" onclick="_ICAL.filtri.' + k + '=' + (on ? 'false' : 'true') + ';_icRender()"><i></i>' + l + '</button>'; };
-  h += '<div class="ic-filtri">' + chip('imp', 'Impegni', '#2563eb') + (_icGoogleOn() && (_icImp().gTurni || []).length ? chip('turni', 'Turni educatori', ICAL_C_TURNI) : '') + (_icGoogleOn() ? (_icImp().gMostra || []).map(function(id, n){ var on = (F.gcal || {})[id] !== false; return '<button type="button" class="ic-f' + (on ? ' on' : '') + '" style="--c:' + _icCalColore(id) + '" onclick="icFiltroCal(' + n + ')"><i></i>' + _icE(_icCalNome(id)) + '</button>'; }).join('') : '') + chip('scad', 'Scadenze', ICAL_C_SCAD) + '</div>';
+  h += '<div class="ic-filtri">' + chip('imp', 'Impegni', '#2563eb') + (_icGoogleOn() && (_icImp().gTurni || []).length ? chip('turni', 'Turni educatori', ICAL_C_TURNI) : '') + (_icGoogleOn() ? (_icImp().gMostra || []).map(function(id, n){ var on = (F.gcal || {})[id] !== false; return '<button type="button" class="ic-f' + (on ? ' on' : '') + '" style="--c:' + _icCalColore(id) + '" onclick="icFiltroCal(' + n + ')"><i></i>' + _icE(_icCalNome(id)) + '</button>'; }).join('') : '') + chip('scad', 'Scadenze', ICAL_C_SCAD) + (typeof avvisiOccorrenze === 'function' ? chip('avv', 'Avvisi', ICAL_C_AVV) : '') + '</div>';
   if(_ICAL.vista === 'agenda'){
     var gg = Object.keys(perG).sort();
     h += '<div class="ic-agenda">' + (gg.length ? gg.map(function(d){ return '<div class="ic-ag-g"><div class="ic-ag-d' + (d === oggi ? ' oggi' : '') + '">' + _icE(_icFmtG(d)) + '</div>' + perG[d].map(_icRiga).join('') + '</div>'; }).join('') : '<div class="ic-vuoto">Nessun impegno nei prossimi 30 giorni.</div>') + '</div>';
@@ -76855,9 +76859,10 @@ function _icRiga(x){
   if(x.fonte === 'turno') sotto.push('Turno educatori');
   else if(x.fonte === 'google') sotto.push(x.calNome || 'Google Calendar');
   else if(x.fonte === 'scad') sotto.push('Promemoria automatico');
+  else if(x.fonte === 'avv') sotto.push('Avviso' + (x.rip ? ' · 🔁' : ''));
   else { sotto.push(_icTipo(x.tipo).l); if(x.chi) sotto.push('👤 ' + x.chi); if(x.e && x.e.ospite && _IOS.doc && _IOS.doc.ospiti[x.e.ospite]) sotto.push(_iosNome(_IOS.doc.ospiti[x.e.ospite])); if(x.e && x.e.rip) sotto.push('🔁'); }
   if(x.luogo) sotto.push('📍 ' + x.luogo);
-  var click = x.fonte === 'scad' ? x.vai : (x.fonte === 'imp' ? "icApri('" + x.id + "','" + x.ds + "')" : "icApriG('" + _icE(String(x.id).replace(/'/g, "\\'")) + "','" + x.ds + "')");
+  var click = (x.fonte === 'scad' || x.fonte === 'avv') ? x.vai : (x.fonte === 'imp' ? "icApri('" + x.id + "','" + x.ds + "')" : "icApriG('" + _icE(String(x.id).replace(/'/g, "\\'")) + "','" + x.ds + "')");
   var titolo = x.fonte === 'turno' && x.persone && x.persone.length ? x.persone.join(', ') + (x.titolo ? ' · ' + x.titolo : '') : x.titolo;
   return '<button type="button" class="ic-riga' + (x.fatto ? ' fatto' : '') + '" style="--c:' + x.c + '" onclick="' + click + '"><span class="ic-ora">' + ora + '</span><span class="ic-bar"></span><span class="ic-txt"><b data-no-sobrio>' + _icE(titolo) + '</b><small data-no-sobrio>' + _icE(sotto.join(' · ')) + '</small></span>' + (x.fatto ? '<span class="ic-ok">✓</span>' : '') + '</button>';
 }
@@ -77127,7 +77132,7 @@ function _icHomeHtml(){
   var turni = V.filter(function(x){ return x.ds === oggi && x.fonte === 'turno'; });
   // prossimi impegni: da oggi fino a 30 giorni, senza turni né promemoria automatici, in ordine di data e ora
   var adessoHM = ('0' + ora.getHours()).slice(-2) + ':' + ('0' + ora.getMinutes()).slice(-2), fra30 = _icPiu(oggi, 30);
-  var prossimi = _icVoci(oggi, fra30, gEv).filter(function(x){ return x.fonte !== 'turno' && x.fonte !== 'scad' && !(x.ds === oggi && x.fatto); }).slice(0, 6);
+  var prossimi = _icVoci(oggi, fra30, gEv).filter(function(x){ return x.fonte !== 'turno' && x.fonte !== 'scad' && x.fonte !== 'avv' && !(x.ds === oggi && x.fatto); }).slice(0, 6);
   var avv = (typeof window.avvisiHomeHtml === 'function') ? window.avvisiHomeHtml() : '';   // colonna Avvisi (novembre 2026)
   if(!prossimi.length && !turni.length && !_icGoogleOn() && !avv) return '<div class="ho-box ich" id="ich-box"><div class="ich-h"><b data-no-sobrio>📆 In comunità</b><button type="button" onclick="navigate(\'ist-cal\')">Calendario ›</button></div><div class="ich-vuoto">Nessun impegno nei prossimi 30 giorni. ' + (_icEdit() ? '<button type="button" class="ich-link" onclick="navigate(\'ist-cal\');setTimeout(function(){icForm(\'\',\'' + oggi + '\')},500)">➕ Aggiungi un impegno</button>' : '') + '</div></div>';
   var conTurni = _icGoogleOn() && (_icImp().gTurni || []).length;
@@ -95860,9 +95865,25 @@ window.uploadUtentiCloud=async function(){
     var u = io(); if(!u || u.ruolo === 'Totem') return false;
     try{ var j = await chiama('GET'); A.lista = j.avvisi || []; A.puoCreare = !!j.puoCreare; A.io = j.io || ''; A.ok = true; A.ultimo = Date.now(); }
     catch(e){ return false; }
-    bottone(); aggiornaHome(); return true;
+    bottone(); aggiornaHome();
+    try{ var vc = document.getElementById('view-ist-cal'); if(vc && vc.classList.contains('active') && typeof _icRender === 'function') _icRender(); }catch(e){}
+    return true;
   }
   window.avvisiCarica = carica;
+  /* occorrenze degli avvisi in un intervallo, per il calendario dell'Istituto */
+  window.avvisiOccorrenze = function(da, al){
+    if(!A.ok) return [];
+    var out = [];
+    A.lista.forEach(function(a){
+      if(!a || a._del || !a.data) return;
+      for(var ds = a.data < da ? da : a.data, n = 0; ds <= al && n < 400; ds = piu(ds, 1), n++){
+        if(!a.rip && ds > a.data) break;
+        if(capita(a, ds)) out.push({ a:a, ds:ds, fatto:!!(a.fatto && a.fatto[ds]) });
+      }
+    });
+    return out;
+  };
+  window.avvisiPronti = function(){ return A.ok; };
   /* colonna «Avvisi» nel riquadro «In comunità» della home */
   window.avvisiHomeHtml = function(){
     if(!A.ok) return '';
@@ -95923,16 +95944,17 @@ window.uploadUtentiCloud=async function(){
   /* elenco completo */
   window.avvisiApri = async function(){
     if(!A.ok || Date.now() - A.ultimo > 30000) await carica();
-    var o = oggi(), gruppi = { oggi:[], domani:[], sett:[], rip:[], passati:[] };
+    var o = oggi(), gruppi = { oggi:[], domani:[], sett:[], avanti:[], rip:[], passati:[] };
     A.lista.forEach(function(a){
       var ds = prossima(a, o, 6);
       if(ds === o) gruppi.oggi.push([a, ds]); else if(ds === piu(o, 1)) gruppi.domani.push([a, ds]); else if(ds) gruppi.sett.push([a, ds]);
+      else if(!a.rip && a.data > o && !a._del) gruppi.avanti.push([a, a.data]);
       else if(a.rip && (!a.fino || a.fino >= o)) gruppi.rip.push([a, prossima(a, o, 60) || a.data]);
       else if(!a.rip && a.data < o && a.data >= piu(o, -7)) gruppi.passati.push([a, a.data]);
     });
     var ord = function(L){ return L.sort(function(x, y){ return (x[1] + (x[0].ora || '99')).localeCompare(y[1] + (y[0].ora || '99')); }); };
     var sez = function(t, L){ return L.length ? '<div class="avv-g">' + t + '</div>' + ord(L).map(function(x){ return riga(x[0], x[1], true); }).join('') : ''; };
-    var corpo = sez('Oggi', gruppi.oggi) + sez('Domani', gruppi.domani) + sez('Prossimi giorni', gruppi.sett) + sez('Si ripetono più avanti', gruppi.rip) + sez('Ultimi 7 giorni', gruppi.passati.reverse());
+    var corpo = sez('Oggi', gruppi.oggi) + sez('Domani', gruppi.domani) + sez('Prossimi giorni', gruppi.sett) + sez('Più avanti', gruppi.avanti) + sez('Si ripetono più avanti', gruppi.rip) + sez('Ultimi 7 giorni', gruppi.passati.reverse());
     if(!corpo) corpo = '<p style="color:var(--text-muted);margin:6px 0">Nessun avviso.' + (A.puoCreare ? ' Premi «Nuovo avviso» per scriverne uno.' : '') + '</p>';
     mostra('📌 Avvisi', corpo, (A.puoCreare ? '<button class="btn btn-teal btn-sm" onclick="avvisiForm()">＋ Nuovo avviso</button>' : '') + '<button class="btn btn-outline btn-sm" onclick="avvisiVistiTutti();avvisiChiudi()">Chiudi</button>');
   };
