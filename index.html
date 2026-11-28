@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/11/2026 10:13</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57459,7 +57459,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/11/2026 10:13 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -85573,10 +85573,19 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     box.innerHTML = '<div class="ios-grid">' + lista.map(function(x){
       var ini = ((x.cognome || '?').charAt(0) + (x.nome || '').charAt(0)).toUpperCase(), sc = scadenzeEd(x);
       var badge = sc.length ? '<span class="ios-b ' + (sc[0].g < 0 ? 'imz-rosso' : 'imz-giallo') + '">' + (sc[0].g < 0 ? '⚠️ ' + E(sc[0].cosa) + ' scaduto' : '⏳ ' + E(sc[0].cosa) + ' scade tra ' + sc[0].g + ' gg') + '</span>' : '';
-      return '<div class="ios-card" onclick="edScheda(\'' + x.id + '\')"><div class="ios-av ios-av-' + (x.sesso === 'F' ? 'f' : 'm') + '">' + E(ini) + '</div><div class="ios-c-body"><div class="ios-c-nome">' + E(cap(nomeEd(x))) + '</div>'
+      var fAcc = edFotoAccount(x);
+      return '<div class="ios-card" onclick="edScheda(\'' + x.id + '\')"><div class="ios-av ios-av-' + (x.sesso === 'F' ? 'f' : 'm') + '"' + (fAcc ? ' style="padding:0;overflow:hidden"><img src="' + E(fAcc) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' : '>' + E(ini)) + '</div><div class="ios-c-body"><div class="ios-c-nome">' + E(cap(nomeEd(x))) + '</div>'
         + '<div class="ios-c-sub">' + [x.qualifica, x.comunita].filter(Boolean).map(E).join(' · ') + '</div>' + (badge ? '<div style="margin-top:6px">' + badge + '</div>' : '') + '</div></div>';
     }).join('') + '</div>';
   };
+  /* foto dell'account collegato (Account della scheda): la stessa del gestionale / GREST */
+  function edFotoAccount(x){
+    try{ if(!x || !x.account) return ''; var U = String(x.account).toUpperCase();
+      var u = (window.APP && APP.utenti || []).find(function(z){ return String(z.username || '').toUpperCase() === U; });
+      var f = (u && u.foto) || (x.foto || '');
+      return f && /^(data:image|https?:|blob:|\/)/.test(String(f)) ? f : ''; }catch(e){ return ''; }
+  }
+  window.edFotoAccount = edFotoAccount;
   window.edScheda = function(id, tab){
     var x = id ? JSON.parse(JSON.stringify(ED.doc.educatori[id] || {})) : { id:'', stato:'In servizio', documenti:[] };
     ED.cur = x; ED.tab = tab || ED.tab || 'ana'; if(!id) ED.tab = 'ana';
@@ -86132,6 +86141,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
 #portale-educatore.pe2.x-dark .nf-banner{ background:#0f2526; border-color:#1f3334 }
 .x-foglio .pe-info a{ color:#0f766e }
 #pe-vai-edu{ background:#0f766e !important }
+.pe2-av-f{ padding:0; overflow:hidden; background:#fff } .pe2-av-f img{ width:100%; height:100%; object-fit:cover; display:block }
 #pe-vai-edu{ position:fixed; right:14px; bottom:86px; z-index:100001; border:0; border-radius:999px; padding:10px 15px; background:#3B5B8C; color:#fff; font:600 14px/1 Inter,system-ui,sans-serif; box-shadow:0 6px 18px rgba(0,0,0,.25); cursor:pointer; display:none }
 #portale-educatore .pe-ev{ display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-top:1px solid var(--x-line) }
 #portale-educatore .pe-ev:first-child{ border-top:0; padding-top:2px } #portale-educatore .pe-ev:last-child{ padding-bottom:0 }
@@ -86278,6 +86288,11 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   function chiudi(){
     var pe = document.getElementById('portale-educatore'); if(pe) pe.style.display = 'none'; PE.aperto = false; PE.pronto = false;
     nascosti.forEach(function(el){ el.style.display = ''; }); nascosti = [];
+    if(doppio()){
+      // passaggio al GREST: entro direttamente nella dashboard del GREST e aggiorno gli avvisi (solo quelli per il GREST)
+      try{ aggiornaAree(); if(typeof navigate === 'function') navigate(typeof areaHomeView === 'function' ? areaHomeView('grest') : 'dashboard'); }catch(e){}
+      try{ if(typeof avvisiCarica === 'function') avvisiCarica(); }catch(e){}
+    }
   }
   setInterval(function(){
     try{
@@ -86539,6 +86554,15 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   function carta(ico, titolo, corpo, extra, sotto, tono){ return '<div class="pe2-card pe2-t-' + (tono || TONO[ico] || 'imp') + '"><div class="pe2-ch"><span class="pe2-ci">' + (ICO[ico] || ico) + '</span><div class="pe2-ct">' + titolo + (sotto ? '<small>' + sotto + '</small>' : '') + '</div>' + (extra || '') + '</div><div class="pe2-cb">' + corpo + '</div></div>'; }
   function vuota(e, t){ return '<div class="pe2-vuoto"><i>' + e + '</i>' + t + '</div>'; }
   var ESCI = "if(typeof _SIMULA!=='undefined'&&_SIMULA.attiva){simulaEsci()}else{logout()}";
+  /* unisco i dati della scheda educatore con quelli dell'account (foto) e della scheda animatore del GREST collegata */
+  function accInfo(x, u){
+    u = u || {}; var an = null;
+    try{ var db = typeof getDb === 'function' ? getDb() : null, nn = String(u.nome || '').toLowerCase().trim();
+      an = db && (db.animatori || []).find(function(a){ return (a.userId && u.id && a.userId === u.id) || (nn && ((a.nome || '') + ' ' + (a.cognome || '')).toLowerCase().trim() === nn) || (nn && String(a.nome || '').toLowerCase().trim() === nn); }) || null; }catch(e){}
+    var ok = function(f){ return f && /^(data:image|https?:|blob:|\/)/.test(String(f)) ? f : ''; };
+    return { foto: ok(u.foto) || ok(an && an.foto) || ok(x && x.foto), tel: (x && x.tel) || (an && an.tel) || '', email: (x && x.email) || (an && an.email) || u.email || '' };
+  }
+  function avatarHtml(x, u, nomeC, ini){ var f = accInfo(x, u).foto; return f ? '<span class="pe2-av pe2-av-f"><img src="' + E(f) + '" alt=""></span>' : '<span class="pe2-av" style="background:' + colore(nomeC) + '">' + E(ini) + '</span>'; }
   function heroOggi(x, u){
     var nomeC = x ? cap((x.nome || '') + ' ' + (x.cognome || '')) : cap(u.nome || '');
     var ini = x ? ((x.nome || '?').charAt(0) + (x.cognome || '').charAt(0)).toUpperCase() : String(u.nome || '?').split(' ').map(function(p){ return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
@@ -86554,7 +86578,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
         box = '<b>Oggi a riposo</b><span>' + (pr ? 'Prossimo turno ' + E(dt(pr.ds).toLocaleDateString('it-IT', { weekday:'long', day:'numeric' })) + ' alle ' + E(pr.ora) : 'Nessun turno nei prossimi giorni') + '</span>'; }
     }
     return '<div class="pe2-hero con-quick"><div class="pe2-lab">🏛️ Portale Educatore</div><button type="button" class="pe2-esci" onclick="' + ESCI + '" aria-label="Esci">' + ICO.esci + '</button>'
-      + '<div class="pe2-io"><span class="pe2-av" style="background:' + colore(nomeC) + '">' + E(ini) + '</span><div style="min-width:0"><div class="pe2-nome">' + E(nomeC) + '</div><span class="pe2-pill"><i></i>' + E(com) + '</span></div></div>'
+      + '<div class="pe2-io">' + avatarHtml(x, u, nomeC, ini) + '<div style="min-width:0"><div class="pe2-nome">' + E(nomeC) + '</div><span class="pe2-pill"><i></i>' + E(com) + '</span></div></div>'
       + '<div class="pe2-box"><small>' + ICO.turni + E(new Date().toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' })) + '</small>' + box + '</div></div>';
   }
   function heroSez(tit, sot){ return '<div class="pe2-hero"><div class="pe2-lab">🏛️ Portale Educatore</div><button type="button" class="pe2-esci" onclick="' + ESCI + '" aria-label="Esci">' + ICO.esci + '</button><div class="pe2-tit">' + E(tit) + '</div>' + (sot ? '<div class="pe2-sot">' + E(sot) + '</div>' : '') + '</div>'; }
@@ -86636,7 +86660,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
       var nst = typeof nfStato === 'function' ? nfStato() : 'no';
       var docs = x ? (x.documenti || []).concat(x.docScad ? [{ tipo:'Documento d\'identità', scadenza:x.docScad }] : []).filter(function(d){ return d.scadenza; }).map(function(d){ return { t:d.tipo || 'Documento', g:_imzGG(d.scadenza), s:d.scadenza }; }).filter(function(d){ return d.g != null && d.g <= 60; }).sort(function(a, b2){ return a.g - b2.g; }) : [];
       h += heroOggi(x, u).replace(' con-quick', '').replace(/<div class="pe2-box">[\s\S]*<\/div><\/div>$/, '</div>');
-      if(x) c += carta('profilo', 'I miei dati', [['Qualifica', x.qualifica], ['Comunità', x.comunita], ['Telefono', x.tel], ['Email', x.email], ['In servizio dal', x.assunzione ? _imzFmt(x.assunzione) : ''], ['Nome utente', u.username]].filter(function(r){ return r[1]; }).map(function(r){ return '<div class="pe2-kv"><small>' + r[0] + '</small><b>' + E(r[1]) + '</b></div>'; }).join(''));
+      if(x) c += carta('profilo', 'I miei dati', [['Qualifica', x.qualifica], ['Comunità', x.comunita], ['Telefono', accInfo(x, u).tel], ['Email', accInfo(x, u).email], ['In servizio dal', x.assunzione ? _imzFmt(x.assunzione) : ''], ['Nome utente', u.username]].filter(function(r){ return r[1]; }).map(function(r){ return '<div class="pe2-kv"><small>' + r[0] + '</small><b>' + E(r[1]) + '</b></div>'; }).join(''));
       if(docs.length) c += carta('avvisi', 'Documenti da rinnovare', docs.map(function(d){ return '<div class="pe2-kv"><small>' + E(d.t) + '</small><b style="color:' + (d.g < 0 ? '#dc2626' : '#d97706') + '">' + (d.g < 0 ? 'scaduto il ' : 'scade il ') + _imzFmt(d.s) + '</b></div>'; }).join(''));
       c += carta('oggi', 'Impostazioni', '<button type="button" class="pe2-li" onclick="xProfNotifiche()"><b>🔔 Notifiche</b><span>' + ({ attive:'Attive', spente:'Spente', bloccate:'Bloccate', 'ios-home':'Da attivare', no:'—' }[nst] || '') + '</span><span class="fr">›</span></button>'
         + '<button type="button" class="pe2-li" onclick="peAspetto()"><b>🌙 Aspetto</b><span>' + (pref === 'scuro' ? 'Scuro' : pref === 'chiaro' ? 'Chiaro' : 'Automatico') + '</span><span class="fr">›</span></button>'
@@ -96248,7 +96272,7 @@ html[data-pi-tema="scuro"] .avv-i.sosp{background:#3b1414;border-color:#7f1d1d}
   window.avvisiHomeHtml = function(){
     if(!A.ok) return '';
     var o = oggi(), L = [];
-    A.lista.forEach(function(a){ if(!a.perMe) return; var ds = prossima(a, o, 6); if(ds) L.push([a, ds]); });
+    vis().forEach(function(a){ if(!a.perMe) return; var ds = prossima(a, o, 6); if(ds) L.push([a, ds]); });
     L.sort(function(x, y){ var fx = x[0].fatto && x[0].fatto[x[1]] ? 1 : 0, fy = y[0].fatto && y[0].fatto[y[1]] ? 1 : 0; return fx - fy || (x[1] + (x[0].ora || '99')).localeCompare(y[1] + (y[0].ora || '99')); });
     var nuovi = L.filter(function(x){ return nuovo(x[0]) && !(x[0].fatto && x[0].fatto[x[1]]); }).length, tot = L.length;
     L = L.slice(0, 5);
@@ -96266,7 +96290,14 @@ html[data-pi-tema="scuro"] .avv-i.sosp{background:#3b1414;border-color:#7f1d1d}
   function aggiornaHome(){ try{ if(typeof _icAggiornaHome === 'function') _icAggiornaHome(); }catch(e){} }
 
   /* ── pulsante nella barra in alto (computer e telefono) ── */
-  function daVedere(){ var o = oggi(); return A.lista.filter(function(a){ var ds = prossima(a, o, 2); return ds && nuovo(a) && !(a.fatto && a.fatto[ds]); }); }
+  /* chi ha il doppio profilo (educatore + GREST): nel gestionale GREST vede solo gli avvisi per lui, non quelli per gli educatori o la comunità */
+  function vis(){
+    var P = window._PE, u = (window.AUTH && AUTH.currentUser) || {};
+    if(!(P && P.dop && P.dop === String(u.username || '').toUpperCase() && !P.aperto)) return A.lista;
+    var io = String(A.io || u.username || '').toUpperCase();
+    return A.lista.filter(function(a){ var d = a.a || {}; return (a.perMe && !((d.portali || []).indexOf('educatori') >= 0 && !d.tutti && !(d.ruoli || []).length && !(d.persone || []).length)) || String(a.da || '').toUpperCase() === io; });
+  }
+  function daVedere(){ var o = oggi(); return vis().filter(function(a){ var ds = prossima(a, o, 2); return ds && nuovo(a) && !(a.fatto && a.fatto[ds]); }); }
   function bottone(){
     if(!A.ok) return;
     var n = daVedere().length, html = '📌 Avvisi' + (n ? ' <span class="avv-n">' + n + '</span>' : '');
@@ -96305,7 +96336,7 @@ html[data-pi-tema="scuro"] .avv-i.sosp{background:#3b1414;border-color:#7f1d1d}
   window.avvisiApri = async function(){
     if(!A.ok || Date.now() - A.ultimo > 30000) await carica();
     var o = oggi(), gruppi = { sosp:[], oggi:[], domani:[], sett:[], avanti:[], rip:[], passati:[] };
-    A.lista.forEach(function(a){
+    vis().forEach(function(a){
       var ds = prossima(a, o, 6);
       if(ds === o) gruppi.oggi.push([a, ds]); else if(ds === piu(o, 1)) gruppi.domani.push([a, ds]); else if(ds) gruppi.sett.push([a, ds]);
       else if(!a.rip && a.data > o && !a._del) gruppi.avanti.push([a, a.data]);
