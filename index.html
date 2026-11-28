@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/11/2026 10:29</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -57459,7 +57459,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/11/2026 10:29 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -86140,7 +86140,9 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
 #portale-educatore.pe2 .pe2-t-tur .pe2-ci{ background:#e0f2fe; color:#0369a1 } #portale-educatore.pe2.x-dark .pe2-t-tur .pe2-ci{ background:#0c2a3d; color:#7dd3fc }
 #portale-educatore.pe2.x-dark .nf-banner{ background:#0f2526; border-color:#1f3334 }
 .x-foglio .pe-info a{ color:#0f766e }
-#pe-vai-edu{ background:#0f766e !important }
+#pe-vai-edu{ display:none !important }
+#pe-hd-edu{ color:#5eead4 !important; font:inherit; display:inline-flex !important; align-items:center !important; justify-content:center !important } #pe-hd-edu.pe-nasc{ display:none !important }
+#pe-hd-edu svg{ display:block }
 .pe2-av-f{ padding:0; overflow:hidden; background:#fff } .pe2-av-f img{ width:100%; height:100%; object-fit:cover; display:block }
 #pe-vai-edu{ position:fixed; right:14px; bottom:86px; z-index:100001; border:0; border-radius:999px; padding:10px 15px; background:#3B5B8C; color:#fff; font:600 14px/1 Inter,system-ui,sans-serif; box-shadow:0 6px 18px rgba(0,0,0,.25); cursor:pointer; display:none }
 #portale-educatore .pe-ev{ display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-top:1px solid var(--x-line) }
@@ -86271,22 +86273,45 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
   window.peScegli = function(v){ try{ sessionStorage.setItem('pe_scelta', v); }catch(e){} };
   /* pulsante «Portale educatori» sopra il portale animatori, per chi ha entrambi */
   function pulsanteEdu(){
-    var b = document.getElementById('pe-vai-edu'), l = document.getElementById('login-screen');
+    var l = document.getElementById('login-screen'), ha = document.getElementById('header-actions'), b = document.getElementById('pe-hd-edu');
     var mostra = doppio() && !PE.aperto && !!(l && l.classList.contains('hidden'));
-    if(!b && mostra){ b = document.createElement('button'); b.type = 'button'; b.id = 'pe-vai-edu'; b.textContent = '🏛️ Portale educatori'; b.onclick = function(){ peScegli('edu'); }; document.body.appendChild(b); }
-    if(b) b.style.display = mostra ? 'block' : 'none';
+    var vec = document.getElementById('pe-vai-edu'); if(vec) vec.remove();
+    if(!b && mostra && ha){
+      b = document.createElement('button'); b.type = 'button'; b.id = 'pe-hd-edu'; b.title = 'Portale educatori'; b.setAttribute('aria-label', 'Portale educatori');
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6z"/></svg>';
+      b.onclick = function(){ peScegli('edu'); };
+      var bell = document.getElementById('hd-bell'); ha.insertBefore(b, bell && bell.parentNode === ha ? bell : ha.firstChild);
+      try{ if(bell){ var cs = getComputedStyle(bell); ['width','height','minWidth','borderRadius','background','backgroundColor','border','padding','margin','boxShadow','display','alignItems','justifyContent','cursor','flexShrink'].forEach(function(k){ b.style[k] = cs[k]; }); } }catch(e){}
+      b.style.display = 'inline-flex'; b.style.alignItems = 'center'; b.style.justifyContent = 'center'; b.style.padding = '0';
+    }
+    if(b) b.classList.toggle('pe-nasc', !mostra);
   }
   var nascosti = [];
+  var COL_PRIMA = null;
+  function coloriTelefono(on){
+    try{
+      var mt = document.querySelector('meta[name="theme-color"]'), de = document.documentElement, sc = scuro();
+      if(on){
+        if(COL_PRIMA === null) COL_PRIMA = { mt: mt ? mt.getAttribute('content') : '', bg: de.style.background, bb: document.body.style.background };
+        var su = sc ? '#061f22' : '#0b3b40', giu = sc ? '#111e1f' : '#ffffff';
+        if(mt && mt.getAttribute('content') !== su) mt.setAttribute('content', su);
+        var g = 'linear-gradient(' + su + ' 50%, ' + giu + ' 50%)';
+        if(de.style.background !== g){ de.style.background = g; document.body.style.background = 'transparent'; }
+      } else if(COL_PRIMA){
+        if(mt) mt.setAttribute('content', COL_PRIMA.mt || '#17325e'); de.style.background = COL_PRIMA.bg || ''; document.body.style.background = COL_PRIMA.bb || ''; COL_PRIMA = null;
+      }
+    }catch(e){}
+  }
   function apri(){
     var pe = document.getElementById('portale-educatore'); if(!pe) return;
     nascosti = ['header', 'sidebar', 'main', 'mob-nav', 'mobile-nav'].map(function(id){ return document.getElementById(id); }).filter(function(el){ return el && el.style.display !== 'none'; });
     nascosti.forEach(function(el){ el.style.display = 'none'; });
     pe.classList.toggle('x-dark', scuro()); pe.classList.toggle('pe-sopra', doppio()); pe.style.display = 'block'; PE.aperto = true; PE.vista = 'oggi';
     try{ var q = new URLSearchParams(location.search).get('vai'); }catch(e){}
-    render(); carica();
+    coloriTelefono(true); render(); carica();
   }
   function chiudi(){
-    var pe = document.getElementById('portale-educatore'); if(pe) pe.style.display = 'none'; PE.aperto = false; PE.pronto = false;
+    var pe = document.getElementById('portale-educatore'); if(pe) pe.style.display = 'none'; PE.aperto = false; PE.pronto = false; coloriTelefono(false);
     nascosti.forEach(function(el){ el.style.display = ''; }); nascosti = [];
     if(doppio()){
       // passaggio al GREST: entro direttamente nella dashboard del GREST e aggiorno gli avvisi (solo quelli per il GREST)
@@ -86299,19 +86324,23 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
       var uu = io(); if(puoDoppio(uu)) controllaDoppio(); else { PE.dop = ''; PE.dopVisto = ''; }
       var d = dovrebbe();
       if(d && !PE.aperto) apri(); else if(!d && PE.aperto) chiudi();
+      if(PE.aperto) coloriTelefono(true);
       pulsanteEdu();
       if(PE.aperto){ var b = document.getElementById('simula-banner'), h = (b && b.style.display !== 'none') ? b.offsetHeight : 0; document.getElementById('portale-educatore').style.setProperty('--pe-sim', h + 'px'); }
     }catch(e){}
   }, 800);
   async function carica(){
     try{
+      var t0 = Date.now(), piano = null;
+      var ridisegna = function(){ if(piano) return; piano = setTimeout(function(){ piano = null; render(); }, 60); };
       await Promise.all([
         (typeof edCarica === 'function') ? edCarica() : null,
         (typeof istOspitiCarica === 'function') ? istOspitiCarica() : null,
         (typeof istCalCarica === 'function') ? istCalCarica() : null,
         (typeof avvisiCarica === 'function') ? avvisiCarica() : null
-      ].map(function(p){ return Promise.resolve(p).catch(function(){}); }));
+      ].map(function(p){ return Promise.resolve(p).catch(function(){}).then(function(){ PE.pronto = true; ridisegna(); }); }));
       PE.pronto = true; render();
+      try{ console.log('[portale educatori] dati pronti in', Date.now() - t0, 'ms'); }catch(e){}
       // turni e calendari Google (se collegati): dopo, senza far aspettare
       if(typeof _icGoogleOn === 'function' && _icGoogleOn() && typeof _icGoogleCarica === 'function'){ PE.gEv = await _icGoogleCarica(oggi(), piu(oggi(), 21)); render(); }
     }catch(e){ console.warn('[portale educatori]', e); PE.pronto = true; render(); }
