@@ -9380,7 +9380,7 @@ table tbody tr:hover{
       <span id="header-db-badge" onclick="navigate('dashboard')" title="Vai alla Dashboard" style="display:none;cursor:pointer;background:rgba(255,255,255,0.9);color:var(--teal-dark);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;flex-shrink:0"></span>
       <div id="header-status-stack">
         <div id="header-status-row1">
-          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. 28/11/2026 11:00</span>
+          <span id="header-build-badge" title="Ultimo aggiornamento" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0">Agg. __BUILD_TIMESTAMP__</span>
           <span id="header-sync-badge" style="background:rgba(76,175,80,0.15);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;border:2px solid rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px">
             <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s infinite;flex-shrink:0"></span>
             <span id="sync-status-text">Online</span>
@@ -38004,6 +38004,7 @@ async function loginSubmit(){
   }
 
   AUTH.currentUser = trovato.utente;
+  try{ window._peLoginOk = trovato.utente.username || trovato.utente.id; }catch(e){}
   // pass al NAS: con la porta chiusa le richieste senza pass vengono rifiutate, quindi lo aspetto (al massimo 3 s; di solito 1)
   try{ if(typeof window._passAssicura === 'function' && !(window._passCorrente && window._passCorrente())) await Promise.race([ window._passAssicura(password), new Promise(function(r){ setTimeout(r, 3000); }) ]); }catch(_eP){}
   // Non salva più una sessione persistente: al riavvio si mostra sempre la schermata login.
@@ -57459,7 +57460,7 @@ function _paTrovaDbAnimatore(){
 function paCaricaDati(){
   var user=AUTH.currentUser; if(!user) return;
   // Badge "AGG." come nell'header admin: copia il testo dal badge di build
-  // (unica fonte: 28/11/2026 11:00 sostituito al deploy) e lo mostra nell'hero.
+  // (unica fonte: __BUILD_TIMESTAMP__ sostituito al deploy) e lo mostra nell'hero.
   try{
     var _hb=document.getElementById('header-build-badge');
     var _pb=document.getElementById('pa-build-badge');
@@ -69555,7 +69556,7 @@ setInterval(_scaPulsante, 5000);
       document.body.classList.toggle('sobrio', on);
       var mt = document.querySelector('meta[name="theme-color"]');
       // con un portale aperto il colore della barra lo decide il portale (altrimenti i due si danno il cambio e la barra lampeggia)
-      var _portaleAperto = ['portale-animatore','portale-genitore','portale-totem'].some(function(id){ var e = document.getElementById(id); return !!(e && e.style.display !== 'none' && getComputedStyle(e).display !== 'none'); });
+      var _portaleAperto = ['portale-animatore','portale-genitore','portale-totem','portale-educatore'].some(function(id){ var e = document.getElementById(id); return !!(e && e.style.display !== 'none' && getComputedStyle(e).display !== 'none'); });
       if(mt && !_portaleAperto){ if(!mt._sobOrig) mt._sobOrig = mt.getAttribute('content'); var _nuovo = on ? '#17325e' : mt._sobOrig; if(mt.getAttribute('content') !== _nuovo) mt.setAttribute('content', _nuovo); }
       if(on) applicaTesti(SEL);
       else {
@@ -86266,10 +86267,17 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     try{ if(PE.dop && typeof _activeView !== 'undefined' && /^ist-/.test(String(_activeView)) && typeof navigate === 'function') navigate(typeof areaHomeView === 'function' ? areaHomeView('grest') : 'dashboard'); }catch(e){}
   }
   function dovrebbe(){
-    var u = io(), l = document.getElementById('login-screen'); if(!(u && l && l.classList.contains('hidden'))) return false;
+    var u = io(), l = document.getElementById('login-screen'); if(!(u && ((l && l.classList.contains('hidden')) || (window._peLoginOk && window._peLoginOk === (u.username || u.id))))) return false;
     if(u.ruolo === 'Educatore') return true;
     return doppio() && sceltaDoppio() === 'edu';
   }
+  window.peVaAlPortale = function(u){
+    u = u || io(); if(!u) return false;
+    if(u.ruolo === 'Educatore') return true;
+    if(!puoDoppio(u)) return false;
+    var U = String(u.username || '').toUpperCase(), c = ''; try{ c = localStorage.getItem('pe_dop') || ''; }catch(e){}
+    return (PE.dop === U || c === U) && sceltaDoppio() === 'edu';
+  };
   window.peScegli = function(v){ try{ sessionStorage.setItem('pe_scelta', v); }catch(e){} };
   /* pulsante «Portale educatori» sopra il portale animatori, per chi ha entrambi */
   function pulsanteEdu(){
@@ -86308,6 +86316,7 @@ body.x-login-scu .login-piuma-fondo{ opacity:.45; filter:invert(1) grayscale(1) 
     nascosti.forEach(function(el){ el.style.display = 'none'; });
     pe.classList.toggle('x-dark', scuro()); pe.classList.toggle('pe-sopra', doppio()); pe.style.display = 'block'; PE.aperto = true; PE.vista = 'oggi';
     try{ var q = new URLSearchParams(location.search).get('vai'); }catch(e){}
+    try{ var ov = document.getElementById('ap-ov'); if(ov) ov.remove(); document.body.classList.remove('ap-entra'); }catch(e){}
     coloriTelefono(true); render(); carica();
   }
   function chiudi(){
@@ -90565,6 +90574,7 @@ body.ap-entra #portale-animatore, body.ap-entra #portale-genitore{ animation:apS
   /* ── il fondo: appena la schermata d'accesso sparisce copro tutto, così non si vede la pagina prima dell'animazione ── */
   function fondoPer(u){
     if(!u) return '';
+    try{ if(typeof window.peVaAlPortale === 'function' && window.peVaAlPortale(u)) return ''; }catch(e){}
     if(['Totem', 'Educatore', 'Caposquadra', 'Animatore Laboratorio'].indexOf(u.ruolo) >= 0) return '';
     if(u.ruolo === 'Genitore') return 'ap-r';
     if(u.ruolo === 'Animatore'){
